@@ -4,11 +4,12 @@ This is the code for the web server
 
 '''
 
-
-from SocketServer import ThreadingMixIn
+import os
+import ssl
+from lib import base_handler
+from lib import threaded_http
 from threading import Thread
-from BaseHTTPServer import BaseHTTPRequestHandler
-from BaseHTTPServer import HTTPServer
+
 
 class Server:
 
@@ -17,4 +18,25 @@ class Server:
         self.protocol = "http"
 
     def serve(self):
-        pass
+        try:
+            print "[*] Starting web server..."
+            # bind to all interfaces
+            Thread(target=self.serve_on_port, args=[443]).start()
+            Thread(target=self.serve_on_port, args=[80]).start()
+            print "[*] Web server is currently running"
+            print "[*] Type \"killall -9 python\" to stop the web server."
+        # handle keyboard interrupts
+        except KeyboardInterrupt:
+            print "[!] Rage quiting, and stopping the web server!"
+
+    def serve_on_port(self, port):
+        if port == 443:
+            cert_path = os.getcwd() + '/server.pem'
+            server = threaded_http.ThreadingHTTPServer(("0.0.0.0", port), base_handler.GetHandler)
+            server.socket = ssl.wrap_socket(
+                server.socket, certfile=cert_path, server_side=True)
+            server.serve_forever()
+        elif port == 80:
+            server80 = threaded_http.ThreadingHTTPServer(("0.0.0.0", port), base_handler.GetHandler)
+            server80.serve_forever()
+        return
