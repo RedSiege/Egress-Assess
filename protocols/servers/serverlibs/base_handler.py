@@ -1,6 +1,7 @@
 import os
 import time
 from BaseHTTPServer import BaseHTTPRequestHandler
+from common import helpers
 
 
 class GetHandler(BaseHTTPRequestHandler):
@@ -25,38 +26,14 @@ class GetHandler(BaseHTTPRequestHandler):
         uri_posted = uri_posted.replace("/", "")
         #incoming_ip = self.client_address[0]
         # current directory
-        exfil_directory = os.path.join(os.getcwd(), "data")
+        exfil_directory = os.path.join(helpers.ea_path(), "data")
         loot_path = exfil_directory + "/"
 
         # Info for this from -
         # http://stackoverflow.com/questions/13146064/simple-
         # python-webserver-to-save-file
-        if uri_posted == "ccdata.php":
+        if uri_posted == "post_data.php":
 
-            self.send_response(200)
-            self.end_headers()
-            loot_path = exfil_directory + "/"
-
-            # Check to make sure the agent directory exists, and a loot
-            # directory for the agent.  If not, make them
-            if not os.path.isdir(loot_path):
-                os.makedirs(loot_path)
-
-            # Get the date info
-            current_date = time.strftime("%m/%d/%Y")
-            current_time = time.strftime("%H:%M:%S")
-            screenshot_name = current_date.replace("/", "") +\
-                "_" + current_time.replace(":", "") + "ccdata.txt"
-
-            # Read the length of the screenshot file being uploaded
-            screen_length = self.headers['content-length']
-            screen_data = self.rfile.read(int(screen_length))
-
-            # Write out the file
-            with open(loot_path + screenshot_name, 'w') as cc_data_file:
-                cc_data_file.write(screen_data)
-
-        elif uri_posted == "ssndata.php":
             self.send_response(200)
             self.end_headers()
 
@@ -69,7 +46,7 @@ class GetHandler(BaseHTTPRequestHandler):
             current_date = time.strftime("%m/%d/%Y")
             current_time = time.strftime("%H:%M:%S")
             screenshot_name = current_date.replace("/", "") +\
-                "_" + current_time.replace(":", "") + "ssndata.txt"
+                "_" + current_time.replace(":", "") + "web_data.txt"
 
             # Read the length of the screenshot file being uploaded
             screen_length = self.headers['content-length']

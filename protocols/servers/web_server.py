@@ -4,10 +4,10 @@ This is the code for the web server
 
 '''
 
-import os
 import ssl
-from lib import base_handler
-from lib import threaded_http
+from common import helpers
+from serverlibs import base_handler
+from serverlibs import threaded_http
 from threading import Thread
 
 
@@ -31,12 +31,14 @@ class Server:
 
     def serve_on_port(self, port):
         if port == 443:
-            cert_path = os.getcwd() + '/server.pem'
-            server = threaded_http.ThreadingHTTPServer(("0.0.0.0", port), base_handler.GetHandler)
+            cert_path = helpers.ea_path() + '/protocols/servers/server.pem'
+            server = threaded_http.ThreadingHTTPServer(
+                ("0.0.0.0", port), base_handler.GetHandler)
             server.socket = ssl.wrap_socket(
                 server.socket, certfile=cert_path, server_side=True)
             server.serve_forever()
         elif port == 80:
-            server80 = threaded_http.ThreadingHTTPServer(("0.0.0.0", port), base_handler.GetHandler)
+            server80 = threaded_http.ThreadingHTTPServer(
+                ("0.0.0.0", port), base_handler.GetHandler)
             server80.serve_forever()
         return

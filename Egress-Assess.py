@@ -16,6 +16,7 @@ import string
 import sys
 import time
 import urllib2
+from common import helpers
 from ftplib import FTP
 from ftplib import error_perm
 from SocketServer import ThreadingMixIn
@@ -155,85 +156,14 @@ def ftp_client_connect(command_line_object):
     return
 
 
-def generate_ssn():
-    ssn = randomNumbers(9)
-    ssn = ssn[0:3] + "-" + ssn[3:5] + "-" + ssn[5:9]
-    return ssn
-
-
-def http_server():
-    Thread(target=serve_on_port, args=[443]).start()
-    return
-
-
-
-def serve_on_port(port):
-    if port == 443:
-        cert_path = os.getcwd() + '/server.pem'
-        server = ThreadingHTTPServer(("0.0.0.0", port), GetHandler)
-        server.socket = ssl.wrap_socket(
-            server.socket, certfile=cert_path, server_side=True)
-        server.serve_forever()
-    elif port == 80:
-        server80 = ThreadingHTTPServer(("0.0.0.0", port), GetHandler)
-        server80.serve_forever()
-    return
-
-
-
 if __name__ == "__main__":
 
-    title_screen()
+    helpers.title_screen()
 
     cli_parsed = cli_parser()
 
-    if cli_parsed.http or cli_parsed.https:
-        if cli_parsed.ssn:
-            # Generate 150000 SSNs for http(s) transfer
-            # This is about 1.9 megs
-            post_data = ''
-            for single_ssn in range(0, 81500 * cli_parsed.data_size):
-                post_data += generate_ssn() + ', '
-            if cli_parsed.https:
-                post_url = 'https://' + cli_parsed.ip + '/ssndata.php'
-            elif cli_parsed.http:
-                post_url = 'http://' + cli_parsed.ip + '/ssndata.php'
-
-        elif cli_parsed.cc:
-            # Generate about 1.8 megs of different credit cards
-            post_data = ''
-            credit_cards = generate_credit_cards(cli_parsed)
-            for card in credit_cards:
-                post_data += card + ', '
-            # Setup URL that data is sent to, then post it there
-            if cli_parsed.https:
-                post_url = 'https://' + cli_parsed.ip + '/ccdata.php'
-            elif cli_parsed.http:
-                post_url = 'http://' + cli_parsed.ip + '/ccdata.php'
-
-        try:
-            f = urllib2.urlopen(post_url, post_data)
-            f.close()
-            print "[*] File sent!!!"
-        except urllib2.URLError:
-            print "[*] Error: Web server may not be active on " + cli_parsed.ip
-            print "[*] Error: Please check server to make sure it is active!"
-            sys.exit()
-
     elif cli_parsed.ftp:
         ftp_client_connect(cli_parsed)
-
-    elif cli_parsed.http_server:
-        try:
-            print "[*] Starting web server..."
-            # bind to all interfaces
-            Thread(target=serve_on_port, args=[443]).start()
-            Thread(target=serve_on_port, args=[80]).start()
-            print "[*] Web server is currently running"
-            print "[*] Type \"killall -9 python\" to stop the web server."
-        # handle keyboard interrupts
-        except KeyboardInterrupt:
-            print "[!] Rage quiting, and stopping the web server!"
 
     elif cli_parsed.ftp_server:
         ftp_server(cli_parsed)
