@@ -7,25 +7,8 @@
 
 
 import argparse
-import copy
-import os
-import random
-import socket
-import ssl
-import string
 import sys
-import time
-import urllib2
 from common import helpers
-from ftplib import FTP
-from ftplib import error_perm
-from SocketServer import ThreadingMixIn
-from threading import Thread
-from BaseHTTPServer import BaseHTTPRequestHandler
-from BaseHTTPServer import HTTPServer
-from pyftpdlib.authorizers import DummyAuthorizer
-from pyftpdlib.handlers import FTPHandler
-from pyftpdlib.servers import FTPServer
 
 
 def cli_parser():
@@ -103,63 +86,8 @@ def cli_parser():
     return args
 
 
-
-def ftp_client_connect(command_line_object):
-    # Create FTP objects that connects to the ftp server
-    # with the provided username and password
-    try:
-        ftp = FTP(command_line_object.ip)
-    except socket.gaierror:
-        print "[*] Error: Cannot connect to FTP server.  Checking provided ip!"
-        sys.exit()
-
-    try:
-        ftp.login(command_line_object.username, command_line_object.password)
-    except error_perm:
-        print "[*] Error: Username or password is incorrect!  Please re-run."
-        sys.exit()
-
-    # Create file to upload
-    if command_line_object.ssn:
-        # Get the date info
-
-        # Generate 150000 SSNs for http(s) transfer
-        # This is about 1.9 megs
-        ssns = ''
-        for single_ssn in range(0, 81500 * command_line_object.data_size):
-            ssns += generate_ssn() + ', '
-        with open(os.getcwd() + "/" + ftp_file_name, 'w') as ssn_temp_file:
-            ssn_temp_file.write(ssns)
-
-    elif command_line_object.cc:
-        # Get the date info
-        current_date = time.strftime("%m/%d/%Y")
-        current_time = time.strftime("%H:%M:%S")
-        ftp_file_name = current_date.replace("/", "") +\
-            "_" + current_time.replace(":", "") + "ccdata.txt"
-
-        all_ccs = ''
-        credit_cards = generate_credit_cards(command_line_object)
-        for card in credit_cards:
-            all_ccs += card + ', '
-        with open(os.getcwd() + "/" + ftp_file_name, 'w') as cc_temp_file:
-            cc_temp_file.write(all_ccs)
-
-    ftp.storlines("STOR " + ftp_file_name, open(ftp_file_name))
-    ftp.quit()
-    os.remove(ftp_file_name)
-    print "[*] File sent!!!"
-    return
-
-
 if __name__ == "__main__":
 
     helpers.title_screen()
 
     cli_parsed = cli_parser()
-
-    elif cli_parsed.ftp:
-        ftp_client_connect(cli_parsed)
-
-    elif cli_parsed.ftp_server:
-        ftp_server(cli_parsed)
