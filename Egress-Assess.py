@@ -122,10 +122,6 @@ def ftp_client_connect(command_line_object):
     # Create file to upload
     if command_line_object.ssn:
         # Get the date info
-        current_date = time.strftime("%m/%d/%Y")
-        current_time = time.strftime("%H:%M:%S")
-        ftp_file_name = current_date.replace("/", "") +\
-            "_" + current_time.replace(":", "") + "ssndata.txt"
 
         # Generate 150000 SSNs for http(s) transfer
         # This is about 1.9 megs
