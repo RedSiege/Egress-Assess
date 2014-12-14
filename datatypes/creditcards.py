@@ -7,11 +7,13 @@ This module generates credit card data
 import copy
 import random
 
+
 class Datatype:
 
-    def __init__(self):
+    def __init__(self, total_data):
         self.datatype = "credit card data"
         self.filetype = "text"
+        self.datasize = int(total_data)
 
     def completed_number(self, prefix, length, the_generator):
         """
@@ -80,11 +82,11 @@ class Datatype:
         amexPrefixList = [['3', '4'], ['3', '7']]
 
         mastercards = self.credit_card_number(
-            mastercardPrefixList, 16, 19800 * command_object.data_size)
+            mastercardPrefixList, 16, 19800 * self.data_size)
         visas = self.credit_card_number(
-            visaPrefixList, 16, 19800 * command_object.data_size)
+            visaPrefixList, 16, 19800 * self.data_size)
         amexes = self.credit_card_number(
-            amexPrefixList, 15, 19800 * command_object.data_size)
+            amexPrefixList, 15, 19800 * self.data_size)
 
         all_cards = mastercards + visas + amexes
         final_cards = ''
