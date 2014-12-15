@@ -76,6 +76,11 @@ def cli_parser():
         print "[*] Error: to connect to.  Please re-run with required info!"
         sys.exit()
 
+    if (args.ftp or args.http or args.https) and (args.cc is False and args.ssn is False):
+        print "[*] Error: You need to tell Egress-Assess the type of data to send!"
+        print "[*] Error: to connect to.  Please re-run with required info!"
+        sys.exit()
+
     if not (
         args.ftp or args.http or args.https or args.http_server or
             args.ftp_server):
