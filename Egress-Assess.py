@@ -185,9 +185,10 @@ def cli_parser():
     if not (
         args.ftp or args.http or args.https or args.http_server or
             args.ftp_server):
-        print "[*] Error: You didn't tell Egress-Assess to act like\
+        print "[*] Error: You didn't tell Egress-Assess to act like \
             a server or client!".replace('    ', '')
-        print "[*] Error: Please re-run and provide an action to perform!"
+        print "[*] Error: Please re-run and provide an action to perform!\n\n"
+        parser.print_help()
         sys.exit()
 
     return args
