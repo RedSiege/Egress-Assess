@@ -65,7 +65,7 @@ def cli_parser():
         sys.exit()
 
     # If using FTP, check to make sure a username and pass is provided
-    if args.ftp or args.ftp_server and (
+    if (args.ftp or args.ftp_server) and (
             args.password is None or args.username is None):
         print "[*] Error: FTP Server requires a username and password!"
         print "[*] Error: Please re-run and provide the required info!"
