@@ -7,8 +7,10 @@
 
 
 import argparse
+import imp
 import sys
 from common import helpers
+from common import orchestra
 
 
 def cli_parser():
@@ -98,3 +100,7 @@ if __name__ == "__main__":
     helpers.title_screen()
 
     cli_parsed = cli_parser()
+
+    the_conductor = orchestra.Conductor()
+    the_conductor.load_client_protocols()
+    the_conductor.print_client_proto()
