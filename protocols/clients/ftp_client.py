@@ -4,25 +4,16 @@ This is the ftp client code
 
 '''
 
-import os
-import socket
-import sys
-import time
-from common import helpers
-from ftplib import FTP
-from ftplib import error_perm
-
 
 class Client:
 
-    def __init__(self, data_to_go, remote_system, user, passwd):
+    def __init__(self, cli_object):
         self.protocol = "ftp"
-        self.data_to_transmit = data_to_go
-        self.remote_server = remote_system
-        self.username = user
-        self.password = passwd
+        self.remote_server = cli_object.ip
+        self.username = cli_object.username
+        self.password = cli_object.password
 
-    def transmit(self):
+    def transmit(self, data_to_transmit):
 
         try:
             ftp = FTP(self.remote_server)
@@ -42,7 +33,7 @@ class Client:
                 "_" + current_time.replace(":", "") + "ftp_data.txt"
 
         with open(helpers.ea_path() + "/data/" + ftp_file_name, 'w') as cc_temp_file:
-            cc_temp_file.write(self.data_to_transmit)
+            cc_temp_file.write(data_to_transmit)
 
         ftp.storlines("STOR " + ftp_file_name, open(helpers.ea_path() + "/data/" + ftp_file_name))
         ftp.quit()

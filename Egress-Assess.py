@@ -7,7 +7,6 @@
 
 
 import argparse
-import imp
 import sys
 from common import helpers
 from common import orchestra
@@ -102,4 +101,5 @@ if __name__ == "__main__":
     cli_parsed = cli_parser()
 
     the_conductor = orchestra.Conductor()
-    the_conductor.load_client_protocols()
+    the_conductor.load_server_protocols(cli_parsed)
+    the_conductor.print_servers()

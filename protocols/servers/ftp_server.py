@@ -4,16 +4,10 @@ This is the code for the ftp server
 
 '''
 
-import os
-import sys
-from pyftpdlib.authorizers import DummyAuthorizer
-from pyftpdlib.handlers import FTPHandler
-from pyftpdlib.servers import FTPServer
-
 
 class Server:
 
-    def __init__(self):
+    def __init__(self, cli_object):
         self.protocol = "ftp"
         self.username = ""
         self.password = ""
