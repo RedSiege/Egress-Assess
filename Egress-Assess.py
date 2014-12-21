@@ -103,4 +103,3 @@ if __name__ == "__main__":
 
     the_conductor = orchestra.Conductor()
     the_conductor.load_client_protocols()
-    the_conductor.print_client_proto()
