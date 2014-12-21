@@ -58,7 +58,7 @@ class Conductor:
     def load_datatypes(self):
         self.data = dict((name, imp.load_source(name, name)) for name in glob.glob('datatypes/*.py'))
 
-    def print_servers(self):
+    def print_datatypes(self):
         for key, value in self.server_protocols.iteritems():
             print value.protocol
         return
