@@ -48,11 +48,12 @@ def cli_parser():
 
     data_content = parser.add_argument_group('Data Content Options')
     data_content.add_argument(
+        "--data-type", default=False, action='store_true',
+        help="Extract data containing fake social security numbers.")
+    data_content.add_argument(
         "--data-size", default=1, type=int,
         help="Number of megs to send")
-    data_content.add_argument(
-        "--ssn", default=False, action='store_true',
-        help="Extract data containing fake social security numbers.")
+
     data_content.add_argument(
         '--cc', default=False, action='store_true',
         help="Extract data containing fake credit card numbers")
