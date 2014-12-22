@@ -36,7 +36,7 @@ if __name__ == "__main__":
         print
         sys.exit()
 
-    elif cli_parsed.list_data_types:
+    elif cli_parsed.list_datatypes:
         print "[*] Supported data types: \n"
         the_conductor.load_datatypes(cli_parsed)
         for name, datatype_module in the_conductor.datatypes.iteritems():
