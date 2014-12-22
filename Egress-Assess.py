@@ -101,5 +101,5 @@ if __name__ == "__main__":
     cli_parsed = cli_parser()
 
     the_conductor = orchestra.Conductor()
-    the_conductor.load_server_protocols(cli_parsed)
-    the_conductor.print_servers()
+    the_conductor.load_datatypes(cli_parsed)
+    the_conductor.print_datatypes()

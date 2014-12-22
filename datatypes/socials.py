@@ -4,15 +4,14 @@ This module generates social security numbers
 
 '''
 
-from common.lib import helpers
-
 
 class Datatype:
 
-    def __init__(self, total_data):
-        self.datatype = "social security numbers"
+    def __init__(self, cli_object):
+        self.cli = "ssn"
+        self.description = "Social Security Numbers"
         self.filetype = "text"
-        self.datasize = total_data
+        self.datasize = int(cli_object.data_size)
 
     def create_ssn(self):
         ssn = helpers.randomNumbers(9)

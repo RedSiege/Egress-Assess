@@ -4,16 +4,14 @@ This module generates credit card data
 
 '''
 
-import copy
-import random
-
 
 class Datatype:
 
-    def __init__(self, total_data):
-        self.datatype = "credit card data"
+    def __init__(self, cli_object):
+        self.cli = "cc"
+        self.description = "Credit Card Numbers"
         self.filetype = "text"
-        self.datasize = int(total_data)
+        self.datasize = int(cli_object.data_size)
 
     def completed_number(self, prefix, length, the_generator):
         """

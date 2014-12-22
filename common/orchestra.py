@@ -4,9 +4,11 @@ This is the conductor which controls everything
 
 '''
 
+import copy
 import glob
 import imp
 import os
+import random
 import socket
 import ssl
 import sys
@@ -30,7 +32,7 @@ class Conductor:
         # empty until stuff loaded into them
         self.client_protocols = {}
         self.server_protocols = {}
-        self.data = {}
+        self.datatypes = {}
 
     def load_client_protocols(self, command_line_object):
         for name in glob.glob('protocols/clients/*.py'):
@@ -55,10 +57,19 @@ class Conductor:
                 self.server_protocols[name] = loaded_server_proto.Server(command_line_object)
         return
 
-    def load_datatypes(self):
-        self.data = dict((name, imp.load_source(name, name)) for name in glob.glob('datatypes/*.py'))
+    def load_datatypes(self, command_line_object):
+        for name in glob.glob('datatypes/*.py'):
+            if name.endswith("__init__.py"):
+                pass
+            elif name.endswith(".pyc"):
+                pass
+            else:
+                loaded_datatypes = imp.load_source(name.replace("/", "."), name)
+                self.datatypes[name] = loaded_datatypes.Datatype(command_line_object)
+        return
+
 
     def print_datatypes(self):
-        for key, value in self.server_protocols.iteritems():
-            print value.protocol
+        for key, value in self.datatypes.iteritems():
+            print value.description
         return
