@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     the_conductor = orchestra.Conductor()
 
-    # Check if only listing supported server/client protocols
+    # Check if only listing supported server/client protocols or datatypes
     if cli_parsed.list_servers:
         print "[*] Supported server protocols: \n"
         the_conductor.load_server_protocols(cli_parsed)
