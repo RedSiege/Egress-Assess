@@ -17,7 +17,10 @@ To setup, run the included setup script, or perform the following:
 Usage
 =====
 
-Blog post is available here: https://www.christophertruncer.com/egress-assess-testing-egress-data-detection-capabilities/
+Blog posts are available here: 
+
+* https://www.christophertruncer.com/egress-assess-testing-egress-data-detection-capabilities/
+* https://www.christophertruncer.com/egress-assess-action-via-powershell/
 
 Typical use case for Egress-Assess is to copy this tool in two locations.  One location will act as the server, the other will act as the client.  Egress-Assess can send data over FTP, HTTP, and HTTPS.
 
