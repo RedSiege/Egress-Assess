@@ -24,21 +24,20 @@ def cli_parser():
 
     protocols = parser.add_argument_group('Client Protocol Options')
     protocols.add_argument(
-        "--ftp", default=False, action='store_true',
-        help="Extract data over FTP.")
-    protocols.add_argument("--http", default=False, action='store_true',
-                           help="Extract data over http.")
-    protocols.add_argument("--https", default=False, action='store_true',
-                           help="Extract data over https.")
+        "--client", default=None, metavar="[http]",
+        help="Extract data over the specified protocol.")
+    protocols.add_argument(
+        "--list-clients", default=False, action='store_true',
+        help="List all supported client protocols.")
     protocols.add_argument("--ip", metavar="192.168.1.2", default=None,
                            help="IP to extract data to.")
 
     servers = parser.add_argument_group('Server Protocol Options')
     servers.add_argument(
-        "--ftp-server", default=False, action='store_true',
-        help="FTP Server that receives client data.")
-    servers.add_argument("--http-server", default=False, action='store_true',
-                         help="HTTP and HTTPS server, receives POST data.")
+        "--server", default=None, metavar='[http]',
+        help="Create a server for the specified protocol.")
+    servers.add_argument("--list-servers", default=False, action='store_true',
+                         help="Lists all supported server protocols.")
 
     ftp_options = parser.add_argument_group('FTP Options')
     ftp_options.add_argument(
@@ -65,26 +64,23 @@ def cli_parser():
         parser.print_help()
         sys.exit()
 
-    # If using FTP, check to make sure a username and pass is provided
-    if (args.ftp or args.ftp_server) and (
-            args.password is None or args.username is None):
+    if (args.server == "ftp") and (args.username is None or args.password is None):
         print "[*] Error: FTP Server requires a username and password!"
         print "[*] Error: Please re-run and provide the required info!"
         sys.exit()
 
-    if (args.ftp or args.http or args.https) and args.ip is None:
+    if (args.client) and args.ip is None:
         print "[*] Error: You said to act like a client, but provided no ip"
         print "[*] Error: to connect to.  Please re-run with required info!"
         sys.exit()
 
-    if (args.ftp or args.http or args.https) and (args.cc is False and args.ssn is False):
+    if (args.client is not None) and (args.cc is False and args.ssn is False):
         print "[*] Error: You need to tell Egress-Assess the type of data to send!"
         print "[*] Error: to connect to.  Please re-run with required info!"
         sys.exit()
 
-    if not (
-        args.ftp or args.http or args.https or args.http_server or
-            args.ftp_server):
+    if (args.client is None and args.server is None and
+            args.list_servers is None and args.list_clients is None):
         print "[*] Error: You didn't tell Egress-Assess to act like \
             a server or client!".replace('    ', '')
         print "[*] Error: Please re-run and provide an action to perform!"
@@ -101,5 +97,13 @@ if __name__ == "__main__":
     cli_parsed = cli_parser()
 
     the_conductor = orchestra.Conductor()
-    the_conductor.load_datatypes(cli_parsed)
-    the_conductor.print_datatypes()
+
+    if cli_parsed.server is not None:
+        the_conductor.load_server_protocols(cli_parsed)
+        for full_path, server in the_conductor.server_protocols.iteritems():
+            if server.protocol == cli_parsed.server.lower():
+                server.serve()
+
+    elif cli_parsed.client is not None:
+        the_conductor.load_client_protocols(cli_parsed)
+        the_conductor.load_datatypes(cli_parsed)

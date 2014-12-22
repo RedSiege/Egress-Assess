@@ -4,13 +4,20 @@ This is the code for the ftp server
 
 '''
 
+import os
+from ftplib import FTP
+from ftplib import error_perm
+from pyftpdlib.authorizers import DummyAuthorizer
+from pyftpdlib.handlers import FTPHandler
+from pyftpdlib.servers import FTPServer
+
 
 class Server:
 
     def __init__(self, cli_object):
         self.protocol = "ftp"
-        self.username = ""
-        self.password = ""
+        self.username = cli_object.username
+        self.password = cli_object.password
         self.data_directory = ""
 
     def serve(self):
@@ -23,11 +30,13 @@ class Server:
         if not os.path.isdir(loot_path):
             os.makedirs(loot_path)
 
+        print loot_path
+
         try:
             authorizer = DummyAuthorizer()
             authorizer.add_user(
                 self.username, self.password,
-                loot_path, perm="lrw")
+                loot_path, perm="elradfmwM")
 
             handler = FTPHandler
             handler.authorizer = authorizer
