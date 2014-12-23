@@ -4,6 +4,8 @@ This module generates social security numbers
 
 '''
 
+from common import helpers
+
 
 class Datatype:
 

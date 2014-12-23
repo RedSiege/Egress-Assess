@@ -5,8 +5,6 @@ This is the code for the ftp server
 '''
 
 import os
-from ftplib import FTP
-from ftplib import error_perm
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
@@ -29,8 +27,6 @@ class Server:
         # directory for the agent.  If not, make them
         if not os.path.isdir(loot_path):
             os.makedirs(loot_path)
-
-        print loot_path
 
         try:
             authorizer = DummyAuthorizer()

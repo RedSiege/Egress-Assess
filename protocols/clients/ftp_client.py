@@ -4,6 +4,14 @@ This is the ftp client code
 
 '''
 
+import os
+import socket
+import sys
+import time
+from common import helpers
+from ftplib import FTP
+from ftplib import error_perm
+
 
 class Client:
 
@@ -26,16 +34,17 @@ class Client:
         except error_perm:
             print "[*] Error: Username or password is incorrect!  Please re-run."
             sys.exit()
-            # Create file name and write out file for ftp transfer
-            current_date = time.strftime("%m/%d/%Y")
-            current_time = time.strftime("%H:%M:%S")
-            ftp_file_name = current_date.replace("/", "") +\
-                "_" + current_time.replace(":", "") + "ftp_data.txt"
 
-        with open(helpers.ea_path() + "/data/" + ftp_file_name, 'w') as cc_temp_file:
+        # Create file name and write out file for ftp transfer
+        current_date = time.strftime("%m/%d/%Y")
+        current_time = time.strftime("%H:%M:%S")
+        ftp_file_name = current_date.replace("/", "") +\
+            "_" + current_time.replace(":", "") + "ftp_data.txt"
+
+        with open(helpers.ea_path() + "/" + ftp_file_name, 'w') as cc_temp_file:
             cc_temp_file.write(data_to_transmit)
 
-        ftp.storlines("STOR " + ftp_file_name, open(helpers.ea_path() + "/data/" + ftp_file_name))
+        ftp.storlines("STOR " + ftp_file_name, open(helpers.ea_path() + "/" + ftp_file_name))
         ftp.quit()
-        os.remove(ftp_file_name)
+        os.remove(helpers.ea_path() + "/" + ftp_file_name)
         print "[*] File sent!!!"

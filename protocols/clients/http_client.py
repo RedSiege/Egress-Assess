@@ -4,6 +4,9 @@ This is the web client code
 
 '''
 
+import sys
+import urllib2
+
 
 class Client:
 

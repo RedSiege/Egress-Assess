@@ -54,5 +54,22 @@ if __name__ == "__main__":
                 server.serve()
 
     elif cli_parsed.client is not None:
+        # load up all supported client protocols and datatypes
         the_conductor.load_client_protocols(cli_parsed)
         the_conductor.load_datatypes(cli_parsed)
+
+        # Loop through and find the requested datatype
+        for name, datatype_module in the_conductor.datatypes.iteritems():
+            if datatype_module.cli == cli_parsed.datatype.lower():
+                generated_data = datatype_module.generate_data()
+
+                # Once data has been generated, transmit it using the 
+                # protocol requested by the user
+                for proto_name, proto_module in the_conductor.client_protocols.iteritems():
+                    if proto_module.protocol == cli_parsed.client.lower():
+                        proto_module.transmit(generated_data)
+                        sys.exit()
+
+        print "[*] Error: You either didn't provide a valid datatype or client protocol to use."
+        print "[*] Error: Re-run and use --list-datatypes or --list-clients to see possible options."
+        sys.exit()

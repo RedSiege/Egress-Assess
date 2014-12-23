@@ -4,6 +4,9 @@ This module generates credit card data
 
 '''
 
+import copy
+import random
+
 
 class Datatype:
 
@@ -80,11 +83,11 @@ class Datatype:
         amexPrefixList = [['3', '4'], ['3', '7']]
 
         mastercards = self.credit_card_number(
-            mastercardPrefixList, 16, 19800 * self.data_size)
+            mastercardPrefixList, 16, 19800 * self.datasize)
         visas = self.credit_card_number(
-            visaPrefixList, 16, 19800 * self.data_size)
+            visaPrefixList, 16, 19800 * self.datasize)
         amexes = self.credit_card_number(
-            amexPrefixList, 15, 19800 * self.data_size)
+            amexPrefixList, 15, 19800 * self.datasize)
 
         all_cards = mastercards + visas + amexes
         final_cards = ''

@@ -4,6 +4,9 @@ This is the web client code
 
 '''
 
+import sys
+import urllib2
+
 
 class Client:
 
@@ -15,7 +18,7 @@ class Client:
 
     def transmit(self, data_to_transmit):
         # Create the url to post to
-        url = "https://" + self.remote_server + "post_data.php"
+        url = "https://" + self.remote_server + "/post_data.php"
 
         # Post the data to the web server at the specified URL
         try:

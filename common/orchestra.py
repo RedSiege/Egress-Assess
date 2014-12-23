@@ -4,23 +4,11 @@ This is the conductor which controls everything
 
 '''
 
-import copy
 import glob
 import imp
-import os
-import random
-import socket
-import ssl
-import sys
-import time
-import urllib2
-from common import helpers
-from ftplib import FTP
-from ftplib import error_perm
 from protocols.servers import *
-from pyftpdlib.authorizers import DummyAuthorizer
-from pyftpdlib.handlers import FTPHandler
-from pyftpdlib.servers import FTPServer
+from protocols.clients import *
+from datatypes import *
 
 
 class Conductor:
