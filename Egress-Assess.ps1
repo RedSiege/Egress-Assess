@@ -52,15 +52,12 @@ http://blog.harmj0y.net/
 #>
 [CmdletBinding()]
 Param (
-    [switch]$HTTP,
-    [switch]$HTTPS,
-    [switch]$FTP,
+    [string]$CLIENT,
     [Parameter(Mandatory=$True)]
     [string]$IP,
+    [string]$Datatype,
     [string]$Username,
     [string]$Password,
-    [switch]$CC,
-    [switch]$SSN,
     [int]$Size=1
     )
 
@@ -131,25 +128,25 @@ begin {
      
 
     # check for cc or ssn and pass to body
-    if ($CC) {
+    if ($DATATYPE -eq "cc") {
         Generate-CreditCards
         $Body = @()
         $Body = $allCC
-        if ($http){
+        if ($client -eq "http"){
             $url = "http://" + $IP + "/post_data.php"
         }
-        elseif ($https){
+        elseif ($client -eq "https") {
             $url = "https://" + $IP + "/post_data.php"
         }
     }
-    elseif ($SSN){
+    elseif ($DATATYPE -eq "ssn"){
         Generate-SSN
         $Body = @()
         $Body = $allSSN
-        if ($http){
+        if ($client -eq "http"){
             $url = "http://" + $IP + "/post_data.php"
         }
-        elseif ($https){
+        elseif ($client -eq "https"){
             $url = "https://" + $IP + "/post_data.php"
         }
     }
@@ -168,25 +165,27 @@ begin {
 
     function Use-Ftp {
 
-    if ($CC) {
+    $Date = Get-Date -Format Mdyyyy_hhmmss
+    $Path = "ftpdata" + $Date + ".txt"
+
+    if ($DATATYPE -eq "cc") {
         Generate-CreditCards
-        out-file -filepath ftpdata.txt -inputobject $allCC -encoding ASCII
+        out-file -filepath $Path -inputobject $allCC -encoding ASCII
     }
-    elseif ($SSN){
+    elseif ($DATATYPE -eq "ssn"){
         Generate-SSN
-        out-file -filepath ftpdata.txt -inputobject $allSSN -encoding ASCII
+        out-file -filepath $Path -inputobject $allSSN -encoding ASCII
  
     }
     else {
         Write-Verbose "You did not provide a data type to generate."
     }
-    $Path = "ftpdata.txt"
-    $Destination = "ftp://" + $IP + "/ftpdata.txt"
+    $Destination = "ftp://" + $IP + "/" + $Path
     $Credential = New-Object -TypeName System.Net.NetworkCredential -ArgumentList $Username,$Password
 
     # Create the FTP request and upload the file
     $FtpRequest = [System.Net.FtpWebRequest][System.Net.WebRequest]::Create($Destination)
-    $FtpRequest.KeepAlive = false
+    $FtpRequest.KeepAlive = $False
     $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
     $FtpRequest.Credentials = $Credential
 
@@ -202,11 +201,11 @@ begin {
 }
     process {
 
-        if ($http -or $https) {
+        if ($client -eq "http" -or $client -eq "https") {
             Use-HTTP
         }
 
-        elseif ($ftp) {
+        elseif ($client -eq "ftp") {
             Use-Ftp
         }
         else {
