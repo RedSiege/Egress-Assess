@@ -1,5 +1,3 @@
-
-
 function Egress-Assess {
 <#
 
@@ -138,10 +136,10 @@ begin {
         $Body = @()
         $Body = $allCC
         if ($http){
-            $url = "http://" + $IP + "/ccdata.php"
+            $url = "http://" + $IP + "/post_data.php"
         }
         elseif ($https){
-            $url = "https://" + $IP + "/ccdata.php"
+            $url = "https://" + $IP + "/post_data.php"
         }
     }
     elseif ($SSN){
@@ -149,10 +147,10 @@ begin {
         $Body = @()
         $Body = $allSSN
         if ($http){
-            $url = "http://" + $IP + "/ssndata.php"
+            $url = "http://" + $IP + "/post_data.php"
         }
         elseif ($https){
-            $url = "https://" + $IP + "/ssndata.php"
+            $url = "https://" + $IP + "/post_data.php"
         }
     }
     else {
