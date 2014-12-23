@@ -1,4 +1,4 @@
-function Egress-Assess {
+function Invoke-EgressAssess {
 <#
 
 .Synopsis
@@ -29,7 +29,7 @@ function Egress-Assess {
 
 .Example
     Import-Module Egress-Assess.ps1
-    Egress-Assess -client http -ip 127.0.0.1 -datatype cc -Size 1 -Verbose
+    Invoke-EgressAssess -client http -ip 127.0.0.1 -datatype cc -Size 1 -Verbose
 
 Script created by @rvrsh3ll
 https://www.rvrsh3ll.net
@@ -161,11 +161,11 @@ begin {
 
     if ($DATATYPE -eq "cc") {
         Generate-CreditCards
-        out-file -filepath $Path -inputobject $allCC -encoding ASCII
+        $FTPData = $allCC 
     }
     elseif ($DATATYPE -eq "ssn"){
         Generate-SSN
-        out-file -filepath $Path -inputobject $allSSN -encoding ASCII
+        $FTPData=$allSSN
  
     }
     else {
@@ -181,10 +181,10 @@ begin {
     $FtpRequest.Credentials = $Credential
 
     # Get the request stream, and write the file bytes to the stream
+	$Encoder = [system.Text.Encoding]::UTF8
     $RequestStream = $FtpRequest.GetRequestStream()
-    Get-Content -Path $Path -Encoding Byte | % { $RequestStream.WriteByte($_); }
+    $Encoder.GetBytes($FTPData) | % { $RequestStream.WriteByte($_); }
     $RequestStream.Close()
-    Remove-Item $Path
 
     Write-Verbose "File Transfer Complete."
     }
