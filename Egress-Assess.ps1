@@ -186,6 +186,7 @@ begin {
 
     # Create the FTP request and upload the file
     $FtpRequest = [System.Net.FtpWebRequest][System.Net.WebRequest]::Create($Destination)
+    $FtpRequest.KeepAlive = false
     $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
     $FtpRequest.Credentials = $Credential
 
