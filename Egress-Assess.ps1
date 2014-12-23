@@ -9,14 +9,8 @@ function Egress-Assess {
     Due to processing overhead in Powershell, numbers are created in batches of 5,000. 
     Reference: http://powershell.org/wp/2013/09/16/powershell-performance-the-operator-and-when-to-avoid-it/
 
-.Parameter HTTP
-    The switch to enable transfer over http
-
-.Parameter HTTPS
-    The switch to enable transfer over https
-
-.Parameter FTP
-    The switch to enable transer over ftp
+.Parameter Client
+    The string containing the protocol to egress data over
 
 .Parameter IP
     The string containing the IP or hostname of the egress assess server.
@@ -27,18 +21,15 @@ function Egress-Assess {
 .Parameter Password
     The password for the ftp server
 
-.Parameter CC
-    Enable this switch if you want to send credit card data
-
-.Parameter SSN
-    Enable this switch if you want to send social securit numbers
+.Parameter Datatype
+    The string containing the data you want to generate and exfil
 
 .Parameter Size
     How many blocks of 5000 numbers to generate
 
 .Example
     Import-Module Egress-Assess.ps1
-    Egress-Assess -http -ip 127.0.0.1 -CC -Size 1 -Verbose
+    Egress-Assess -client http -ip 127.0.0.1 -datatype cc -Size 1 -Verbose
 
 Script created by @rvrsh3ll
 https://www.rvrsh3ll.net
