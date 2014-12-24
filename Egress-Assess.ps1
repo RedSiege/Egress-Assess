@@ -31,21 +31,22 @@ function Invoke-EgressAssess {
     Import-Module Egress-Assess.ps1
     Invoke-EgressAssess -client http -ip 127.0.0.1 -datatype cc -Size 1 -Verbose
 
-Script created by @rvrsh3ll
+Script created by @rvrsh3ll @christruncer @harmj0y @sixdub
 https://www.rvrsh3ll.net
-http://www.rvrsh3ll.net/blog/
-
-
-Thanks to @christruncer for the project and @harmjoy for the powershell help!
 https://www.christophertruncer.com/
 http://blog.harmj0y.net/
+http://sixdub.net/
+
 
 #>
 [CmdletBinding()]
 Param (
+    [Parameter(Mandatory=$True)]
     [string]$CLIENT,
     [Parameter(Mandatory=$True)]
     [string]$IP,
+    [switch]$Proxy,
+    [Parameter(Mandatory=$True)]
     [string]$Datatype,
     [string]$Username,
     [string]$Password,
@@ -149,6 +150,11 @@ begin {
     [Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
     $uri = New-Object -TypeName System.Uri -ArgumentList $url
     $wc = New-Object -TypeName System.Net.WebClient
+    if ($proxy) {
+        $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+        $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+        $wc.proxy = $proxy
+    }
     Write-Verbose  "Uploading data.."
     $wc.UploadString($uri, $Body)
     Write-Verbose "Transaction Complete."
@@ -176,12 +182,17 @@ begin {
 
     # Create the FTP request and upload the file
     $FtpRequest = [System.Net.FtpWebRequest][System.Net.WebRequest]::Create($Destination)
+    if ($proxy) {
+        $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+        $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+        $FtpRequest.proxy = $proxy
+    }
     $FtpRequest.KeepAlive = $False
     $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
     $FtpRequest.Credentials = $Credential
 
     # Get the request stream, and write the file bytes to the stream
-	$Encoder = [system.Text.Encoding]::UTF8
+    $Encoder = [system.Text.Encoding]::UTF8
     $RequestStream = $FtpRequest.GetRequestStream()
     $Encoder.GetBytes($FTPData) | % { $RequestStream.WriteByte($_); }
     $RequestStream.Close()
