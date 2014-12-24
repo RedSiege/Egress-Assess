@@ -15,6 +15,9 @@ function Invoke-EgressAssess {
 .Parameter IP
     The string containing the IP or hostname of the egress assess server.
 
+.Parameter Proxy
+    This switch is used when you need to exfiltrate data using the system proxy.
+
 .Parameter Username
     The username for the ftp server
 
