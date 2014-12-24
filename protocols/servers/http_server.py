@@ -4,6 +4,8 @@ This is the code for the web server
 
 '''
 
+import socket
+import sys
 from protocols.servers.serverlibs import base_handler
 from protocols.servers.serverlibs import threaded_http
 from threading import Thread
@@ -26,7 +28,12 @@ class Server:
             print "[!] Rage quiting, and stopping the web server!"
 
     def serve_on_port(self):
-        server80 = threaded_http.ThreadingHTTPServer(
-            ("0.0.0.0", 80), base_handler.GetHandler)
-        server80.serve_forever()
+        try:
+            server80 = threaded_http.ThreadingHTTPServer(
+                ("0.0.0.0", 80), base_handler.GetHandler)
+            server80.serve_forever()
+        except socket.error:
+            print "[*][*] Error: Port 80 is currently in use!"
+            print "[*][*] Error: Please restart when port is free!\n"
+            sys.exit()
         return

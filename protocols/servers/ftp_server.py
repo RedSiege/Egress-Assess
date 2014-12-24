@@ -5,6 +5,8 @@ This is the code for the ftp server
 '''
 
 import os
+import socket
+import sys
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
@@ -40,8 +42,13 @@ class Server:
             # Define a customized banner (string returned when client connects)
             handler.banner = "Connecting to Egress-Assess's FTP server!"
 
-            server = FTPServer(('', 21), handler)
-            server.serve_forever()
+            try:
+                server = FTPServer(('', 21), handler)
+                server.serve_forever()
+            except socket.error:
+                print "[*][*] Error: Port 80 is currently in use!"
+                print "[*][*] Error: Please restart when port is free!\n"
+                sys.exit()
         except ValueError:
             print "[*] Error: The directory you provided may not exist!"
             print "[*] Error: Please re-run with a valid FTP directory."

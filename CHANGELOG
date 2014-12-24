@@ -1,0 +1,3 @@
+[12.24.2014]
+    Released: Egress-Assess is now its own framework.  Users can now create server or client support for new protocols, or modules for generating data.
+    Modified: Added error message for trying to start http(s) or ftp server when port is in use.
