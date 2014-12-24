@@ -1,6 +1,4 @@
-
-
-function Egress-Assess {
+function Invoke-EgressAssess {
 <#
 
 .Synopsis
@@ -11,17 +9,14 @@ function Egress-Assess {
     Due to processing overhead in Powershell, numbers are created in batches of 5,000. 
     Reference: http://powershell.org/wp/2013/09/16/powershell-performance-the-operator-and-when-to-avoid-it/
 
-.Parameter HTTP
-    The switch to enable transfer over http
-
-.Parameter HTTPS
-    The switch to enable transfer over https
-
-.Parameter FTP
-    The switch to enable transer over ftp
+.Parameter Client
+    The string containing the protocol to egress data over
 
 .Parameter IP
     The string containing the IP or hostname of the egress assess server.
+
+.Parameter Proxy
+    This switch is used when you need to exfiltrate data using the system proxy.
 
 .Parameter Username
     The username for the ftp server
@@ -29,40 +24,35 @@ function Egress-Assess {
 .Parameter Password
     The password for the ftp server
 
-.Parameter CC
-    Enable this switch if you want to send credit card data
-
-.Parameter SSN
-    Enable this switch if you want to send social securit numbers
+.Parameter Datatype
+    The string containing the data you want to generate and exfil
 
 .Parameter Size
     How many blocks of 5000 numbers to generate
 
 .Example
     Import-Module Egress-Assess.ps1
-    Egress-Assess -http -ip 127.0.0.1 -CC -Size 1 -Verbose
+    Invoke-EgressAssess -client http -ip 127.0.0.1 -datatype cc -Size 1 -Verbose
 
-Script created by @rvrsh3ll
+Script created by @rvrsh3ll @christruncer @harmj0y @sixdub
 https://www.rvrsh3ll.net
-http://www.rvrsh3ll.net/blog/
-
-
-Thanks to @christruncer for the project and @harmjoy for the powershell help!
 https://www.christophertruncer.com/
 http://blog.harmj0y.net/
+http://sixdub.net/
+
 
 #>
 [CmdletBinding()]
 Param (
-    [switch]$HTTP,
-    [switch]$HTTPS,
-    [switch]$FTP,
+    [Parameter(Mandatory=$True)]
+    [string]$CLIENT,
     [Parameter(Mandatory=$True)]
     [string]$IP,
+    [switch]$Proxy,
+    [Parameter(Mandatory=$True)]
+    [string]$Datatype,
     [string]$Username,
     [string]$Password,
-    [switch]$CC,
-    [switch]$SSN,
     [int]$Size=1
     )
 
@@ -133,26 +123,26 @@ begin {
      
 
     # check for cc or ssn and pass to body
-    if ($CC) {
+    if ($DATATYPE -eq "cc") {
         Generate-CreditCards
         $Body = @()
         $Body = $allCC
-        if ($http){
-            $url = "http://" + $IP + "/ccdata.php"
+        if ($client -eq "http"){
+            $url = "http://" + $IP + "/post_data.php"
         }
-        elseif ($https){
-            $url = "https://" + $IP + "/ccdata.php"
+        elseif ($client -eq "https") {
+            $url = "https://" + $IP + "/post_data.php"
         }
     }
-    elseif ($SSN){
+    elseif ($DATATYPE -eq "ssn"){
         Generate-SSN
         $Body = @()
         $Body = $allSSN
-        if ($http){
-            $url = "http://" + $IP + "/ssndata.php"
+        if ($client -eq "http"){
+            $url = "http://" + $IP + "/post_data.php"
         }
-        elseif ($https){
-            $url = "https://" + $IP + "/ssndata.php"
+        elseif ($client -eq "https"){
+            $url = "https://" + $IP + "/post_data.php"
         }
     }
     else {
@@ -163,6 +153,11 @@ begin {
     [Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
     $uri = New-Object -TypeName System.Uri -ArgumentList $url
     $wc = New-Object -TypeName System.Net.WebClient
+    if ($proxy) {
+        $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+        $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+        $wc.proxy = $proxy
+    }
     Write-Verbose  "Uploading data.."
     $wc.UploadString($uri, $Body)
     Write-Verbose "Transaction Complete."
@@ -170,32 +165,40 @@ begin {
 
     function Use-Ftp {
 
-    if ($CC) {
+    $Date = Get-Date -Format Mdyyyy_hhmmss
+    $Path = "ftpdata" + $Date + ".txt"
+
+    if ($DATATYPE -eq "cc") {
         Generate-CreditCards
-        out-file -filepath ftpdata.txt -inputobject $allCC -encoding ASCII
+        $FTPData = $allCC 
     }
-    elseif ($SSN){
+    elseif ($DATATYPE -eq "ssn"){
         Generate-SSN
-        out-file -filepath ftpdata.txt -inputobject $allSSN -encoding ASCII
+        $FTPData=$allSSN
  
     }
     else {
         Write-Verbose "You did not provide a data type to generate."
     }
-    $Path = "ftpdata.txt"
-    $Destination = "ftp://" + $IP + "/ftpdata.txt"
+    $Destination = "ftp://" + $IP + "/" + $Path
     $Credential = New-Object -TypeName System.Net.NetworkCredential -ArgumentList $Username,$Password
 
     # Create the FTP request and upload the file
     $FtpRequest = [System.Net.FtpWebRequest][System.Net.WebRequest]::Create($Destination)
+    if ($proxy) {
+        $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+        $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+        $FtpRequest.proxy = $proxy
+    }
+    $FtpRequest.KeepAlive = $False
     $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
     $FtpRequest.Credentials = $Credential
 
     # Get the request stream, and write the file bytes to the stream
+    $Encoder = [system.Text.Encoding]::UTF8
     $RequestStream = $FtpRequest.GetRequestStream()
-    Get-Content -Path $Path -Encoding Byte | % { $RequestStream.WriteByte($_); }
+    $Encoder.GetBytes($FTPData) | % { $RequestStream.WriteByte($_); }
     $RequestStream.Close()
-    Remove-Item $Path
 
     Write-Verbose "File Transfer Complete."
     }
@@ -203,11 +206,11 @@ begin {
 }
     process {
 
-        if ($http -or $https) {
+        if ($client -eq "http" -or $client -eq "https") {
             Use-HTTP
         }
 
-        elseif ($ftp) {
+        elseif ($client -eq "ftp") {
             Use-Ftp
         }
         else {
