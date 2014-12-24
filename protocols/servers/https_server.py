@@ -4,7 +4,9 @@ This is the code for the web server
 
 '''
 
+import socket
 import ssl
+import sys
 from common import helpers
 from protocols.servers.serverlibs import base_handler
 from protocols.servers.serverlibs import threaded_http
@@ -28,11 +30,16 @@ class Server:
             print "[!] Rage quiting, and stopping the web server!"
 
     def serve_on_port(self):
-        cert_path = helpers.ea_path() +\
-            '/protocols/servers/serverlibs/server.pem'
-        server = threaded_http.ThreadingHTTPServer(
-            ("0.0.0.0", 443), base_handler.GetHandler)
-        server.socket = ssl.wrap_socket(
-            server.socket, certfile=cert_path, server_side=True)
-        server.serve_forever()
+        try:
+            cert_path = helpers.ea_path() +\
+                '/protocols/servers/serverlibs/server.pem'
+            server = threaded_http.ThreadingHTTPServer(
+                ("0.0.0.0", 443), base_handler.GetHandler)
+            server.socket = ssl.wrap_socket(
+                server.socket, certfile=cert_path, server_side=True)
+            server.serve_forever()
+        except socket.error:
+            print "[*][*] Error: Port 443 is currently in use!"
+            print "[*][*] Error: Please restart when port is free!\n"
+            sys.exit()
         return
