@@ -26,6 +26,7 @@ class Server:
         # handle keyboard interrupts
         except KeyboardInterrupt:
             print "[!] Rage quiting, and stopping the web server!"
+        return
 
     def serve_on_port(self):
         try:

@@ -38,7 +38,7 @@ class Conductor:
                 pass
             elif name.endswith(".pyc"):
                 pass
-            else:
+            elif name.endswith(".py"):
                 loaded_server_proto = imp.load_source(name.replace("/", ".").rstrip('.py'), name)
                 self.server_protocols[name] = loaded_server_proto.Server(command_line_object)
         return
