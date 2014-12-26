@@ -1,3 +1,9 @@
+[12.26.2014]
+    Added...: Client module template has been added to the framework for creating client modules.
+
+[12.25.2014]
+    Added...: Server module template has been added to the framework for creating server modules.
+
 [12.24.2014]
     Released: Egress-Assess is now its own framework.  Users can now create server or client support for new protocols, or modules for generating data.
     Modified: Added error message for trying to start http(s) or ftp server when port is in use.
