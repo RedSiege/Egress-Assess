@@ -11,7 +11,6 @@ import urllib2
 class Client:
 
     def __init__(self, cli_object):
-        # Really http and https
         self.data_to_transmit = ''
         self.remote_server = cli_object.ip
         self.protocol = "http"

@@ -12,8 +12,9 @@ Finally, be sure to rename this to a .py file
 class Server:
 
     def __init__(self, cli_object):
-        # This is the protocol that is viewable when using --list-servers
-        # This is what the user would use along with --server
+        # self.protocol is the protocol that is viewable when using --list-servers
+        # This is what the user would use along with --server.  It is the only
+        # required attribute of the object.
         # You have complete access to command line arguments
         # within __init__
         # Anything that needs to be set for the server to run should have
