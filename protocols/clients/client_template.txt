@@ -1,0 +1,30 @@
+'''
+
+This is the template that should be used for client modules.
+A brief description of the client module can/should be placed
+up here.  All necessary imports should be placed between the
+comments and class declaration.
+
+Finally, be sure to rename your client module to a .py file
+
+'''
+
+
+class Client:
+
+    # Within __init__, you have access to everything passed in
+    # via the command line.  self.protocol is the variable listed
+    # when running --list-clients and is what is used in conjunction
+    # with --client <client>.  self.protocol is the only required attribute
+    # of the object.
+    def __init__(self, cli_object):
+        self.protocol = ""
+
+    # transmit is the only required function within the object.  It is what
+    # called by the framework to transmit data.  However, you can create as 
+    # many "sub functions" for transmit to invoke as needed.  "data_to_transmit"
+    # is a variable passed in by the framework which contains the data that 
+    # is to be sent out by the client.
+    def transmit(self, data_to_transmit):
+        
+        return
