@@ -1,0 +1,34 @@
+'''
+
+A brief description can be placed up in this comment section.
+This is the template that can be used for datatype modules.
+All imports should go between this comments section and the
+class declaration.
+
+Finally, the module should be renamed to a .py file
+
+'''
+
+
+class Datatype:
+
+    # self.cli, self.description, and self.filetype are required attributes.
+    # self.cli is what is listed (along with self.description) when running
+    # --list-datatypes.  self.cli is also used in conjunction with --datatype
+    # to specify the datatype.  self.description is just a description of the
+    # data being generated.  self.filetype should be set to text if it is a text
+    # data being generated (vs. binary).
+    # The __init__ has full access to all command line parameters passed
+    # in at runtime.
+    def __init__(self, cli_object):
+        self.cli = ""
+        self.description = ""
+        self.filetype = "text"
+
+    # generate is a required function.  This is what is called by the framework
+    # to generate the data.  Any number of "sub functions" can be created, but
+    # generate should be considered the "main" function.  generate must return
+    # the generated data.
+    def generate_data(self):
+
+        return data
