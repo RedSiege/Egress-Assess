@@ -10,6 +10,7 @@ base code came from - https://searchcode.com/codesearch/raw/53300304/
 import os
 import paramiko
 import socket
+import sys
 import threading
 import time
 from common import helpers
@@ -88,13 +89,8 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
         if username is not None:
             user = usermap[username]
             os.system("svn commit -m 'committing user session for %s' %s" % (username, root_dir + "/" + user.home))
+        return
 
-    # This is the main function that is called by the framework
-    # You can build out as many different functions, but they all
-    # need to be called from "serve".  If there is a specific function
-    # or class that must be seperated out from this file (ideally keep
-    # everything in here if possible), then add them to the serverlibs
-    # directory
     def serve(self):
 
         loot_path = os.path.join(helpers.ea_path(), "data") + "/"
@@ -103,19 +99,28 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
         if not os.path.isdir(loot_path):
             os.makedirs(loot_path)
 
-        user_map = [sftp_classes.User(username=self.username, password=self.password, chroot=False),]
+        user_map = [sftp_classes.User(
+            username=self.username, password=self.password, chroot=False), ]
 
         print "[*] Starting SFTP Server..."
 
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind(('0.0.0.0', self.port))
-        server_socket.listen(10)
+        try:
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.bind(('0.0.0.0', self.port))
+            server_socket.listen(10)
+        except socket.error:
+            print "[*] Error: Port in use! Please restart when port 22 is free!"
+            sys.exit()
 
         while True:
-            client, addr = server_socket.accept()
-            t = threading.Thread(target=self.accept_client, args=[
-                client, addr, self.sftp_directory, user_map,
-                self.rsa_key, self.password])
-            t.start()
+            try:
+                client, addr = server_socket.accept()
+                t = threading.Thread(target=self.accept_client, args=[
+                    client, addr, self.sftp_directory, user_map,
+                    self.rsa_key, self.password])
+                t.start()
+            except KeyboardInterrupt:
+                print "[*] Shutting down SFTP Server..."
+                sys.exit()
 
         return
