@@ -21,13 +21,6 @@ from protocols.servers.serverlibs.sftp import sftp_classes
 class Server:
 
     def __init__(self, cli_object):
-        # self.protocol is the protocol that is viewable when using --list-servers
-        # This is what the user would use along with --server.  It is the only
-        # required attribute of the object.
-        # You have complete access to command line arguments
-        # within __init__
-        # Anything that needs to be set for the server to run should have
-        # a self attribute created within __init__
         self.protocol = "sftp"
         self.username = cli_object.username
         self.password = cli_object.password
@@ -63,7 +56,8 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
 -----END RSA PRIVATE KEY-----
 """
 
-    def accept_client(self, client, addr, root_dir, users, host_rsa_key, password):
+    def accept_client(
+            self, client, addr, root_dir, users, host_rsa_key, password):
         usermap = {}
         for u in users:
             usermap[u.username] = u
