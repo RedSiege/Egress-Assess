@@ -96,7 +96,7 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
         user_map = [sftp_classes.User(
             username=self.username, password=self.password, chroot=False), ]
 
-        print "[*] Starting SFTP Server..."
+        print "[*] Starting SFTP server..."
 
         try:
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -106,6 +106,8 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
             print "[*] Error: Port in use! Please restart when port 22 is free!"
             sys.exit()
 
+        print "[*] SFTP server started!\n"
+
         while True:
             try:
                 client, addr = server_socket.accept()
@@ -114,7 +116,7 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
                     self.rsa_key, self.password])
                 t.start()
             except KeyboardInterrupt:
-                print "[*] Shutting down SFTP Server..."
+                print "[*] Shutting down SFTP server..."
                 sys.exit()
 
         return
