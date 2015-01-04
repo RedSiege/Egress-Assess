@@ -64,7 +64,7 @@ def cli_parser():
         parser.print_help()
         sys.exit()
 
-    if ((args.server == "ftp" or "sftp") or (args.client == "ftp" or "ftp"))\
+    if ((args.server == "ftp" or args.server == "sftp") or (args.client == "ftp" or args.client == "sftp"))\
             and (args.username is None or args.password is None):
         print "[*] Error: FTP or SFTP connections require \
             a username and password!".replace('    ', '')
