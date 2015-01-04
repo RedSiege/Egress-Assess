@@ -24,10 +24,6 @@ class Client:
 
     def transmit(self, data_to_transmit):
 
-        print "[*][*] WARNING: Currently only works with root user account!"
-        print "[*][*] WARNING: This should be fixed when SFTP server module \
-            is released!".replace('    ', '')
-
         print "[*] Transmitting data..."
 
         sftp_file_name = helpers.writeout_text_data(data_to_transmit)
