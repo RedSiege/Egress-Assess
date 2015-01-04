@@ -1,7 +1,6 @@
 import base64
 import os
 import paramiko
-import socket
 import tempfile
 import threading
 import time

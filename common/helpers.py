@@ -9,6 +9,7 @@ import os
 import random
 import string
 import sys
+import time
 
 
 def cli_parser():
@@ -114,3 +115,17 @@ def title_screen():
 
 def ea_path():
     return os.getcwd()
+
+
+def writeout_text_data(incoming_data):
+    # Get the date info
+    current_date = time.strftime("%m/%d/%Y")
+    current_time = time.strftime("%H:%M:%S")
+    file_name = current_date.replace("/", "") +\
+        "_" + current_time.replace(":", "") + "text_data.txt"
+
+    # Write out the file
+    with open(ea_path() + "/" + file_name, 'w') as out_file:
+        out_file.write(incoming_data)
+
+    return file_name
