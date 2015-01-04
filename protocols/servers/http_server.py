@@ -6,8 +6,8 @@ This is the code for the web server
 
 import socket
 import sys
-from protocols.servers.serverlibs import base_handler
-from protocols.servers.serverlibs import threaded_http
+from protocols.servers.serverlibs.web import base_handler
+from protocols.servers.serverlibs.web import threaded_http
 from threading import Thread
 
 

@@ -8,8 +8,8 @@ import socket
 import ssl
 import sys
 from common import helpers
-from protocols.servers.serverlibs import base_handler
-from protocols.servers.serverlibs import threaded_http
+from protocols.servers.serverlibs.web import base_handler
+from protocols.servers.serverlibs.web import threaded_http
 from threading import Thread
 
 
@@ -33,7 +33,7 @@ class Server:
     def serve_on_port(self):
         try:
             cert_path = helpers.ea_path() +\
-                '/protocols/servers/serverlibs/server.pem'
+                '/protocols/servers/serverlibs/web/server.pem'
             server = threaded_http.ThreadingHTTPServer(
                 ("0.0.0.0", 443), base_handler.GetHandler)
             server.socket = ssl.wrap_socket(
