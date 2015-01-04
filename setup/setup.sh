@@ -8,7 +8,7 @@ cd pyftpdlib
 python setup.py install
 cd ..
 rm -rf pyftpdlib
-cd ../protocols/servers/serverlibs
+cd ../protocols/servers/serverlibs/web
 clear
 echo "[*] Generating SSL Certificate"
 openssl req -new -x509 -keyout server.pem -out server.pem -days 365 -nodes
