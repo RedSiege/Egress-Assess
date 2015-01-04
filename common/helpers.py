@@ -64,9 +64,10 @@ def cli_parser():
         parser.print_help()
         sys.exit()
 
-    if (args.server == "ftp" or args.client == "ftp") and (
-            args.username is None or args.password is None):
-        print "[*] Error: FTP connections require a username and password!"
+    if ((args.server == "ftp" or "sftp") or (args.client == "ftp" or "ftp"))\
+            and (args.username is None or args.password is None):
+        print "[*] Error: FTP or SFTP connections require \
+            a username and password!".replace('    ', '')
         print "[*] Error: Please re-run and provide the required info!"
         sys.exit()
 
@@ -76,7 +77,8 @@ def cli_parser():
         sys.exit()
 
     if (args.client is not None) and (args.datatype is None):
-        print "[*] Error: You need to tell Egress-Assess the type of data to send!"
+        print "[*] Error: You need to tell Egress-Assess the type \
+            of data to send!".replace('    ', '')
         print "[*] Error: to connect to.  Please re-run with required info!"
         sys.exit()
 
@@ -107,9 +109,9 @@ def randomNumbers(b):
 
 def title_screen():
     os.system('clear')
-    print "################################################################################"
-    print "#                               Egress-Assess                                  #"
-    print "################################################################################\n"
+    print "#" * 80
+    print "#" + " " * 32 + "Egress-Assess" + " " * 33 + "#"
+    print "#" * 80 + "\n"
     return
 
 
