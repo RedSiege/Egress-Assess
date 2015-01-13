@@ -6,12 +6,15 @@
 # capabilities.
 
 
+import logging
 import sys
 from common import helpers
 from common import orchestra
 
 
 if __name__ == "__main__":
+
+    logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
     helpers.title_screen()
 
