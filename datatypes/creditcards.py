@@ -67,6 +67,7 @@ class Datatype:
         return result
 
     def generate_data(self):
+        print "[*] Generating data..."
         # credit card constants
         visaPrefixList = [
             ['4', '5', '3', '9'],
