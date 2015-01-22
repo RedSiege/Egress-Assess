@@ -7,6 +7,7 @@ This is for functions potentially used by all modules
 import argparse
 import os
 import random
+import re
 import string
 import sys
 import time
@@ -117,6 +118,20 @@ def title_screen():
 
 def ea_path():
     return os.getcwd()
+
+
+def validate_ip(val_ip):
+    # This came from (Mult-line link for pep8 compliance)
+    # http://python-iptools.googlecode.com/svn-history/r4
+    # /trunk/iptools/__init__.py
+    ip_re = re.compile(r'^(\d{1,3}\.){0,3}\d{1,3}$')
+    if ip_re.match(val_ip):
+        quads = (int(q) for q in val_ip.split('.'))
+        for q in quads:
+            if q > 255:
+                return False
+        return True
+    return False
 
 
 def writeout_text_data(incoming_data):
