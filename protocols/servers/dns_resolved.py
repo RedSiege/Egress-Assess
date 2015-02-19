@@ -23,7 +23,7 @@ class Server:
     def customAction(self, packet):
 
         if packet.haslayer(DNSQR):
-            dnsqr_strings = repr(packet[DNSRR])
+            dnsqr_strings = repr(packet[DNSQR])
             try:
                 print dnsqr_strings
             except TypeError:
