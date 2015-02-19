@@ -15,23 +15,17 @@ class Server:
 
     def __init__(self, cli_object):
 
-        self.protocol = "dns"
+        self.protocol = "dns_resolved"
         self.last_packet = ''
         self.file_name = ''
         self.loot_path = ''
 
     def customAction(self, packet):
 
-        if packet.haslayer(DNSRR):
-            dnsrr_strings = repr(packet[DNSRR])
+        if packet.haslayer(DNSQR):
+            dnsqr_strings = repr(packet[DNSRR])
             try:
-                incoming_data = base64.b64decode(dnsrr_strings.split('\'')[1].rstrip('.'))
-                if incoming_data == self.last_packet:
-                    pass
-                else:
-                    with open(self.loot_path + self.file_name, 'a') as dns_out:
-                        dns_out.write(incoming_data)
-                    self.last_packet = incoming_data
+                print dnsqr_strings
             except TypeError:
                 pass
         return
