@@ -7,7 +7,6 @@ http://blog.cobaltstrike.com/2013/06/20/thatll-never-work-we-dont-allow-port-53-
 '''
 
 import base64
-import re
 import socket
 import sys
 from common import helpers
