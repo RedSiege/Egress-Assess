@@ -26,6 +26,11 @@ class Server:
             dnsqr_strings = repr(packet[DNSQR])
             try:
                 print dnsqr_strings
+                spoofed_pkt = IP(dst=packet[IP].src, src=packet[IP].dst) /\
+                      UDP(dport=packet[UDP].sport, sport=packet[UDP].dport) /\
+                      DNS(id=packet[DNS].id, qd=packet[DNS].qd, aa = 1, qr=1, \
+                      an=DNSRR(rrname=packet[DNS].qd.qname,  ttl=10, rdata='0.0.0.0'))
+                send(spoofed_pkt)
             except TypeError:
                 pass
         return
