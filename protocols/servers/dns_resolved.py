@@ -30,7 +30,7 @@ class Server:
                       UDP() /\
                       DNS(id=packet[DNS].id, qd=packet[DNS].qd, aa = 1, qr=1, \
                       an=DNSRR(rrname=packet[DNS].qd.qname,  ttl=10, rdata='0.0.0.0'))
-                send(spoofed_pkt)
+                send1(spoofed_pkt)
             except TypeError:
                 pass
         return
