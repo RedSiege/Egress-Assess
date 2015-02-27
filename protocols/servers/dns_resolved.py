@@ -32,7 +32,7 @@ class Server:
                 else:
                     encoded_data = incoming_data.split('.')[0]
 
-                print encoded_data
+                print base64.b64decode(encoded_data)
 
             except TypeError:
                 pass
