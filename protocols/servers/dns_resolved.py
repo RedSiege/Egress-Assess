@@ -25,12 +25,9 @@ class Server:
         if packet.haslayer(DNSQR):
             dnsqr_strings = repr(packet[DNSQR])
             try:
-                print dnsqr_strings
-                spoofed_pkt = IP(dst=packet[IP].src, src=packet[IP].dst) /\
-                      UDP() /\
-                      DNS(id=packet[DNS].id, qd=packet[DNS].qd, aa = 1, qr=1, \
-                      an=DNSRR(rrname=packet[DNS].qd.qname,  ttl=10, rdata='0.0.0.0'))
-                send1(spoofed_pkt)
+                incoming_data = base64.b64decode(dnsqr_strings.split('\'')[1].rstrip('.'))
+                print incoming_data
+
             except TypeError:
                 pass
         return
