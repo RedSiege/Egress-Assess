@@ -25,8 +25,14 @@ class Server:
         if packet.haslayer(DNSQR):
             dnsqr_strings = repr(packet[DNSQR])
             try:
-                incoming_data = base64.b64decode(dnsqr_strings.split('\'')[1].rstrip('.'))
-                print incoming_data
+                incoming_data = dnsqr_strings.split('\'')[1].rstrip('.')
+                number_equals = incoming_data.count('.--')
+                if '.---' in incoming_data:
+                    encoded_data = incoming_data.split('.')[0] + "=" * number_equals
+                else:
+                    encoded_data = incoming_data.split('.')[0]
+
+                print encoded_data
 
             except TypeError:
                 pass
