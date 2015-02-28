@@ -32,7 +32,11 @@ class Server:
                 else:
                     encoded_data = incoming_data.split('.')[0]
 
-                encoded_data = base64.b64decode(encoded_data)
+                try:
+                    encoded_data = base64.b64decode(encoded_data)
+                except:
+                    pass
+
                 if encoded_data == self.last_packet:
                     pass
                 else:
