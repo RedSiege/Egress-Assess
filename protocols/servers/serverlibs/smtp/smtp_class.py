@@ -2,7 +2,6 @@
 # Code from https://github.com/trentrichardson/Python-Email-Dissector/blob/master/EDHelpers/EDServer.py
 
 import base64
-import email
 from email.parser import Parser
 import smtpd
 import time
@@ -24,7 +23,12 @@ class CustomSMTPServer(smtpd.SMTPServer):
         msgobj = p.parsestr(data)
         for part in msgobj.walk():
             attachment = self.email_parse_attachment(part)
-            if attachment is None:
+            if type(attachment) is dict and 'filedata' in attachment:
+                    decoded_file_data = base64.b64decode(attachment['filedata'])
+                    attach_file_name = attachment['filename']
+                    with open(loot_directory + "/" + attach_file_name, 'wb') as attached_file:
+                        attached_file.write(decoded_file_data)
+            else:
                 current_date = time.strftime("%m/%d/%Y")
                 current_time = time.strftime("%H:%M:%S")
                 file_name = current_date.replace("/", "") +\
@@ -32,17 +36,7 @@ class CustomSMTPServer(smtpd.SMTPServer):
 
                 with open(loot_directory + "/" + file_name, 'w') as email_file:
                     email_file.write(data)
-            else:
-                if attachment:
-                    decoded_file_data = base64.b64decode(attachment['filedata'])
-                    attach_file_name = attachment['filename']
-                    with open(loot_directory + "/" + attach_file_name, 'wb') as attached_file:
-                        attached_file.write(decoded_file_data)
-                elif part.get_content_type() == "text/plain":
-                    body_text += unicode(part.get_payload(decode=True),part.get_content_charset(),'replace').encode('utf8','replace')
-                elif part.get_content_type() == "text/html":
-                    body_html += unicode(part.get_payload(decode=True),part.get_content_charset(),'replace').encode('utf8','replace')
-                
+
         return
 
     def email_parse_attachment(self, message_part):
