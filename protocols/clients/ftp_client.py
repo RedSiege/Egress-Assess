@@ -19,6 +19,13 @@ class Client:
         self.remote_server = cli_object.ip
         self.username = cli_object.username
         self.password = cli_object.password
+        if cli_object.file is None:
+            self.file_transfer = False
+        else:
+            if "/" in cli_object.file:
+                self.file_transfer = cli_object.file.split("/")[-1]
+            else:
+                self.file_transfer = cli_object.file
 
     def transmit(self, data_to_transmit):
 
@@ -34,11 +41,15 @@ class Client:
             print "[*] Error: Username or password is incorrect!  Please re-run."
             sys.exit()
 
-        ftp_file_name = helpers.writeout_text_data(data_to_transmit)
+        if not self.file_transfer:
+            ftp_file_name = helpers.writeout_text_data(data_to_transmit)
 
-        ftp.storlines(
-            "STOR " + ftp_file_name, open(helpers.ea_path()
-                    + "/" + ftp_file_name))
+            ftp.storlines(
+                "STOR " + ftp_file_name, open(helpers.ea_path()
+                        + "/" + ftp_file_name))
+            os.remove(helpers.ea_path() + "/" + ftp_file_name)
+        else:
+            ftp.storbinary("STOR " + self.file_transfer, open(self.file_transfer))
+
         ftp.quit()
-        os.remove(helpers.ea_path() + "/" + ftp_file_name)
         print "[*] File sent!!!"

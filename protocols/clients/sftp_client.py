@@ -21,24 +21,44 @@ class Client:
         self.username = cli_object.username
         self.password = cli_object.password
         self.remote_system = cli_object.ip
+        if cli_object.file is None:
+            self.file_transfer = False
+        else:
+            if "/" in cli_object.file:
+                self.file_transfer = cli_object.file.split("/")[-1]
+            else:
+                self.file_transfer = cli_object.file
 
     def transmit(self, data_to_transmit):
 
         print "[*] Transmitting data..."
 
-        sftp_file_name = helpers.writeout_text_data(data_to_transmit)
-        full_path = helpers.ea_path() + "/" + sftp_file_name
+        if not self.file_transfer:
+            sftp_file_name = helpers.writeout_text_data(data_to_transmit)
+            full_path = helpers.ea_path() + "/" + sftp_file_name
 
-        transport = paramiko.Transport(self.remote_system)
-        transport.connect(username=self.username, password=self.password)
-        sftp = paramiko.SFTPClient.from_transport(transport)
-        sftp.put(full_path, '/' + sftp_file_name)
+            transport = paramiko.Transport(self.remote_system)
+            transport.connect(username=self.username, password=self.password)
+            sftp = paramiko.SFTPClient.from_transport(transport)
+            sftp.put(full_path, '/' + sftp_file_name)
 
-        # close sftp connection
-        sftp.close()
-        transport.close()
+            # close sftp connection
+            sftp.close()
+            transport.close()
 
-        os.remove(sftp_file_name)
+            os.remove(sftp_file_name)
+        else:
+            transport = paramiko.Transport(self.remote_system)
+            transport.connect(username=self.username, password=self.password)
+            sftp = paramiko.SFTPClient.from_transport(transport)
+            if "/" in self.file_transfer:
+                sftp.put(self.file_transfer, '/' + self.file_transfer.split("/")[-1])
+            else:
+                sftp.put(self.file_transfer, '/' + self.file_transfer)
+
+            # close sftp connection
+            sftp.close()
+            transport.close()
 
         print "[*] Data sent!"
 

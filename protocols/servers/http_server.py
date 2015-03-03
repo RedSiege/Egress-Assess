@@ -4,6 +4,7 @@ This is the code for the web server
 
 '''
 
+import os
 import socket
 import sys
 from protocols.servers.serverlibs.web import base_handler
@@ -22,7 +23,7 @@ class Server:
             # bind to all interfaces
             Thread(target=self.serve_on_port).start()
             print "[*] Web server is currently running"
-            print "[*] Type \"killall -9 python\" to stop the web server."
+            print "[*] Type \"kill -9 " + str(os.getpid()) + "\" to stop the web server."
         # handle keyboard interrupts
         except KeyboardInterrupt:
             print "[!] Rage quiting, and stopping the web server!"
