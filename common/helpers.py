@@ -108,6 +108,17 @@ def randomNumbers(b):
     return str(random_number)
 
 
+def randomString(length=-1):
+    """
+    Returns a random string of "length" characters.
+    If no length is specified, resulting string is in between 6 and 15 characters.
+    """
+    if length == -1:
+        length = random.randrange(6, 16)
+    random_string = ''.join(random.choice(string.ascii_letters) for x in range(length))
+    return random_string
+
+
 def title_screen():
     os.system('clear')
     print "#" * 80

