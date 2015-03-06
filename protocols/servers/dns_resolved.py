@@ -1,7 +1,7 @@
 '''
 
 This is a DNS Listening/server module that listens for requests, and 
-writes out data within TXT requests to a file
+writes out data within A record requests to a file
 
 '''
 

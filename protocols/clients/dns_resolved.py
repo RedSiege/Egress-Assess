@@ -1,11 +1,8 @@
 '''
 
-This is a DNS client that transmits data within DNS TXT requests
+This is a DNS client that transmits data within A record requests
 Thanks to Raffi for his awesome blog posts on how this can be done
 http://blog.cobaltstrike.com/2013/06/20/thatll-never-work-we-dont-allow-port-53-out/
-
-default = dns.resolver.get_default_resolver()
->>> default.nameservers[0]
 
 '''
 
