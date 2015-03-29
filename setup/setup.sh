@@ -2,6 +2,7 @@
 
 clear
 echo "[*] Installing Egress-Assess Dependencies..."
+apt-get install smbclient
 echo "[*] Installing pyftpdlib..."
 git clone https://github.com/giampaolo/pyftpdlib.git
 cd pyftpdlib

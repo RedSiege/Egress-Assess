@@ -49,22 +49,24 @@ class Client:
             os.makedirs(mount_path)
 
         # Base command to copy file over smb
-        smb_command = "mount -t cifs -o ////" + self.remote_server + "//DATA" + mount_path
+        smb_command = "smbclient \\\\\\\\" + self.remote_server + "\\\\\\DATA -N -c \"put "
 
         # If using a file, copy it, else write to disk and then copy
         if not self.file_transfer:
             smb_file_name = helpers.writeout_text_data(data_to_transmit)
             smb_full_path = helpers.ea_path() + "/" + smb_file_name
 
-            smb_command += " && cp " + smb_full_path + " " + mount_path
+            smb_command += smb_file_name + "\""
 
         else:
-            smb_command += " && cp " + self.file_transfer + " " + mount_path
+            smb_command += self.file_transfer + "\""
+            smb_file_name = self.file_transfer
 
+        print smb_command
         os.system(smb_command)
 
-        os.system("umount ////" + mount_path)
-        os.system("rm -rf " + mount_path)
+        if not self.file_transfer:
+            os.remove(smb_full_path)
 
         print "[*] File Transmitted!"
 
