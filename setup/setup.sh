@@ -7,6 +7,8 @@ apt-get update
 apt-get install python-scapy
 echo "[*] Installing paramiko"
 apt-get install python-paramiko python-crypto
+echo "[*] Installing ecdsa"
+pip install ecdsa
 echo "[*] Installing pyftpdlib..."
 git clone https://github.com/giampaolo/pyftpdlib.git
 cd pyftpdlib
