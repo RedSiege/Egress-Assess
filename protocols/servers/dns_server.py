@@ -20,7 +20,7 @@ class Server:
         self.file_name = ''
         self.loot_path = ''
         self.file_dict = {}
-        self.total_packets = ''
+        self.file_status = ''
 
     def customAction(self, packet):
 
@@ -30,16 +30,16 @@ class Server:
             try:
                 incoming_data = base64.b64decode(dnsqr_strings.split('\'')[1].rstrip('.'))
                 self.file_name = incoming_data.split(".:|:.")[0]
-                file_status = incoming_data.split(".:|:.")[1]
+                self.file_status = incoming_data.split(".:|:.")[1]
                 file_data = incoming_data.split(".:|:.")[2]
-                self.total_packets = file_status.split('/')[1]
-                if file_status.split('/')[0] in self.file_dict:
+
+                if self.file_status in self.file_dict:
                     pass
                 else:
                     if ".:|:." in incoming_data:
-                        self.file_dict[file_status.split('/')[0]] = file_data
+                        self.file_dict[self.file_status] = file_data
 
-                        outgoing_data = file_status.split('/')[0] + "allgoodhere"
+                        outgoing_data = self.file_status + "allgoodhere"
 
                         # This function from http://bb.secdev.org/scapy/issue/500/les-r-ponses-dns-de-type-txt-sont-malform
                         for i in range(0, len(outgoing_data), 0xff+1):
@@ -57,13 +57,9 @@ class Server:
                         self.last_packet = incoming_data
             except TypeError:
                 if "ENDTHISFILETRANSMISSIONEGRESSASSESS" in dnsqr_strings:
-                    print len(self.file_dict)
-                    print str(self.total_packets)
                     with open(self.loot_path + self.file_name, 'a') as\
                             dns_out:
-                        for dict_key in xrange(1, int(self.total_packets) + 1):
-                            if str(dict_key) == '982':
-                                print self.file_dict[str(dict_key)]
+                        for dict_key in xrange(1, int(self.file_status) + 1):
                             dns_out.write(self.file_dict[str(dict_key)])
                     sys.exit()
         return
