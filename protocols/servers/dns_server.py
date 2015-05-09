@@ -25,13 +25,18 @@ class Server:
     def customAction(self, packet):
 
         if packet.haslayer(DNSQR):
-            print "got packet"
             dnsqr_strings = repr(packet[DNSQR])
+            if "ENDTHISFILETRANSMISSIONEGRESSASSESS" in dnsqr_strings:
+                self.file_name = dnsqr_strings.split('\'')[1].rstrip('.').split('ENDTHISFILETRANSMISSIONEGRESSASSESS')[1]
+                with open(self.loot_path + self.file_name, 'a') as\
+                        dns_out:
+                    for dict_key in xrange(1, int(self.file_status) + 1):
+                        dns_out.write(self.file_dict[str(dict_key)])
+                sys.exit()
             try:
                 incoming_data = base64.b64decode(dnsqr_strings.split('\'')[1].rstrip('.'))
-                self.file_name = incoming_data.split(".:|:.")[0]
-                self.file_status = incoming_data.split(".:|:.")[1]
-                file_data = incoming_data.split(".:|:.")[2]
+                self.file_status = incoming_data.split(".:|:.")[0]
+                file_data = incoming_data.split(".:|:.")[1]
 
                 if self.file_status in self.file_dict:
                     pass
@@ -49,19 +54,14 @@ class Server:
                             qd=[DNSQR(qname=dnsqr_strings.split('\'')[1].rstrip('.'), qtype=packet[DNSQR].qtype)],
                             an=[DNSRR(rrname=dnsqr_strings.split('\'')[1].rstrip('.'), rdata=outgoing_data, type=packet[DNSQR].qtype)]),
                             verbose=False)
-                        print "sent response packet"
 
                     else:
                         with open(self.loot_path + self.file_name, 'a') as dns_out:
                             dns_out.write(incoming_data)
                         self.last_packet = incoming_data
             except TypeError:
-                if "ENDTHISFILETRANSMISSIONEGRESSASSESS" in dnsqr_strings:
-                    with open(self.loot_path + self.file_name, 'a') as\
-                            dns_out:
-                        for dict_key in xrange(1, int(self.file_status) + 1):
-                            dns_out.write(self.file_dict[str(dict_key)])
-                    sys.exit()
+                print "[*] Potentially received a malformed DNS packet!"
+
         return
 
     def serve(self):

