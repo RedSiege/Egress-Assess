@@ -18,7 +18,6 @@ class Client:
     def __init__(self, cli_object):
         self.protocol = "dns"
         self.remote_server = cli_object.ip
-        #
         self.max_length = 63
         self.current_total = 0
         if cli_object.file is None:
