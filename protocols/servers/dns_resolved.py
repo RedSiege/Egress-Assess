@@ -24,28 +24,37 @@ class Server:
 
         if packet.haslayer(DNSQR):
             dnsqr_strings = repr(packet[DNSQR])
-            try:
-                incoming_data = dnsqr_strings.split('\'')[1].rstrip('.')
-                number_equals = incoming_data.count('.--')
-                if '.---' in incoming_data:
-                    encoded_data = incoming_data.split('.')[0] + "=" * number_equals
-                else:
-                    encoded_data = incoming_data.split('.')[0]
-
+            if "ENDTHISFILETRANSMISSIONEGRESSASSESS" in dnsqr_strings:
+                self.file_name = dnsqr_strings.split('\'')[1].rstrip('.').split('ENDTHISFILETRANSMISSIONEGRESSASSESS')[1]
+                with open(self.loot_path + self.file_name, 'a') as\
+                        dns_out:
+                    for dict_key in xrange(1, int(self.file_status) + 1):
+                        dns_out.write(self.file_dict[str(dict_key)])
+                sys.exit()
+            else:
                 try:
-                    encoded_data = base64.b64decode(encoded_data)
-                except:
-                    pass
+                    incoming_data = base64.b64decode(dnsqr_strings.split('\'')[1].rstrip('.'))
+                    print incoming_data
+                    if ".:|:." in incoming_data:
+                        incoming_data = dnsqr_strings.split('\'')[1].rstrip('.')
+                        number_equals = incoming_data.count('.--')
+                        if '.---' in incoming_data:
+                            encoded_data = incoming_data.split('.')[0] + "=" * number_equals
+                        else:
+                            encoded_data = incoming_data.split('.')[0]
 
-                if encoded_data == self.last_packet:
-                    pass
-                else:
-                    with open(self.loot_path + self.file_name, 'a') as dns_out:
-                        dns_out.write(encoded_data)
-                    self.last_packet = encoded_data
+                        try:
+                            encoded_data = base64.b64decode(encoded_data)
+                        except:
+                            pass
 
-            except TypeError:
-                pass
+                    else:
+                        with open(self.loot_path + self.file_name, 'a') as dns_out:
+                            dns_out.write(encoded_data)
+                        self.last_packet = encoded_data
+
+                except TypeError:
+                    pass
         return
 
     def serve(self):
