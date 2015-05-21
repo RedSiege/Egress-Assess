@@ -43,18 +43,19 @@ class Client:
             print "[*] Resolving IP of domain..."
             final_destination = socket.gethostbyname(self.remote_server)
 
-        while (byte_reader < len(data_to_transmit) + self.length):
+        # calcalate total packets
+        if ((len(data_to_transmit) % self.length) == 0):
+            total_packets = len(data_to_transmit) / self.length
+        else:
+            total_packets = (len(data_to_transmit) / self.length) + 1
+        self.current_total = total_packets
+
+        while (byte_reader < len(data_to_transmit)):
             if not self.file_transfer:
                 encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
             else:
                 encoded_data = base64.b64encode(self.file_transfer +
                     ".:::-989-:::." + data_to_transmit[byte_reader:byte_reader + self.length])
-
-            # calcalate total packets
-            if ((len(data_to_transmit) % self.length) == 0):
-                total_packets = len(data_to_transmit) / self.length + 1
-            else:
-                total_packets = (len(data_to_transmit) / self.length) + 2
 
             print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(total_packets)
 
