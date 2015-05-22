@@ -25,7 +25,7 @@ class Server:
 
     def customAction(self, packet):
 
-        if packet.haslayer(DNSQR):
+        if packet.haslayer(UDP) and packet.haslayer(DNSQR):
             dnsqr_strings = repr(packet[DNSQR])
             if "ENDTHISFILETRANSMISSIONEGRESSASSESS" in dnsqr_strings:
                 self.file_name = dnsqr_strings.split('\'')[1].rstrip('.').split('ENDTHISFILETRANSMISSIONEGRESSASSESS')[1]
