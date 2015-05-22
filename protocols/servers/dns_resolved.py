@@ -37,8 +37,8 @@ class Server:
             else:
                 try:
                     string_to_decode = dnsqr_strings.split('\'')[1].rstrip('.').split('.')[0]
-                    if '.---' in string_to_decode:
-                        incoming_data.replace('.---', '=')
+                    if '-pqp-' in string_to_decode:
+                        incoming_data.replace('-pqp-', '=')
                     incoming_data = base64.b64decode(string_to_decode)
                     if ".:|:." in incoming_data:
                         self.file_status = incoming_data.split('.:|:.')[0]

