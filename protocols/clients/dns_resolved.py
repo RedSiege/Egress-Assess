@@ -86,8 +86,8 @@ class Client:
                 try:
                     while True:
 
-                        response_packet = sr1(IP(dst=final_destination)/UDP()/DNS(
-                            id=15, opcode=0,
+                        response_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
+                            rd=1, id=15, opcode=0,
                             qd=[DNSQR(qname=encoded_data, qtype="TXT")], aa=1, qr=0),
                             verbose=False, timeout=2)
 

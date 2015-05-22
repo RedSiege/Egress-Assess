@@ -51,7 +51,7 @@ class Server:
                         for i in range(0, len(outgoing_data), 0xff+1):
                             outgoing_data = outgoing_data[:i] + chr(len(outgoing_data[i:i+0xff])) + outgoing_data[i:]
 
-                        send(IP(dst=packet[IP].src)/UDP(dport=packet[UDP].sport, sport=53)/DNS(id=packet[DNS].id, qr=1,
+                        send(IP(dst=packet[IP].src)/UDP(dport=packet[UDP].sport, sport=53)/DNS(rd=1, id=packet[DNS].id, qr=1,
                             qd=[DNSQR(qname=dnsqr_strings.split('\'')[1].rstrip('.'), qtype=packet[DNSQR].qtype)],
                             an=[DNSRR(rrname=dnsqr_strings.split('\'')[1].rstrip('.'), rdata=outgoing_data, type=packet[DNSQR].qtype)]),
                             verbose=False)
