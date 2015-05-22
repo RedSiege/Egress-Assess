@@ -33,9 +33,10 @@ class Server:
                 sys.exit()
             else:
                 try:
-                    incoming_data = base64.b64decode(dnsqr_strings.split('\'')[1].rstrip('.').split('.')[0])
-                    if '.---' in incoming_data:
+                    string_to_decode = dnsqr_strings.split('\'')[1].rstrip('.').split('.')[0]
+                    if '.---' in string_to_decode:
                         incoming_data.replace('.---', '=')
+                    incoming_data = base64.b64decode(string_to_decode)
                     if ".:|:." in incoming_data:
                         incoming_data = dnsqr_strings.split('\'')[1].rstrip('.')
                         number_equals = incoming_data.count('.--')
