@@ -43,7 +43,7 @@ class Server:
                     if ".:|:." in incoming_data:
                         self.file_status = incoming_data.split('.:|:.')[0]
                         file_data = incoming_data.split('.:|:.')[1]
-                        self.file_dict[packet_number] = file_data
+                        self.file_dict[self.file_status] = file_data
 
                         outgoing_data = self.file_status + "allgoodhere"
 
