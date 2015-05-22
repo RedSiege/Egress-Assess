@@ -27,8 +27,8 @@ class Server:
 
         if packet.haslayer(UDP) and packet.haslayer(DNSQR):
             dnsqr_strings = repr(packet[DNSQR])
-            if "ENDTHISFILETRANSMISSIONEGRESSASSESS" in dnsqr_strings:
-                self.file_name = dnsqr_strings.split('\'')[1].rstrip('.').split('ENDTHISFILETRANSMISSIONEGRESSASSESS')[1]
+            if "file---" in dnsqr_strings:
+                self.file_name = dnsqr_strings.split('\'')[1].rstrip('.').split('file---')[1]
                 with open(self.loot_path + self.file_name, 'a') as\
                         dns_out:
                     for dict_key in xrange(1, int(self.file_status) + 1):

