@@ -86,6 +86,11 @@ class Client:
                     try:
                         while True:
 
+                            if '=' in encoded_data:
+                                print "found equal"
+                                encoded_data = encoded_data.replace('=', '-pqp-')
+                            print encoded_data
+
                             response_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
                                 rd=1, id=15, opcode=0,
                                 qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="TXT")], aa=1, qr=0),
