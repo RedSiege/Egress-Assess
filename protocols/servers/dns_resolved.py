@@ -16,7 +16,6 @@ class Server:
     def __init__(self, cli_object):
 
         self.protocol = "dns_resolved"
-        self.last_packet = ''
         self.file_name = ''
         self.loot_path = ''
         self.file_dict = {}
@@ -42,24 +41,26 @@ class Server:
                     incoming_data = base64.b64decode(string_to_decode)
                     if ".:|:." in incoming_data:
                         self.file_status = incoming_data.split('.:|:.')[0]
-                        file_data = incoming_data.split('.:|:.')[1]
-                        self.file_dict[self.file_status] = file_data
+                        if self.file_status in self.file_dict:
+                            pass
+                        else:
+                            file_data = incoming_data.split('.:|:.')[1]
+                            self.file_dict[self.file_status] = file_data
 
-                        outgoing_data = self.file_status + "allgoodhere"
+                            outgoing_data = self.file_status + "allgoodhere"
 
-                        # This function from http://bb.secdev.org/scapy/issue/500/les-r-ponses-dns-de-type-txt-sont-malform
-                        for i in range(0, len(outgoing_data), 0xff+1):
-                            outgoing_data = outgoing_data[:i] + chr(len(outgoing_data[i:i+0xff])) + outgoing_data[i:]
+                            # This function from http://bb.secdev.org/scapy/issue/500/les-r-ponses-dns-de-type-txt-sont-malform
+                            for i in range(0, len(outgoing_data), 0xff+1):
+                                outgoing_data = outgoing_data[:i] + chr(len(outgoing_data[i:i+0xff])) + outgoing_data[i:]
 
-                        send(IP(dst=packet[IP].src)/UDP(dport=packet[UDP].sport, sport=53)/DNS(rd=1, id=packet[DNS].id, qr=1,
-                            qd=[DNSQR(qname=dnsqr_strings.split('\'')[1].rstrip('.'), qtype=packet[DNSQR].qtype)],
-                            an=[DNSRR(rrname=dnsqr_strings.split('\'')[1].rstrip('.'), rdata=outgoing_data, type=packet[DNSQR].qtype)]),
-                            verbose=False)
+                            send(IP(dst=packet[IP].src)/UDP(dport=packet[UDP].sport, sport=53)/DNS(rd=1, id=packet[DNS].id, qr=1,
+                                qd=[DNSQR(qname=dnsqr_strings.split('\'')[1].rstrip('.'), qtype=packet[DNSQR].qtype)],
+                                an=[DNSRR(rrname=dnsqr_strings.split('\'')[1].rstrip('.'), rdata=outgoing_data, type=packet[DNSQR].qtype)]),
+                                verbose=False)
 
                     else:
                         with open(self.loot_path + self.file_name, 'a') as dns_out:
                             dns_out.write(encoded_data)
-                        self.last_packet = encoded_data
 
                 except TypeError:
                     pass

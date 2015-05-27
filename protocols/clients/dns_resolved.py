@@ -20,27 +20,16 @@ class Client:
         self.protocol = "dns_resolved"
         self.remote_server = cli_object.ip
         self.max_length = 68
+        self.current_total = 0
         if cli_object.file is None:
             self.file_transfer = False
             self.length = 50
         else:
-            self.length = 30
+            self.length = 24
             if "/" in cli_object.file:
                 self.file_transfer = cli_object.file.split("/")[-1]
             else:
                 self.file_transfer = cli_object.file
-
-    def dns_encode(outgoing_data):
-        # This function from http://bb.secdev.org/scapy/issue/500/les-r-ponses-dns-de-type-txt-sont-malform
-        for i in range(0, len(outgoing_data), 0xff+1):
-            outgoing_data = outgoing_data[:i] + chr(len(outgoing_data[i:i+0xff])) + outgoing_data[i:]
-        return outgoing_data
-
-    def randomKey(b=20):
-        """
-        Returns a random string/key of "b" characters in length, defaults to 32
-        """
-        return ''.join(random.choice(string.ascii_letters + string.digits) for x in range(b))
 
     def transmit(self, data_to_transmit):
 
@@ -78,21 +67,33 @@ class Client:
                 encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
                 encoded_data = encoded_data + "." + self.remote_server
 
+                # calcalate total packets
+                if (((len(data_to_transmit) - byte_reader) % self.length) == 0):
+                    packet_diff = (len(data_to_transmit) - byte_reader) / self.length
+                else:
+                    packet_diff = ((len(data_to_transmit) - byte_reader) / self.length)
+
                 while len(encoded_data) > self.max_length:
 
                     self.length -= 1
                     # calcalate total packets
                     if (((len(data_to_transmit) - byte_reader) % self.length) == 0):
-                        packet_diff = (len(data_to_transmit) - byte_reader) / self.length
+                        packet_diff2 = (len(data_to_transmit) - byte_reader) / self.length
                     else:
-                        packet_diff = ((len(data_to_transmit) - byte_reader) / self.length)
+                        packet_diff2 = ((len(data_to_transmit) - byte_reader) / self.length)
                     check_total = True
                     encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
                     encoded_data = encoded_data + "." + self.remote_server
 
                 if check_total:
-                    self.current_total = packet_number + packet_diff
+                    self.current_total = packet_number + packet_diff2
                     check_total = False
+
+                else:
+                    if self.current_total == 0:
+                        self.current_total = packet_diff
+                    else:
+                        pass
 
                 print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
 
@@ -103,10 +104,10 @@ class Client:
                         if '=' in encoded_data:
                             encoded_data = encoded_data.replace('=', '-pqp-')
 
-                        response_packet = sr1(IP(dst=nameserver)/UDP()/DNS(
+                        response_packet = sr1(IP(dst=nameserver, ttl=10)/UDP()/DNS(
                             rd=1, id=15, opcode=0,
                             qd=[DNSQR(qname=encoded_data, qtype="TXT")], aa=1, qr=0),
-                            verbose=False, timeout=2)
+                            verbose=False, timeout=8)
 
                         if response_packet:
                             if response_packet.haslayer(DNSRR):
