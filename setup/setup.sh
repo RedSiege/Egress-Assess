@@ -10,6 +10,13 @@ echo "[*] Installing paramiko"
 apt-get install python-paramiko python-crypto
 echo "[*] Installing ecdsa"
 pip install ecdsa
+echo "[*] Installing impacket"
+wget https://pypi.python.org/packages/source/i/impacket/impacket-0.9.13.tar.gz
+tar -xvf impacket-0.9.13.tar.gz
+cd impacket-0.9.13
+python setup.py install
+cd ..
+rm -rf impacket-0.9.13
 echo "[*] Installing pyftpdlib..."
 git clone https://github.com/giampaolo/pyftpdlib.git
 cd pyftpdlib
