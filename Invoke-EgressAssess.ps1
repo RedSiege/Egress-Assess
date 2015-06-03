@@ -154,9 +154,8 @@ function Invoke-EgressAssess
 		{
 			if ($Datatype -eq "cc")
 			{
+				$totalupload = 0
 				Generate-CreditCards
-				$Body = @()
-				$Body = $AllCC
 				if ($client -eq "http")
 				{
 					$Url = "http://" + $IP + "/post_data.php"
@@ -165,6 +164,23 @@ function Invoke-EgressAssess
 				{
 					$Url = "https://" + $IP + "/post_data.php"
 				}
+				$uri = New-Object -TypeName System.Uri -ArgumentList $Url
+				$wc = New-Object -TypeName System.Net.WebClient
+				if ($proxy)
+				{
+					$proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+					$proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+					$wc.proxy = $proxy
+				}
+				$sizedata = [math]::Round((($AllCC.length) * 11/1MB), 2)
+				Write-Verbose  "Uploading  data of size $sizedata MB..."
+				1..$iterations | foreach-object {
+					$wc.UploadString($uri, $AllCC)
+					$totalupload += $sizedata
+				}
+				Write-Verbose "Transaction Complete. $totalupload MB attempted to upload"
+				[System.GC]::Collect()
+				break
 			}
 			elseif ($Datatype -eq "ssn")
 			{
