@@ -56,6 +56,7 @@ function Invoke-EgressAssess
 		[string]$Datatype,
 		[string]$Username,
 		[string]$Password,
+		[Parameter(Mandatory = $False)]
 		[int]$Iterations = 1,
 		[int]$Size = 1
 	)
