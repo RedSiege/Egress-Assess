@@ -188,8 +188,10 @@ function Invoke-EgressAssess
 				}
 				$sizedata = [math]::Round((($AllSSN.length) * 11/1MB), 2)
 				Write-Verbose  "Uploading  data of size $sizedata MB..."
-				$wc.UploadString($uri, $AllSSN)
-				$totalupload += $sizedata
+				1..$iterations | foreach-object {
+					$wc.UploadString($uri, $AllSSN)
+					$totalupload += $sizedata
+				}
 				Write-Verbose "Transaction Complete. $totalupload MB attempted to upload"
 				[System.GC]::Collect()
 				break
