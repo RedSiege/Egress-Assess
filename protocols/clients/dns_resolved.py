@@ -40,7 +40,7 @@ class Client:
         resolver_object = dns.resolver.get_default_resolver()
         nameserver = resolver_object.nameservers[0]
 
-        while (byte_reader < len(data_to_transmit) + self.length):
+        while (byte_reader < len(data_to_transmit)):
             if not self.file_transfer:
                 encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
                 encoded_data = encoded_data.replace("=", ".---")
