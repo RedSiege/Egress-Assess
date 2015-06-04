@@ -4,6 +4,7 @@ This module creates names, addresses, and SSNs.
 
 '''
 
+import random
 from common import helpers
 
 
@@ -19,6 +20,7 @@ class Datatype:
     # in at runtime.
     def __init__(self, cli_object):
         self.cli = "identity"
+        self.datasize = int(cli_object.data_size)
         self.description = "Full names, Addresses, and Socials"
         self.filetype = "text"
         self.first_names = [
@@ -69,6 +71,19 @@ class Datatype:
             '604 East Boulevard Bismark, ND 58505-0825'
             '77 South High St Columbus, OH 43266-0544',
             '775 Summer St, NE Salem, OR 97310',
+            '4070 Hawthorne Lane West Orange, NJ 07052',
+            '6683 1st Avenue Kearny, NJ 07032',
+            '4692 Mill Road Glen Ellyn, IL 60137',
+            '9024 6th Avenue Clifton, NJ 07011',
+            '1990 Shady Lane Chicago, IL 60621',
+            '5169 Forest Street Mableton, GA 30126',
+            '714 5th Street Riverside, NJ 08075',
+            '248 7th Avenue Quincy, MA 02169',
+            '110 3rd Street Lenoir, NC 28645',
+            '6 Broadway Myrtle Beach, SC 29577',
+            '110 3rd Street Lenoir, NC 28645',
+            '488 Schoolhouse Lane Johnston, RI 02919',
+            '658 Market Street New Brunswick, NJ 08901'
         ]
 
     def create_ssn(self):
@@ -76,12 +91,19 @@ class Datatype:
         ssn = ssn[0:3] + "-" + ssn[3:5] + "-" + ssn[5:9]
         return ssn
 
-
-
     # generate is a required function.  This is what is called by the framework
     # to generate the data.  Any number of "sub functions" can be created, but
     # generate should be considered the "main" function.  generate must return
     # the generated data.
     def generate_data(self):
+
+        data = ''
+
+        # Every 17 records is a meg (approx)
+        total_number = 17000 * self.datasize
+        for number in range(0, total_number):
+            data += random.choice(self.first_names) + ' ' +\
+                random.choice(self.last_names) + ', ' + self.create_ssn() +\
+                ', ' + random.choice(self.addresses) + '\n'
 
         return data
