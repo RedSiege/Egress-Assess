@@ -263,11 +263,13 @@ function Invoke-EgressAssess
                 }
                 if ($client -eq "http")
                 {
-                    $Url = "http://" + $IP + "/post_data.php"
+                    #$Url = "http://" + $IP + "/post_data.php"
+                    $Url = "http://" + $IP
                 }
                 elseif ($client -eq "https")
                 {
-                    $Url = "https://" + $IP + "/post_data.php"
+                    #$Url = "https://" + $IP + "/post_data.php"
+                    $Url = "http://" + $IP
                 }
                 #$uri = New-Object -TypeName System.Uri -ArgumentList $Url
                 $uri = New-Object -TypeName System.Uri($Url)
