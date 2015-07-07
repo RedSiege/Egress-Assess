@@ -100,7 +100,7 @@ function Invoke-EgressAssess
             $script:AllCC = @()
             $stringBuilder = New-Object System.Text.StringBuilder
             $script:list = New-Object System.Collections.Generic.List[System.String]
-            Write-Verbose "[*] Generating Credit Cards............."
+            Write-Verbose "Generating Credit Cards............."
             function New-Visa
             {
                 #generate a single random visa number, format 4xxx-xxxx-xxxx-xxxx
@@ -279,7 +279,7 @@ function Invoke-EgressAssess
                     $wc.proxy = $proxy
                 }
                 Write-Verbose  "Uploading  data..."
-                $wc.UploadString($uri, $Data.Name)
+                $wc.UploadString($Url, $Data)
                 $totalupload += $sizedata
                 Write-Verbose "Transaction Complete!"
                 break
