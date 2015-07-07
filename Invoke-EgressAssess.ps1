@@ -267,6 +267,7 @@ function Invoke-EgressAssess
                 }
                 elseif ($client -eq "https")
                 {
+
                     $Url = "https://" + $IP + "/post_data.php"
                 }
                 $uri = New-Object -TypeName System.Uri -ArgumentList $Url
@@ -303,10 +304,13 @@ function Invoke-EgressAssess
                 Write-Verbose "[*] You did not provide a data type to generate."
                 Return
             }
-            # This line is required to accept any SSL certificate errors  
-            [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
-            $uri = New-Object -TypeName System.Uri -ArgumentList $Url
-            $wc = New-Object -TypeName System.Net.WebClient
+            if ($client -eq "https")
+            {
+                # This line is required to accept any SSL certificate errors  
+                [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+                $uri = New-Object -TypeName System.Uri -ArgumentList $Url
+                $wc = New-Object -TypeName System.Net.WebClient
+            }
             if ($proxy)
             {
                 $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
