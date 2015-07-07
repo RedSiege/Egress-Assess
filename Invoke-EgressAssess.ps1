@@ -281,7 +281,7 @@ function Invoke-EgressAssess
                 $wc.UploadString($uri, $Data)
                 $totalupload += $sizedata
                 Write-Verbose "Transaction Complete!"
-                break
+                Return
             }
             elseif ($Datatype -notcontains "ssn" -or "cc" -or "names")
             {
