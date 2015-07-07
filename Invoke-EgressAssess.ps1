@@ -97,10 +97,9 @@ function Invoke-EgressAssess
         
         function Generate-CreditCards
         {
-            
             $script:AllCC = @()
-            $list = New-Object System.Collections.Generic.List[System.String]
-            
+            $stringBuilder = New-Object System.Text.StringBuilder
+            $script:list = New-Object System.Collections.Generic.List[System.String]
             Write-Verbose "[*] Generating Credit Cards............."
             function New-Visa
             {
