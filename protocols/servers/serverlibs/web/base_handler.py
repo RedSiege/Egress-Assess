@@ -53,7 +53,7 @@ class GetHandler(BaseHTTPRequestHandler):
             screen_data = self.rfile.read(int(screen_length))
 
             # Write out the file
-            with open(loot_path + screenshot_name, 'w') as cc_data_file:
+            with open(loot_path + screenshot_name, 'a') as cc_data_file:
                 cc_data_file.write(screen_data)
 
         elif uri_posted == "post_file.php":
@@ -89,7 +89,7 @@ class GetHandler(BaseHTTPRequestHandler):
             data = self.rfile.read(int(length))
 
             with open(loot_path + filename, 'wb') as cc_data_file:
-                cc_data_file.write(data)    
+                cc_data_file.write(data)
 
         # All other Post requests
         else:
