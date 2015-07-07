@@ -279,7 +279,7 @@ function Invoke-EgressAssess
                     $wc.proxy = $proxy
                 }
                 Write-Verbose  "Uploading  data..."
-                $wc.UploadString($uri, $Data)
+                $wc.UploadString($uri, "POST", $Data)
                 $totalupload += $sizedata
                 Write-Verbose "Transaction Complete!"
                 break
