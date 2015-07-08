@@ -1,4 +1,4 @@
-function Invoke-EgressAssess
+function EgressAssess
 {
 <#
 
