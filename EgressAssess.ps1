@@ -100,7 +100,7 @@ function Invoke-EgressAssess
             $script:AllCC = @()
             $stringBuilder = New-Object System.Text.StringBuilder
             $script:list = New-Object System.Collections.Generic.List[System.String]
-            Write-Verbose "[*] Generating Credit Cards............."
+            Write-Verbose "Generating Credit Cards............."
             function New-Visa
             {
                 #generate a single random visa number, format 4xxx-xxxx-xxxx-xxxx
@@ -134,7 +134,7 @@ function Invoke-EgressAssess
                 if ($i%$quart -eq 0)
                 {
                     $percent = $percentcount * 25
-                    Write-Verbose "$percent% Done! $i SSNs Generated"
+                    Write-Verbose "$percent% Done! $i CCs Generated"
                     $percentcount += 1
                 }
                 $r = Get-Random -Minimum 1 -Maximum 5
@@ -286,14 +286,12 @@ function Invoke-EgressAssess
                     catch
                     {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose "Error, tranfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                     }
-                    Write-Verbose "[*] Transfer complete!"
-                    $loops--
-                    Write-Verbose "[*] $loops loops remaining.."
-                    } While ($loops -gt 0)
+                    Write-Verbose "Transfer complete!"
+
             }
             elseif ($Datatype -notcontains "ssn" -or "cc" -or "names")
             {
@@ -312,7 +310,7 @@ function Invoke-EgressAssess
             }
             else
             {
-                Write-Verbose "[*] You did not provide a data type to generate."
+                Write-Verbose "You did not provide a data type to generate."
                 Return
             }
             # This line is required to accept any SSL certificate errors  
@@ -331,13 +329,13 @@ function Invoke-EgressAssess
                 $wc.Headers.Add('Filename', $FileName)
                 Write-Verbose  "Uploading data.."
                 $wc.UploadData($uri, 'POST', $data)
-                Write-Verbose "[*] Transaction Complete."
+                Write-Verbose "Transaction Complete."
             }
 
             else {
                 Write-Verbose  "Uploading data.."
                 $wc.UploadString($uri, $Body)
-                Write-Verbose "[*] Transaction Complete."
+                Write-Verbose "Transaction Complete."
             }
         }
         
@@ -377,7 +375,7 @@ function Invoke-EgressAssess
                 }
                 $uri = New-Object System.Uri($Destination)
                 $webclient.UploadFile($uri, $SourceFilePath)
-                Write-Verbose "[*] File Transfer Complete."
+                Write-Verbose "File Transfer Complete."
             }
             else {
                 Do {
@@ -403,19 +401,16 @@ function Invoke-EgressAssess
                     $RequestStream = $FtpRequest.GetRequestStream()
                     $Encoder.GetBytes($FTPData) | % { $RequestStream.WriteByte($_); }
                     $RequestStream.Close()
-                    Write-Verbose "[*] File Transfer Complete."
+                    Write-Verbose "File Transfer Complete."
                     }
                     catch
                     {
                         $ErrorMessage = $_.Exception.Message
-                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose "Error, tranfer failed with error:"
                         Write-Verbose $ErrorMessage
                         Break
                     }
-                    Write-Verbose "[*] Transfer complete!"
-                    $loops--
-                    Write-Verbose "[*] $loops loops remaining.."
-                    } While ($loops -gt 0)
+                    Write-Verbose "Transfer complete!"
             }       
             
         }
@@ -943,7 +938,7 @@ function Invoke-EgressAssess
     end
     {
         [System.GC]::Collect()
-        Write-Verbose "[*] Exiting.."
+        Write-Verbose "Exiting.."
     }
     
 }
