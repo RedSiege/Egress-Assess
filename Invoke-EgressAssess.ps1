@@ -592,15 +592,15 @@ function Invoke-EgressAssess
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
-                    $ICMPData = $AllSSN
+                    [string]$ICMPData = $AllSSN
                 }
                 elseif ($Datatype -eq "cc") {
                     Generate-CreditCards
-                    $ICMPData = $AllCC
+                    [string]$ICMPData = $AllCC
                 }
                 elseif ($Datatype -eq "names") {
                     Generate-Names
-                    $ICMPData = $AllNames
+                    [string]$ICMPData = $AllNames
                 }
             
             elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
@@ -667,7 +667,7 @@ function Invoke-EgressAssess
                 Do {
                     try {
                         Write-Verbose "[*] Sending data via ICMP."
-                        $TotalPackets = [int]($ICMPData.length/$bufferSize)
+                        [int]$TotalPackets = ($ICMPData.length/$bufferSize)
                         While ($ByteReader -le ($ICMPData.length - $bufferSize))
                         {
                         Write-Verbose "[*] Sending $PacketNumber of $TotalPackets packets"
@@ -689,10 +689,12 @@ function Invoke-EgressAssess
                         Write-Verbose $ErrorMessage
                         Break
                     }
-                Write-Verbose "[*] Transfer complete!"
-                $loops--
-                Write-Verbose "[*] $loops loops remaining.."
-                } While ($loops -gt 0) 
+                    Write-Verbose "[*] Transfer complete!"
+                    $ByteReader = 0
+                    $PacketNumber = 0
+                    $loops--
+                    Write-Verbose "[*] $loops loops remaining.."
+                    } While ($Loops -gt 0) 
             }
         }
         
