@@ -382,7 +382,7 @@ function Invoke-EgressAssess
             else {
                 Do {
                     Try {
-                    $Date = Get-Date -Format Mdyyyy_hhmmss
+                    $Date = Get-Date -Format Mmddyyyy_hhmmss
                     $Path = "ftpdata" + $Date + ".txt"
                     $Destination = "ftp://" + $IP + "/" + $Path
                     $Credential = New-Object -TypeName System.Net.NetworkCredential -ArgumentList $Username, $Password
@@ -469,8 +469,8 @@ function Invoke-EgressAssess
                 $Path = get-childitem $Datatype | % { $_.Name }
             }
             else {
-                $Date = Get-Date -Format Mdyyyy_hhmmss
-                $Path = "ftpdata" + $Date + ".txt"
+                $Date = Get-Date -Format Mmddyyyy_hhmmss
+                $Path = "sftpdata" + $Date + ".txt"
                 try
                 {
                     $FTPData | Out-File "$env:temp\$Path"
@@ -868,7 +868,7 @@ function Invoke-EgressAssess
             Do {
                 try
                     {
-                        $Date = Get-Date -Format Mdyyyy_hhmmss
+                        $Date = Get-Date -Format Mmddyyyy_hhmmss
                         $Path = "smbdata_" + $Date + ".txt"
                         $SMBData | Out-File "$env:temp\$Path"
                         Copy-Item -Path $env:temp\$Path -Destination \\$IP\data
