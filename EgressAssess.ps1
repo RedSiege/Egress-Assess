@@ -134,7 +134,7 @@ function Invoke-EgressAssess
                 if ($i%$quart -eq 0)
                 {
                     $percent = $percentcount * 25
-                    Write-Verbose "$percent% Done! $i SSNs Generated"
+                    Write-Verbose "$percent% Done! $i CCs Generated"
                     $percentcount += 1
                 }
                 $r = Get-Random -Minimum 1 -Maximum 5
