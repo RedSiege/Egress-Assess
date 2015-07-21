@@ -73,6 +73,9 @@ function Invoke-EgressAssess
     {
         #stop looping errors
         $ErrorActionPreference = "Stop"
+
+        #get start time
+        $startTime = (Get-Date)
         
         function Generate-SSN
         {
@@ -249,17 +252,17 @@ function Invoke-EgressAssess
         #checks if Egress-Assess server is running
         function Test-ServerConnection
         {
-            Write-Verbose "Testing server connection"
+            Write-Verbose "[*] Testing server connection"
             $socketTcp = New-Object Net.Sockets.TcpClient
             $socketUdp = New-Object System.Net.Sockets.UdpClient          
             $ping = $(Test-Connection -ComputerName $IP -Count 1 -Quiet)
             if($ping -eq $true)
             {
-                Write-Verbose "Server is UP on $IP."
+                Write-Verbose "[*] Server is UP on $IP."
                 if($client -eq "icmp")
                 {  
                     #Potential future verification of icmp server/sniffer running
-                    Write-Verbose "ICMP server *possibly* running."
+                    Write-Verbose "[*] ICMP server *possibly* running."
                     Return
                 }
                 elseif($client -eq "dnstxt" -or $client -eq "dnsresolved")
@@ -313,7 +316,7 @@ function Invoke-EgressAssess
                     }
                     else 
                     {
-                        Write-Verbose "Protocol not available."
+                        Write-Verbose "[*] Protocol not available."
                         throw "Error"
                     }
 
@@ -326,19 +329,19 @@ function Invoke-EgressAssess
                     #connect to server if running
                     if($socketTcp.Connected)
                     {
-                        Write-Verbose "$($client.toUpper()) Server Running on $IP port #:$port."
+                        Write-Verbose "[*] $($client.toUpper()) Server Running on $IP port $port."
                         $socketTcp.close()
                     }
                     else
                     {
-                        Write-Verbose "$($client.toUpper()) Server Not Running on $IP. Start server."
+                        Write-Verbose "[*] $($client.toUpper()) Server Not Running on $IP. Start server."
                         throw "Error"
                     }
                 }  
             }
             else 
             {
-                Write-Verbose "Server is DOWN on $IP."
+                Write-Verbose "[*] Server is DOWN on $IP."
                 throw "Error"
             }           
         }
@@ -996,6 +999,26 @@ function Invoke-EgressAssess
             Write-Verbose "[*] $loops loops remaining.."
             } While ($loops -gt 0)
         }
+
+        #write report to console and file C:\EAreport.txt
+        #future enhancement: input custom filename from command argument
+        #future enhancement: add filename of exfilled file to report
+        function Write-Report
+        {
+            Write-Verbose "[*] Building Report"
+            Write-Output "----------Egress-Assess Report----------"
+            Write-Output "Report File = C:\EAreport.txt"
+            $report = [ordered]@{
+                "Server"=$IP
+                "Datatype"=$datatype.toUpper()
+                "Protocol"=$client.toUpper()
+                "Size (MB)"=$Size
+                "Loops"=$loops
+                "Time (seconds)"=[Math]::Round($(($endTime-$startTime).totalseconds),2)
+                "Date" = Get-Date
+            }
+            Write-Output $report | Format-Table | Tee-Object -file C:\EAreport.txt -Append
+        }
     }
     process
     {
@@ -1038,6 +1061,11 @@ function Invoke-EgressAssess
                 Write-Verbose "[*] You failed to provide a protocol"
                 Return
             }
+            
+            #get end time
+            $endTime = (Get-Date)
+
+            Write-Report
     }
     end
     {
