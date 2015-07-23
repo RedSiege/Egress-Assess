@@ -73,7 +73,7 @@ function Invoke-EgressAssess
         [Parameter(Mandatory = $False)]
         [int]$Loops = 1,
         [Parameter(Mandatory = $False)]
-        [switch]$Report
+        [string]$Report
     )
     
     begin
@@ -1014,9 +1014,8 @@ function Invoke-EgressAssess
         function Write-Report
         {
             Write-Verbose "[*] Building Report"
-            Write-Output "----------Egress-Assess Report----------"
-            $ReportFile = "C:\Egress-Assess\report.txt"
-            Write-Output "Report File = $ReportFile"
+            Write-Verbose "----------Egress-Assess Report----------"
+            Write-Verbose "Report File = $Report"
             $EAreport = [ordered]@{
                 "Server"=$IP
                 "Datatype"=$datatype.toUpper()
@@ -1026,12 +1025,20 @@ function Invoke-EgressAssess
                 "Time (seconds)"=[Math]::Round($(($endTime-$startTime).totalseconds),2)
                 "Date" = Get-Date
             }
-            if((Test-Path -path $ReportFile) -eq $False)
+            try
             {
-                New-Item "C:\Egress-Assess" -Type Directory -Force
-                $null > $ReportFile
-            } else {}
-            Write-Output $EAreport | Format-Table | Tee-Object -file $ReportFile -Append
+                if((Test-Path -path $Report) -eq $False)
+                {
+                    Write-Verbose "[*] Writing new report file..."
+                    $null > $Report
+                } else {}
+                Write-Output $EAreport | Format-Table | Tee-Object -file $Report -Append
+            }
+            catch
+            {
+                Write-Verbose "You do not have permission to write to this directory."
+                break
+            }
         }
 
     }
@@ -1080,7 +1087,7 @@ function Invoke-EgressAssess
             #get end time
             $endTime = (Get-Date)
 
-            if($Report -eq $true)
+            if($Report -gt 0)
             {
                 Write-Report
             } else {}
