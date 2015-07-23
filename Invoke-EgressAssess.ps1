@@ -40,10 +40,15 @@ function Invoke-EgressAssess
 .Parameter Loops
     How many times to re-run the script. Hack to get around memory limitations in Windows.
 
+.Parameter Report
+    This switch writes a report to console and disk.
+    Default report location "C:\Egress-Assess\report.txt".
+
 .Example
     Import-Module Egress-Assess.ps1
     Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Verbose
     Invoke-EgressAssess -client smb -ip 127.0.0.1 -Datatype "c:\Users\testuser\secrets.xlsx" -Verbose
+    Invoke-EgressAssess -client icmp -ip 127.0.0.1 -Datatype ssn -Report -Verbose
 
 
 #>
@@ -66,11 +71,116 @@ function Invoke-EgressAssess
         [Parameter(Mandatory = $False)]
         [int]$Size = 1,
         [Parameter(Mandatory = $False)]
-        [int]$Loops = 1
+        [int]$Loops = 1,
+        [Parameter(Mandatory = $False)]
+        [string]$Report
     )
     
     begin
     {
+        #stop looping errors
+        $ErrorActionPreference = "Stop"
+
+        #get start time
+        $startTime = (Get-Date)
+              
+        #checks if Egress-Assess server is running
+        function Test-ServerConnection
+        {
+            Write-Verbose "[*] Testing server connection"
+            $socketTcp = New-Object Net.Sockets.TcpClient
+            $socketUdp = New-Object System.Net.Sockets.UdpClient          
+            $ping = $(Test-Connection -ComputerName $IP -Count 1 -Quiet)
+            if($ping -eq $true)
+            {
+                Write-Verbose "[*] Server is UP on $IP."
+                if($client -eq "icmp")
+                {  
+                    #Potential future verification of icmp server/sniffer running
+                    Write-Verbose "[*] ICMP server *possibly* running."
+                    Return
+                }
+                elseif($client -eq "dnstxt" -or $client -eq "dnsresolved")
+                {
+                    <#Note: Need to troubleshoot DNS checks more.
+                    $port = 53
+
+                    #attempt to test connection to UDP ports
+                    try
+                    {
+                        $socketUdp.Connect($ip,$port)
+                    } catch{}
+
+                    #connect to server if running
+                    if($socketUdp.Connected)
+                    {
+                        Write-Verbose "$($client.toUpper()) Server Running on $IP port #:$port."
+                        $socketUdp.close()
+                    }
+                    else
+                    {
+                        Write-Verbose "$($client.toUpper()) Server Not Running on $IP. Start server."
+                        throw "Error"
+                    }#>
+                }
+                else
+                {
+                    if($client -eq "http")
+                    {
+                        $port = 80
+                    }
+                    elseif($client -eq "https")
+                    {
+                        $port = 443
+                    }
+                    elseif($client -eq "ftp")
+                    {
+                        $port = 21
+                    }
+                    elseif($client -eq "sftp")
+                    {
+                        $port = 22
+                    }
+                    elseif ($client -eq "smtp")
+                    {
+                        $port = 25
+                    }
+                    elseif($client -eq "smb")
+                    {
+                        $port = 445
+                    }
+                    else 
+                    {
+                        Write-Verbose "[*] Protocol not available."
+                        throw "Error"
+                    }
+
+                    #attempt to test connection to TCP ports
+                    try
+                    {
+                        $socketTcp.Connect($ip,$port)  
+                    } catch{}
+
+                    #connect to server if running
+                    if($socketTcp.Connected)
+                    {
+                        Write-Verbose "[*] $($client.toUpper()) Server Running on $IP port $port."
+                        $socketTcp.close()
+                    }
+                    else
+                    {
+                        Write-Verbose "[*] $($client.toUpper()) Server Not Running on $IP. Start server."
+                        throw "Error"
+                    }
+                }  
+            }
+            else 
+            {
+                Write-Verbose "[*] Server is DOWN on $IP."
+                throw "Error"
+            }           
+        }
+        
         
         function Generate-SSN
         {
@@ -897,10 +1007,44 @@ function Invoke-EgressAssess
             Write-Verbose "[*] $loops loops remaining.."
             } While ($loops -gt 0)
         }
+
+        #write report to console and file to C:\Egress-Assess\report.txt
+        #future enhancement: add variable input for report path and filename
+        #future enhancement: add filename of exfilled file to report
+        function Write-Report
+        {
+            Write-Verbose "[*] Building Report"
+            Write-Verbose "----------Egress-Assess Report----------"
+            Write-Verbose "Report File = $Report"
+            $EAreport = [ordered]@{
+                "Server"=$IP
+                "Datatype"=$datatype.toUpper()
+                "Protocol"=$client.toUpper()
+                "Size (MB)"=$Size
+                "Loops"=$loops
+                "Time (seconds)"=[Math]::Round($(($endTime-$startTime).totalseconds),2)
+                "Date" = Get-Date
+            }
+            try
+            {
+                if((Test-Path -path $Report) -eq $False)
+                {
+                    Write-Verbose "[*] Writing new report file..."
+                    $null > $Report
+                } else {}
+                Write-Output $EAreport | Format-Table | Tee-Object -file $Report -Append
+            }
+            catch
+            {
+                Write-Verbose "You do not have permission to write to this directory."
+                break
+            }
+        }
+
     }
     process
     {
-      
+            Test-ServerConnection
         
             if ($client -eq "http" -or $client -eq "https")
             {
@@ -939,6 +1083,14 @@ function Invoke-EgressAssess
                 Write-Verbose "[*] You failed to provide a protocol"
                 Return
             }
+
+            #get end time
+            $endTime = (Get-Date)
+
+            if($Report -gt 0)
+            {
+                Write-Report
+            } else {}
     }
     end
     {
