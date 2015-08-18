@@ -12,9 +12,13 @@ class GetHandler(BaseHTTPRequestHandler):
     # http://pymotw.com/2/BaseHTTPServer/
     def do_GET(self):
 
-        # 404 since we aren't serving up any pages, only receiving data
-        self.send_response(404)
-        self.end_headers()
+        if self.path in helpers.malware_uris:
+            self.send_response(200)
+            self.end_headers()
+        else:
+            # 404 since we aren't serving up any pages, only receiving data
+            self.send_response(404)
+            self.end_headers()
         return
 
     # handle post request
@@ -90,6 +94,11 @@ class GetHandler(BaseHTTPRequestHandler):
 
             with open(loot_path + filename, 'wb') as cc_data_file:
                 cc_data_file.write(data)
+
+        elif self.path in helpers.malware_uris:
+
+            self.send_response(200)
+            self.end_headers()
 
         # All other Post requests
         else:

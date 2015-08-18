@@ -86,3 +86,10 @@ if __name__ == "__main__":
         print "[*] Error: You either didn't provide a valid datatype or client protocol to use."
         print "[*] Error: Re-run and use --list-datatypes or --list-clients to see possible options."
         sys.exit()
+
+    elif cli_parsed.actor is not None:
+        the_conductor.load_malware(cli_parsed)
+
+        for full_path, actor_variant in the_conductor.actor_modules.iteritems():
+            if actor_variant.cli == cli_parsed.actor.lower():
+                actor_variant.emulate(cli_parsed)
