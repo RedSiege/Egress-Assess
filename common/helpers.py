@@ -79,19 +79,19 @@ def cli_parser():
         print "[*] Error: FTP or SFTP connections require \
             a username and password!".replace('    ', '')
         print "[*] Error: Please re-run and provide the required info!"
-        sys.exit()
+        sys.exit(1)
 
     if args.client and args.ip is None:
         print "[*] Error: You said to act like a client, but provided no ip"
         print "[*] Error: to connect to.  Please re-run with required info!"
-        sys.exit()
+        sys.exit(1)
 
     if (args.client is not None) and (args.datatype is None) and (
             args.file is None):
         print "[*] Error: You need to tell Egress-Assess the type \
             of data to send!".replace('    ', '')
         print "[*] Error: to connect to.  Please re-run with required info!"
-        sys.exit()
+        sys.exit(1)
 
     if (args.client is None and args.server is None and
             args.list_servers is None and args.list_clients is None and
@@ -100,7 +100,12 @@ def cli_parser():
             a server or client!".replace('    ', '')
         print "[*] Error: Please re-run and provide an action to perform!"
         parser.print_help()
-        sys.exit()
+        sys.exit(1)
+
+    if args.actor is not None and args.ip is None:
+        print "[*] Error: You did not provide an IP to egress data to!"
+        print "[*] Error: Please re-run and provide an ip!"
+        sys.exit(1)
 
     return args
 
