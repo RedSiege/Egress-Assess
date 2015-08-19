@@ -43,7 +43,7 @@ class Conductor:
                 self.datatypes[name] = loaded_datatypes.Datatype(command_line_object)
         return
 
-    def load_malware(self, command_line_object):
+    def load_actors(self, command_line_object):
         for name in glob.glob('commandcontrol/malware/*.py'):
             if name.endswith(".py") and ("__init__" not in name):
                 loaded_actors = imp.load_source(name.replace("/", ".").rstrip('.py'), name)
