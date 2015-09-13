@@ -4,6 +4,7 @@ This is the web client code
 
 '''
 
+import ssl
 import sys
 import urllib2
 
@@ -23,6 +24,15 @@ class Client:
                 self.file_transfer = cli_object.file
 
     def transmit(self, data_to_transmit):
+        # This restores the same behavior as before.
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        except AttributeError:
+            # Legacy Python that doesn't verify HTTPS certificates by default
+            pass
+        else:
+            # Handle target environment that doesn't support HTTPS verification
+            ssl._create_default_https_context = _create_unverified_https_context
         if not self.file_transfer:
             url = "https://" + self.remote_server + "/post_data.php"
 
