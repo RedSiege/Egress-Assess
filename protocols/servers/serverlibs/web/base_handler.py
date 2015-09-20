@@ -2,6 +2,9 @@ import os
 import time
 from BaseHTTPServer import BaseHTTPRequestHandler
 from common import helpers
+from commandcontrol.apt import *
+from commandcontrol.malware import *
+from protocols.servers.serverlibs.web import malware_callbacks
 
 
 class GetHandler(BaseHTTPRequestHandler):
@@ -11,10 +14,17 @@ class GetHandler(BaseHTTPRequestHandler):
     # should be performing GET requests Help from
     # http://pymotw.com/2/BaseHTTPServer/
     def do_GET(self):
-
-        if self.path in helpers.malware_uris:
+        if self.path in malware_callbacks.malware_uris:
             self.send_response(200)
             self.end_headers()
+        elif (self.path.startswith(malware_callbacks.etumbot_checkin)) and (self.path.endswith(extension) for extension in malware_callbacks.etumbot_extensions):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(malware_callbacks.etumbot_checkin_response)
+        elif self.path.startswith(malware_callbacks.etumbot_history) and (self.path.endswith(extension) for extension in malware_callbacks.etumbot_extensions):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write()
         else:
             # 404 since we aren't serving up any pages, only receiving data
             self.send_response(404)
@@ -24,7 +34,6 @@ class GetHandler(BaseHTTPRequestHandler):
     # handle post request
     def do_POST(self):
 
-        #incoming_ip = self.client_address[0]
         # current directory
         exfil_directory = os.path.join(helpers.ea_path(), "data")
         loot_path = exfil_directory + "/"
@@ -91,7 +100,7 @@ class GetHandler(BaseHTTPRequestHandler):
             with open(loot_path + filename, 'wb') as cc_data_file:
                 cc_data_file.write(data)
 
-        elif (self.path in helpers.malware_uris) or (self.path.startswith(other_uri) for other_uri in helpers.other_apt_uris):
+        elif (self.path in malware_callbacks.malware_uris) or (self.path.startswith(other_uri) for other_uri in malware_callbacks.other_apt_uris):
 
             self.send_response(200)
             self.end_headers()
