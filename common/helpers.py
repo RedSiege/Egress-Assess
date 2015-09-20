@@ -33,10 +33,13 @@ def cli_parser():
     protocols.add_argument("--ip", metavar="192.168.1.2", default=None,
                            help="IP to extract data to.")
 
-    protocols = parser.add_argument_group('Actor Emulation')
-    protocols.add_argument(
+    actors = parser.add_argument_group('Actor Emulation')
+    actors.add_argument(
         "--actor", default=None, metavar="[zeus]",
         help="Emulate [actor] C2 comms to egress server.")
+    actors.add_argument(
+        "--list-actors", default=False, action='store_true',
+        help="List all supported malware/APT group modules")
 
     servers = parser.add_argument_group('Server Protocol Options')
     servers.add_argument(
@@ -344,3 +347,8 @@ malware_uris = [
     '/gate.php', '/db1/config.jpg', '/db1/gate.php',
     '/katolog/thumbs/panel/config.jpg',
     '/katolog/thumbs/panel/gate.php']
+
+other_apt_uris = [
+    '/search5', '/microsoft/errorpost/default.aspx?ID=',
+    '/MicrosoftUpdate/ShellEX/KB', '/MicrosoftUpdate/WWRONG/KB',
+    '/MicrosoftUpdate/GetFiles/KB', '/MicrosoftUpdate/GetUpdate/KB']

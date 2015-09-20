@@ -24,10 +24,6 @@ class GetHandler(BaseHTTPRequestHandler):
     # handle post request
     def do_POST(self):
 
-        # Gather the Posted URI from the agent/browser
-        # parsed_path = urlparse.urlparse(self.path)
-        uri_posted = self.path
-        uri_posted = uri_posted.replace("/", "")
         #incoming_ip = self.client_address[0]
         # current directory
         exfil_directory = os.path.join(helpers.ea_path(), "data")
@@ -36,7 +32,7 @@ class GetHandler(BaseHTTPRequestHandler):
         # Info for this from -
         # http://stackoverflow.com/questions/13146064/simple-
         # python-webserver-to-save-file
-        if uri_posted == "post_data.php":
+        if self.path == "/post_data.php":
 
             self.send_response(200)
             self.end_headers()
@@ -60,7 +56,7 @@ class GetHandler(BaseHTTPRequestHandler):
             with open(loot_path + screenshot_name, 'a') as cc_data_file:
                 cc_data_file.write(screen_data)
 
-        elif uri_posted == "post_file.php":
+        elif self.path == "/post_file.php":
             self.send_response(200)
             self.end_headers()
 
@@ -79,7 +75,7 @@ class GetHandler(BaseHTTPRequestHandler):
             with open(loot_path + file_name, 'wb') as cc_data_file:
                 cc_data_file.write(file_data)
 
-        elif uri_posted == "posh_file.php":
+        elif self.path == "/posh_file.php":
             self.send_response(200)
             self.end_headers()
 
@@ -95,7 +91,7 @@ class GetHandler(BaseHTTPRequestHandler):
             with open(loot_path + filename, 'wb') as cc_data_file:
                 cc_data_file.write(data)
 
-        elif self.path in helpers.malware_uris:
+        elif (self.path in helpers.malware_uris) or (self.path.startswith(other_uri) for other_uri in helpers.other_apt_uris):
 
             self.send_response(200)
             self.end_headers()

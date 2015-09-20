@@ -48,6 +48,15 @@ if __name__ == "__main__":
         print
         sys.exit()
 
+    elif cli_parsed.list_actors:
+        print "[*] Supported malware/APT groups: \n"
+        the_conductor.load_actors(cli_parsed)
+        for name, datatype_module in the_conductor.actor_modules.iteritems():
+            print "[+] " + datatype_module.cli + " - (" +\
+                datatype_module.description + ")"
+        print
+        sys.exit()
+
     if cli_parsed.server is not None:
         the_conductor.load_server_protocols(cli_parsed)
         the_conductor.load_actors(cli_parsed)
