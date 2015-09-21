@@ -1,6 +1,6 @@
 '''
 
-This module generates Zeus traffic.
+This module generates darkhotel traffic.
 
 Resources:
 https://securelist.com/blog/research/66779/the-darkhotel-apt/
@@ -16,8 +16,8 @@ import urllib2
 class Actor:
 
     def __init__(self, cli_object):
-        self.cli = "etumbot"
-        self.description = "etumbot backdoor"
+        self.cli = "darkhotel"
+        self.description = "darkhotel backdoor"
         self.type = "malware"
         self.server_requirement = "http"
         self.egress_server = cli_object.ip
@@ -39,7 +39,7 @@ class Actor:
 
         # headers that are used in get requests
         darkhotel_headers = {
-            "User-Agent": " Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)",
+            "User-Agent": " Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)",
             "Connection": "Keep-Alive",
             "Cache-Control": "no-cache",
         }
@@ -72,18 +72,18 @@ class Actor:
         # Iterate over get and post request 5 times
         for times_requested in xrange(1, 6):
             selected_domain = random.choice(self.domains)
-            etumbot_headers['Host'] = selected_domain
-            etumbot_uri = random.choice(self.uris)
+            darkhotel_headers['Host'] = selected_domain
+            darkhotel_uri = random.choice(self.uris)
 
             get_req2 = urllib2.Request(
-                "http://" + self.egress_server + etumbot_uri, headers=darkhotel_headers)
+                "http://" + self.egress_server + darkhotel_uri, headers=darkhotel_headers)
 
             try:
                 urllib2.urlopen(get_req2)
             except urllib2.URLError:
                 print "[*] Error: Cannot connect to darkhotel data exfil server!"
                 print "[*] Error: Possible firewall, or proxy prventing this?"
-                print "URI == " + etumbot_uri
+                print "URI == " + darkhotel_uri
 
-        print "[*] INFO: Etumbot C2 comms complete!"
+        print "[*] INFO: DarkHotel C2 comms complete!"
         return

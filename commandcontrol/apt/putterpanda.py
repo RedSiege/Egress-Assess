@@ -1,6 +1,6 @@
 '''
 
-This module generates Zeus traffic.
+This module generates putterpanda traffic.
 
 Resources:
 http://blog.crowdstrike.com/hat-tribution-pla-unit-61486/
