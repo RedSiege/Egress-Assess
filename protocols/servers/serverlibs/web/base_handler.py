@@ -17,11 +17,11 @@ class GetHandler(BaseHTTPRequestHandler):
         if self.path in malware_callbacks.malware_uris:
             self.send_response(200)
             self.end_headers()
-        elif (self.path.startswith(malware_callbacks.etumbot_checkin)) and (self.path.endswith(extension) for extension in malware_callbacks.etumbot_extensions):
+        elif self.path == malware_callbacks.etumbot_checkin:
             self.send_response(200)
             self.end_headers()
             self.wfile.write(malware_callbacks.etumbot_checkin_response)
-        elif self.path.startswith(malware_callbacks.etumbot_history) and (self.path.endswith(extension) for extension in malware_callbacks.etumbot_extensions):
+        elif (self.path.startswith(etum_uri) for etum_uri in malware_callbacks.etumbot_uri) and (self.path.endswith(extension) for extension in malware_callbacks.etumbot_extensions):
             self.send_response(200)
             self.end_headers()
             self.wfile.write()
