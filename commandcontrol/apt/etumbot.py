@@ -58,7 +58,7 @@ class Actor:
             "User-Agent": "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/5.0)",
             "Connection": "Keep-Alive",
             "Referrer": "http://www.google.com/",
-            "Pragme": "no-cache",
+            "Pragma": "no-cache",
             "Cache-Control": "no-cache",
             "Accept": "text/html,application/xhtml+xml,application/xml,q=0.9,*/*;q=0.8"
         }
