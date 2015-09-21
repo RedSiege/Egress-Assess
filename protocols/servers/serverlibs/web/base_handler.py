@@ -1,4 +1,5 @@
 import os
+import random
 import time
 from BaseHTTPServer import BaseHTTPRequestHandler
 from common import helpers
@@ -22,9 +23,22 @@ class GetHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(malware_callbacks.etumbot_checkin_response)
         elif (self.path.startswith(etum_uri) for etum_uri in malware_callbacks.etumbot_uri) and (self.path.endswith(extension) for extension in malware_callbacks.etumbot_extensions):
+            # current directory
+            exfil_directory = os.path.join(helpers.ea_path(), "data")
+            loot_path = exfil_directory + "/"
+            if not os.path.isdir(loot_path):
+                os.makedirs(loot_path)
+            # Get the date info
+            current_date = time.strftime("%m/%d/%Y")
+            current_time = time.strftime("%H:%M:%S")
+            screenshot_name = current_date.replace("/", "") +\
+                "_" + current_time.replace(":", "") + "actor_data.txt"
+            with open(loot_path + screenshot_name, 'a') as cc_data_file:
+                cc_data_file.write('etumbot just checked in here!\n')
+
             self.send_response(200)
             self.end_headers()
-            self.wfile.write()
+            self.wfile.write(random.choice(malware_callbacks.encoded_response))
         else:
             # 404 since we aren't serving up any pages, only receiving data
             self.send_response(404)

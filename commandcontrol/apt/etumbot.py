@@ -47,7 +47,7 @@ class Actor:
         self.uris = [
             '/image/' + random.choice(self.encoded_string) + '.jpg',
             '/history/' + random.choice(self.encoded_string) + '.asp',
-            'manage/asp/item.asp?id=' + random.choice(self.encoded_string) + '&&mux=' + random.choice(self.encoded_string),
+            '/manage/asp/item.asp?id=' + random.choice(self.encoded_string) + '&&mux=' + random.choice(self.encoded_string),
             '/article/30441/Review.asp?id=' + random.choice(self.encoded_string) + '&&date=' + random.choice(self.encoded_string),
             '/tech/s.asp?m=' + random.choice(self.encoded_string)]
 
@@ -91,7 +91,7 @@ class Actor:
             except urllib2.URLError:
                 print "[*] Error: Cannot connect to etumbot data exfil server!"
                 print "[*] Error: Possible firewall, or proxy prventing this?"
-                sys.exit(1)
+                print "URI == " + etumbot_uri
 
         print "[*] INFO: Etumbot C2 comms complete!"
         return
