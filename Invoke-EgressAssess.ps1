@@ -30,9 +30,6 @@ function Invoke-EgressAssess
 .Parameter Password
     The password for the ftp server
 
-.Parameter NoPing
-    Disable the server ping check
-
 .Parameter Datatype
     The string containing the data you want to generate and exfil
     May contain filepath to transfer file
@@ -67,8 +64,6 @@ function Invoke-EgressAssess
         [switch]$Proxy,
         [Parameter(Mandatory = $True, ValueFromPipeline = $True)]
         [string]$Datatype,
-        [Parameter(Mandatory = $False)]
-        [switch]$NoPing,
         [Parameter(Mandatory = $False)]
         [string]$Username,
         [Parameter(Mandatory = $False)]
@@ -341,16 +336,16 @@ function Invoke-EgressAssess
                     Write-Verbose "$percent% Done! $i Name-Sets Generated"
                     $percentcount += 1
                 }
-            $First = Get-Random -InputObject $FirstNames
-            $Last = Get-Random -InputObject $LastNames
-            $Address = Get-Random -InputObject $Addresses
-            $SSN = "$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 10 -maximum 99)-$(Get-Random -minimum 1000 -maximum 9999)"
-            $TextInfo = (Get-Culture).TextInfo
-            $r = "$($TextInfo.ToTitleCase($First.ToLower()) + " " + $TextInfo.ToTitleCase($Last.ToLower()) +  " $Address" +  " $SSN")"
-            $s = Get-Random -InputObject $r
-            $list.Add($s)
-            }
-            $script:AllNames = $list.ToArray()
+                $First = Get-Random -InputObject $FirstNames
+                $Last = Get-Random -InputObject $LastNames
+                $Address = Get-Random -InputObject $Addresses
+                $SSN = "$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 10 -maximum 99)-$(Get-Random -minimum 1000 -maximum 9999)"
+                $TextInfo = (Get-Culture).TextInfo
+                $r = "$($TextInfo.ToTitleCase($First.ToLower()) + " " + $TextInfo.ToTitleCase($Last.ToLower()) +  " $Address" +  " $SSN")"
+                $s = Get-Random -InputObject $r
+                $list.Add($s)
+                }
+                $script:AllNames = $list.ToArray()
         }
         
         function Use-File
@@ -361,7 +356,7 @@ function Invoke-EgressAssess
         
         function Use-HTTP
         {
-            if ($Datatype -contains "ssn" -or "cc" -or "names")
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
                 $totalupload = 0
                 if ($Datatype -eq "ssn") {
@@ -372,7 +367,7 @@ function Invoke-EgressAssess
                     Generate-CreditCards
                     $Data = $AllCC
                 }
-                elseif ($Datatype -eq "names") {
+                elseif ($Datatype -eq "identity") {
                     Generate-Names
                     $Data = $AllNames
                 }
@@ -410,7 +405,7 @@ function Invoke-EgressAssess
                     Write-Verbose "[*] $loops loops remaining.."
                     } While ($loops -gt 0)
             }
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "names")
+            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
             {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                 $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
@@ -458,7 +453,7 @@ function Invoke-EgressAssess
         
         function Use-Ftp
         {
-            if ($Datatype -contains "ssn" -or "cc" -or "names")
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
@@ -468,12 +463,12 @@ function Invoke-EgressAssess
                     Generate-CreditCards
                     $FTPData = $AllCC
                 }
-                elseif ($Datatype -eq "names") {
+                elseif ($Datatype -eq "identity") {
                     Generate-Names
                     $FTPData = $AllNames
                 }
             
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
+            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                 $Path = get-childitem $Datatype | % { $_.Name }
                 $filetransfer = $True
@@ -544,7 +539,7 @@ function Invoke-EgressAssess
                 Start-Sleep -s 3
                 Break
             }
-            if ($Datatype -contains "ssn" -or "cc" -or "names")
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
@@ -554,12 +549,12 @@ function Invoke-EgressAssess
                     Generate-CreditCards
                     $FTPData = $AllCC
                 }
-                elseif ($Datatype -eq "names") {
+                elseif ($Datatype -eq "identity") {
                     Generate-Names
                     $FTPData = $AllNames
                 }
             
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
+            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                 }
             }
@@ -654,7 +649,7 @@ function Invoke-EgressAssess
         
         function Use-SMTP
         {
-            if ($Datatype -contains "ssn" -or "cc" -or "names")
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
@@ -664,12 +659,12 @@ function Invoke-EgressAssess
                     Generate-CreditCards
                     $SMTPData = $AllCC
                 }
-                elseif ($Datatype -eq "names") {
+                elseif ($Datatype -eq "identity") {
                     Generate-Names
                     $SMTPData = $AllNames
                 }
             
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
+            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                 $filetransfer = $True
                 $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
@@ -703,7 +698,7 @@ function Invoke-EgressAssess
         
         function Use-ICMP
         {
-            if ($Datatype -contains "ssn" -or "cc" -or "names")
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
@@ -713,12 +708,12 @@ function Invoke-EgressAssess
                     Generate-CreditCards
                     [string]$ICMPData = $AllCC
                 }
-                elseif ($Datatype -eq "names") {
+                elseif ($Datatype -eq "identity") {
                     Generate-Names
                     [string]$ICMPData = $AllNames
                 }
             
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
+            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                 $filetransfer = $true
                 }
@@ -816,7 +811,7 @@ function Invoke-EgressAssess
         
         function Use-DNSTXT
         {
-            if ($Datatype -contains "ssn" -or "cc" -or "names")
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
@@ -826,12 +821,12 @@ function Invoke-EgressAssess
                     Generate-CreditCards
                     [string]$DNSData = $AllCC
                 }
-                elseif ($Datatype -eq "names") {
+                elseif ($Datatype -eq "identity") {
                     Generate-Names
                     [string]$DNSData = $AllNames
                 }
             
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
+            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
                 Write-Verbose "[*] You did not provide a data type to generate."
                 Write-Verbose "[*] DNS file transfers currently not supported."
                 break
@@ -892,7 +887,7 @@ function Invoke-EgressAssess
         
         function Use-DNSResolved
         {
-            if ($Datatype -contains "ssn" -or "cc" -or "names")
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
                 if ($Datatype -eq "ssn") {
                     Generate-SSN
@@ -902,12 +897,12 @@ function Invoke-EgressAssess
                     Generate-CreditCards
                     [string]$DNSData = $AllCC
                 }
-                elseif ($Datatype -eq "names") {
+                elseif ($Datatype -eq "identity") {
                     Generate-Names
                     [string]$DNSData = $AllNames
                 }
             
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
+            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
                 Write-Verbose "[*] You did not provide a data type to generate."
                 Write-Verbose "[*] DNS file transfers currently not supported."
                 break
@@ -956,11 +951,11 @@ function Invoke-EgressAssess
                 Generate-SSN
                 [string]$SMBData = $AllSSN
             }
-            elseif ($Datatype -eq "names") {
+            elseif ($Datatype -eq "identity") {
                     Generate-Names
                     [string]$SMBData = $AllNames
                 }
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "names") {
+            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                 
                     Write-Verbose "[*] Sending file to egress server.."
@@ -1049,9 +1044,7 @@ function Invoke-EgressAssess
     }
     process
     {
-            if (!$NoPing) {
-                Test-ServerConnection
-            }
+            Test-ServerConnection
         
             if ($client -eq "http" -or $client -eq "https")
             {
