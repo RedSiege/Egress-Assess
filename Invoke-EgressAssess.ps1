@@ -30,6 +30,9 @@ function Invoke-EgressAssess
 .Parameter Password
     The password for the ftp server
 
+.Parameter NoPing
+    Disable the server ping check
+
 .Parameter Datatype
     The string containing the data you want to generate and exfil
     May contain filepath to transfer file
@@ -64,6 +67,8 @@ function Invoke-EgressAssess
         [switch]$Proxy,
         [Parameter(Mandatory = $True, ValueFromPipeline = $True)]
         [string]$Datatype,
+        [Parameter(Mandatory = $False)]
+        [switch]$NoPing,
         [Parameter(Mandatory = $False)]
         [string]$Username,
         [Parameter(Mandatory = $False)]
@@ -1044,7 +1049,9 @@ function Invoke-EgressAssess
     }
     process
     {
-            Test-ServerConnection
+            if (!$NoPing) {
+                Test-ServerConnection
+            }
         
             if ($client -eq "http" -or $client -eq "https")
             {
