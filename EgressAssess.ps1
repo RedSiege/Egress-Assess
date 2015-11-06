@@ -1,6 +1,6 @@
 function Invoke-EgressAssess
 {
-
+    
 <#
 
 .Synopsis
@@ -174,7 +174,13 @@ function Invoke-EgressAssess
                     {
                         $socketTcp.Connect($ip, $port)
                     }
-                    catch { }
+                    catch
+                    {
+                        $ErrorMessage = $_.Exception.Message
+                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose $ErrorMessage
+                        Break
+                    }
                     
                     #connect to server if running
                     if ($socketTcp.Connected)
@@ -478,7 +484,7 @@ function Invoke-EgressAssess
                 # Main transfer
                 $localLoop = 5
                 Do
-                {                    
+                {
                     $ranURI = Get-Random -InputObject $uris
                     if ($client -eq "http")
                     {
@@ -885,7 +891,7 @@ function Invoke-EgressAssess
             }
             While ($loops -gt 0)
         }
-
+        
         function Use-PutterPanda
         {
             function Gen-Numbers($num)
