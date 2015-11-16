@@ -48,8 +48,31 @@ if __name__ == "__main__":
         print
         sys.exit()
 
+    elif cli_parsed.list_actors:
+        print "[*] Supported malware/APT groups: \n"
+        the_conductor.load_actors(cli_parsed)
+        for name, datatype_module in the_conductor.actor_modules.iteritems():
+            print "[+] " + datatype_module.cli + " - (" +\
+                datatype_module.description + ")"
+        print
+        sys.exit()
+
     if cli_parsed.server is not None:
         the_conductor.load_server_protocols(cli_parsed)
+        the_conductor.load_actors(cli_parsed)
+
+        # Check if server module is given threat actor vs. normal server
+        for actor_path, actor_mod in the_conductor.actor_modules.iteritems():
+
+            # If actor module is what is used, search for the server requirement
+            # and load that
+            if actor_mod.cli == cli_parsed.server.lower():
+
+                for full_path, server_actor in the_conductor.server_protocols.iteritems():
+
+                    if server_actor.protocol.lower() == actor_mod.server_requirement:
+                        server_actor.serve()
+
 
         for full_path, server in the_conductor.server_protocols.iteritems():
 
@@ -86,3 +109,26 @@ if __name__ == "__main__":
         print "[*] Error: You either didn't provide a valid datatype or client protocol to use."
         print "[*] Error: Re-run and use --list-datatypes or --list-clients to see possible options."
         sys.exit()
+
+    elif cli_parsed.actor is not None:
+        # Load different threat actors/malware
+        the_conductor.load_actors(cli_parsed)
+
+        # Identify the actor to emulate
+        for full_path, actor_variant in the_conductor.actor_modules.iteritems():
+            if actor_variant.cli == cli_parsed.actor.lower():
+
+                # Check if generating data or using data within the actor module
+                if cli_parsed.datatype is not None:
+                    the_conductor.load_datatypes(cli_parsed)
+
+                    # Generate the data for the actor to exfil
+                    for name, datatype_module in the_conductor.datatypes.iteritems():
+                        if datatype_module.cli == cli_parsed.datatype.lower():
+                            generated_data = datatype_module.generate_data()
+
+                    actor_variant.emulate(data_to_exfil=generated_data)
+
+                # Instead, use the exfil data within the module
+                else:
+                    actor_variant.emulate()
