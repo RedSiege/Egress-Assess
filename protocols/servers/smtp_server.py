@@ -19,7 +19,7 @@ class Server:
 
         self.protocol = "smtp"
         if cli_object.port:
-            self.port = int(cli_object.port)
+            self.port = int(cli_object.server_port)
         else:
             self.port = 25
 

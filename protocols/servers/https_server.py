@@ -19,7 +19,7 @@ class Server:
     def __init__(self, cli_object):
         self.protocol = "https"
         if cli_object.port:
-            self.port = int(cli_object.port)
+            self.port = int(cli_object.server_port)
         else:
             self.port = 443
 

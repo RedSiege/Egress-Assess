@@ -20,7 +20,7 @@ class Server:
         self.password = cli_object.password
         self.data_directory = ""
         if cli_object.port:
-            self.port = int(cli_object.port)
+            self.port = int(cli_object.server_port)
         else:
             self.port = 21
 
