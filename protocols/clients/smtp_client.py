@@ -26,7 +26,7 @@ class Client:
         if cli_object.client_port is None:
             self.port = 25
         else:
-            self.port = cli_object.client_ports
+            self.port = cli_object.client_port
         if cli_object.file is None:
             self.file_transfer = False
         else:
