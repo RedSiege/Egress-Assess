@@ -14,6 +14,10 @@ class Client:
         self.data_to_transmit = ''
         self.remote_server = cli_object.ip
         self.protocol = "http"
+        if cli_object.client_port is None:
+            self.port = 80
+        else:
+            self.port = cli_object.client_port
         if cli_object.file is None:
             self.file_transfer = False
         else:
@@ -25,7 +29,7 @@ class Client:
     def transmit(self, data_to_transmit):
 
         if not self.file_transfer:
-            url = "http://" + self.remote_server + ":" + self.port + "/post_data.php"
+            url = "http://" + self.remote_server + ":" + str(self.port) + "/post_data.php"
 
             # Post the data to the web server at the specified URL
             try:
@@ -37,7 +41,7 @@ class Client:
                 print "[*] Error: Please check server to make sure it is active!"
                 sys.exit()
         else:
-            url = "http://" + self.remote_server + "/post_file.php"
+            url = "http://" + self.remote_server + ":" + str(self.port) + "/post_file.php"
 
             try:
                 data_to_transmit = self.file_transfer + ".:::-989-:::." + data_to_transmit

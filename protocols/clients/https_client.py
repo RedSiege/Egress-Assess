@@ -4,6 +4,7 @@ This is the web client code
 
 '''
 
+import ssl
 import sys
 import urllib2
 
@@ -14,6 +15,10 @@ class Client:
         self.data_to_transmit = ''
         self.remote_server = cli_object.ip
         self.protocol = "https"
+        if cli_object.client_port is None:
+            self.port = 443
+        else:
+            self.port = cli_object.client_port
         if cli_object.file is None:
             self.file_transfer = False
         else:
@@ -23,8 +28,10 @@ class Client:
                 self.file_transfer = cli_object.file
 
     def transmit(self, data_to_transmit):
+
+        ssl._create_default_https_context = ssl._create_unverified_context
         if not self.file_transfer:
-            url = "https://" + self.remote_server + ":" + self.port + "/post_data.php"
+            url = "https://" + self.remote_server + ":" + str(self.port) + "/post_data.php"
 
             # Post the data to the web server at the specified URL
             try:
@@ -36,7 +43,7 @@ class Client:
                 print "[*] Error: Please check server to make sure it is active!"
                 sys.exit()
         else:
-            url = "https://" + self.remote_server + "/post_file.php"
+            url = "https://" + self.remote_server + ":" + str(self.port) + "/post_file.php"
 
             try:
                 data_to_transmit = self.file_transfer + ".:::-989-:::." + data_to_transmit
