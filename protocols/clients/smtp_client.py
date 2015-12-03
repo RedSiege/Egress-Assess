@@ -23,6 +23,10 @@ class Client:
     def __init__(self, cli_object):
         self.protocol = "smtp"
         self.remote_server = cli_object.ip
+        if cli_object.client_port is None:
+            self.port = 25
+        else:
+            self.port = cli_object.client_ports
         if cli_object.file is None:
             self.file_transfer = False
         else:
@@ -58,7 +62,7 @@ class Client:
             part.add_header('Content-Disposition', 'attachment; filename=' + self.file_transfer)
             msg.attach(part)
 
-        server = smtplib.SMTP(self.remote_server, 25)
+        server = smtplib.SMTP(self.remote_server, self.port)
         server.set_debuglevel(False)
         try:
             server.sendmail('tester@egress-assess.com', ['server@egress-assess.com'], msg.as_string())

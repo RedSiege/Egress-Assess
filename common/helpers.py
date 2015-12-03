@@ -28,6 +28,9 @@ def cli_parser():
         "--client", default=None, metavar="[http]",
         help="Extract data over the specified protocol.")
     protocols.add_argument(
+        "--client-port", default=None, metavar="34567", type=int,
+        help="Port to connect over if using non-standard port.")
+    protocols.add_argument(
         "--list-clients", default=False, action='store_true',
         help="List all supported client protocols.")
     protocols.add_argument("--ip", metavar="192.168.1.2", default=None,

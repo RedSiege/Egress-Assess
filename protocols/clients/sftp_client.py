@@ -21,6 +21,10 @@ class Client:
         self.username = cli_object.username
         self.password = cli_object.password
         self.remote_system = cli_object.ip
+        if cli_object.client_port is None:
+            self.port = 22
+        else:
+            self.port = cli_object.client_port
         if cli_object.file is None:
             self.file_transfer = False
         else:
@@ -37,7 +41,7 @@ class Client:
             sftp_file_name = helpers.writeout_text_data(data_to_transmit)
             full_path = helpers.ea_path() + "/" + sftp_file_name
 
-            transport = paramiko.Transport(self.remote_system)
+            transport = paramiko.Transport((self.remote_system, self.port))
             transport.connect(username=self.username, password=self.password)
             sftp = paramiko.SFTPClient.from_transport(transport)
             sftp.put(full_path, '/' + sftp_file_name)
