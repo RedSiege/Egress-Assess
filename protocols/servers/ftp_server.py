@@ -19,7 +19,7 @@ class Server:
         self.username = cli_object.username
         self.password = cli_object.password
         self.data_directory = ""
-        if cli_object.port:
+        if cli_object.server_port:
             self.port = int(cli_object.server_port)
         else:
             self.port = 21

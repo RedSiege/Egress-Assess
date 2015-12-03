@@ -25,7 +25,7 @@ class Server:
         self.username = cli_object.username
         self.password = cli_object.password
         self.sftp_directory = helpers.ea_path() + '/data'
-        if cli_object.port:
+        if cli_object.server_port:
             self.port = int(cli_object.server_port)
         else:
             self.port = 22

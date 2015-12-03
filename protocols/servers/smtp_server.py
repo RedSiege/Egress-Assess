@@ -18,7 +18,7 @@ class Server:
     def __init__(self, cli_object):
 
         self.protocol = "smtp"
-        if cli_object.port:
+        if cli_object.server_port:
             self.port = int(cli_object.server_port)
         else:
             self.port = 25
