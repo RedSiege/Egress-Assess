@@ -48,6 +48,9 @@ def cli_parser():
     servers.add_argument(
         "--server", default=None, metavar='[http]',
         help="Create a server for the specified protocol.")
+    servers.add_argument(
+        "--port", default=None, metavar='[80]',
+        help="Specify a non-standard port for the specified protocol.")
     servers.add_argument("--list-servers", default=False, action='store_true',
                          help="Lists all supported server protocols.")
 

@@ -25,7 +25,10 @@ class Server:
         self.username = cli_object.username
         self.password = cli_object.password
         self.sftp_directory = helpers.ea_path() + '/data'
-        self.port = 22
+        if cli_object.port:
+            self.port = int(cli_object.port)
+        else:
+            self.port = 22
         self.rsa_key = """
         -----BEGIN RSA PRIVATE KEY-----
 MIIEoQIBAAKCAQEArJqP/6XFBa88x/DUootMmSzYa3MxcTV9FjNYUomqbQlGzuHa

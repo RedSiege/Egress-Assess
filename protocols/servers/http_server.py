@@ -16,6 +16,10 @@ class Server:
 
     def __init__(self, cli_object):
         self.protocol = "http"
+        if cli_object.port:
+            self.port = int(cli_object.port)
+        else:
+            self.port = 80
 
     def serve(self):
         try:
@@ -32,10 +36,10 @@ class Server:
     def serve_on_port(self):
         try:
             server80 = threaded_http.ThreadingHTTPServer(
-                ("0.0.0.0", 80), base_handler.GetHandler)
+                ("0.0.0.0", self.port), base_handler.GetHandler)
             server80.serve_forever()
         except socket.error:
-            print "[*][*] Error: Port 80 is currently in use!"
+            print "[*][*] Error: Port %s is currently in use!" % self.port
             print "[*][*] Error: Please restart when port is free!\n"
             sys.exit()
         return

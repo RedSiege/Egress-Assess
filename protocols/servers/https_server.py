@@ -18,6 +18,10 @@ class Server:
 
     def __init__(self, cli_object):
         self.protocol = "https"
+        if cli_object.port:
+            self.port = int(cli_object.port)
+        else:
+            self.port = 443
 
     def serve(self):
         try:
@@ -36,12 +40,12 @@ class Server:
             cert_path = helpers.ea_path() +\
                 '/protocols/servers/serverlibs/web/server.pem'
             server = threaded_http.ThreadingHTTPServer(
-                ("0.0.0.0", 443), base_handler.GetHandler)
+                ("0.0.0.0", self.port), base_handler.GetHandler)
             server.socket = ssl.wrap_socket(
                 server.socket, certfile=cert_path, server_side=True)
             server.serve_forever()
         except socket.error:
-            print "[*][*] Error: Port 443 is currently in use!"
+            print "[*][*] Error: Port %d is currently in use!" % self.port
             print "[*][*] Error: Please restart when port is free!\n"
             sys.exit()
         return

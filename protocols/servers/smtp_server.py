@@ -18,6 +18,10 @@ class Server:
     def __init__(self, cli_object):
 
         self.protocol = "smtp"
+        if cli_object.port:
+            self.port = int(cli_object.port)
+        else:
+            self.port = 25
 
     def serve(self):
 
@@ -29,9 +33,9 @@ class Server:
         print "[*] Started SMTP server..."
 
         try:
-            smtp_server = smtp_class.CustomSMTPServer(('0.0.0.0', 25), None)
+            smtp_server = smtp_class.CustomSMTPServer(('0.0.0.0', self.port), None)
         except socket.error:
-            print "[*] Error: Port 25 is currently in use!"
+            print "[*] Error: Port %d is currently in use!" % self.port
             print "[*] Error: Please re-start when not in use."
             sys.exit()
 

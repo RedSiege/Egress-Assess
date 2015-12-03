@@ -19,6 +19,10 @@ class Server:
         self.username = cli_object.username
         self.password = cli_object.password
         self.data_directory = ""
+        if cli_object.port:
+            self.port = int(cli_object.port)
+        else:
+            self.port = 21
 
     def serve(self):
         # current directory
@@ -43,10 +47,10 @@ class Server:
             handler.banner = "Connecting to Egress-Assess's FTP server!"
 
             try:
-                server = FTPServer(('', 21), handler)
+                server = FTPServer(('', self.port), handler)
                 server.serve_forever()
             except socket.error:
-                print "[*][*] Error: Port 80 is currently in use!"
+                print "[*][*] Error: Port %d is currently in use!" % self.port
                 print "[*][*] Error: Please restart when port is free!\n"
                 sys.exit()
         except ValueError:
