@@ -16,7 +16,7 @@ class Server:
 
     def __init__(self, cli_object):
         self.protocol = "http"
-        if cli_object.port:
+        if cli_object.server_port:
             self.port = int(cli_object.server_port)
         else:
             self.port = 80
