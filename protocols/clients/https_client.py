@@ -24,7 +24,7 @@ class Client:
 
     def transmit(self, data_to_transmit):
         if not self.file_transfer:
-            url = "https://" + self.remote_server + "/post_data.php"
+            url = "https://" + self.remote_server + ":" + self.port + "/post_data.php"
 
             # Post the data to the web server at the specified URL
             try:
