@@ -1,11 +1,3 @@
-# Updates Made:
-# Drastically increased speed of SSN/CC number generation by genenerating a random value, then generating the next 500 sequentially instead of randomly.
-# Also increased speed of Random SSN and CC number generation about 2-3x.  
-#   For Credit Cards, several subfunction calls were removed and only generating 1 random number per credit card.
-#   For SSN, only generating 1 random number for 2 SSNs
-# Note: by default script will now generate data in batches of 500 sequential values.  For randomized values, use the -Randomize switch parameter
-
-
 function Invoke-EgressAssess
 {
     
@@ -61,13 +53,13 @@ function Invoke-EgressAssess
     This switch writes a report to console and disk.
     Default report location "C:\Egress-Assess\report.txt".
 
-.Parameter Randomize
-    This switch forces Egress-Assess to generate random numbers for fake data.
-    Performance is significantly slower with this switch.
+.Parameter Fast
+    This switch drastically reduces the time required to generate fake data.
+    Note: fake data will be generated in batches of 500 sequential values.
 
 .Example
     Import-Module Egress-Assess.ps1
-    Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Verbose
+    Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Fast -Verbose 
     Invoke-EgressAssess -client smb -ip 127.0.0.1 -Datatype "c:\Users\testuser\secrets.xlsx" -Verbose
     Invoke-EgressAssess -client icmp -ip 127.0.0.1 -Datatype ssn -Report -Verbose
 
@@ -102,7 +94,7 @@ function Invoke-EgressAssess
         [Parameter(Mandatory = $False)]
         [string]$Report,
         [Parameter(Mandatory = $False)]
-        [switch]$Randomize
+        [switch]$Fast
     )
     begin
     {
@@ -224,22 +216,12 @@ function Invoke-EgressAssess
             $num = [math]::Round(($Size * 1MB)/11)
             Write-Verbose "Generating $Size MB of Social Security Numbers ($num)..."
             $list = New-Object System.Collections.Generic.List[System.String]
-            #$percentcount = 0
-            #$quart = [math]::Round($num/4)
+
             for ($i = 0; $i -lt $num; $i++)
             {
             
-                if ($Randomize)
+                if ($Fast) 
                 {
-                    $rOriginal = Get-Random -minimum 10000000000000 -maximum 100000000000000
-                    $rOriginalString = [string][int64]$rOriginal
-                    $r = "$($rOriginalString.substring(0,3))-$($rOriginalString.substring(3,2))-$($rOriginalString.substring(5,4))"
-                    $list.Add($r)
-                    $r = "$($rOriginalString.substring(9,3))-$($rOriginalString.substring(12,2))-$($rOriginalString.substring(2,4))"
-                    $list.Add($r)
-                    $i++
-                }
-                else {
                     $randNum = Get-Random -minimum 10000 -maximum 100000
                     $randNumString = [string][int64]$randNum
                     $randSsnBase = "$($randNumString.substring(0,3))-$($randNumString.substring(3,2))-"
@@ -250,8 +232,19 @@ function Invoke-EgressAssess
                         $randSSN = "$randSsnBase$i2"
                         $list.Add($randSSN)
                         $i++
-                    }                    
+                    }
                 }
+                
+                else
+                {
+                    $rOriginal = Get-Random -minimum 10000000000000 -maximum 100000000000000
+                    $rOriginalString = [string][int64]$rOriginal
+                    $r = "$($rOriginalString.substring(0,3))-$($rOriginalString.substring(3,2))-$($rOriginalString.substring(5,4))"
+                    $list.Add($r)
+                    $r = "$($rOriginalString.substring(9,3))-$($rOriginalString.substring(12,2))-$($rOriginalString.substring(2,4))"
+                    $list.Add($r)
+                    $i++
+                }           
             }
             
             $script:AllSSN = $list.ToArray()
@@ -271,7 +264,46 @@ function Invoke-EgressAssess
             for ($i = 0; $i -lt $num; $i++)
             {
 
-                if ($Randomize)
+                if ($Fast)
+                {
+                    switch ($(Get-Random -maximum 4))
+                    {
+                        0 { # Generate Visa 
+                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCCbase = "4$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
+                        }
+                        
+                        1 { # Generate MasterCard
+                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCCbase = "5$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
+                        }
+                        
+                        2 { # Generate Discover 
+                            $randNum = Get-Random -minimum 10000000 -maximum 100000000
+                            $randNumString = [string][int64]$randNum
+                            $randCCbase = "6011-$($randNumString.substring(0,4))-$($randNumString.substring(4,4))-"
+                        }
+                        
+                        3 { # Generate Amex 
+                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCCbase = "3$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
+                        }
+                    }
+
+                    $endCC = $(Get-Random -minimum 1000 -maximum 9500)
+
+                    for ($i2 = $endCC; $i2 -lt $($endCC+500); $i2++)
+                    {
+                        $randCC = "$randCCbase$i2"
+                        $list.Add($randCC)
+                        $i++
+                    }                    
+                }
+
+                else
                 {
                     $baseCC = $null 
 
@@ -313,52 +345,8 @@ function Invoke-EgressAssess
                     }
                     $intCardType++
                 }
-                
-                else
-                {
-                    switch ($(Get-Random -maximum 4))
-                    {
-                        0 { # Generate Visa 
-                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCCbase = "4$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
-                        }
-                        
-                        1 { # Generate MasterCard
-                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCCbase = "5$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
-                        }
-                        
-                        2 { # Generate Discover 
-                            $randNum = Get-Random -minimum 10000000 -maximum 100000000
-                            $randNumString = [string][int64]$randNum
-                            $randCCbase = "6011-$($randNumString.substring(0,4))-$($randNumString.substring(4,4))-"
-                        }
-                        
-                        3 { # Generate Amex 
-                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCCbase = "3$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
-                        }
-                    }
-
-                    $endCC = $(Get-Random -minimum 1000 -maximum 9500)
-
-                    for ($i2 = $endCC; $i2 -lt $($endCC+500); $i2++)
-                    {
-                        $randCC = "$randCCbase$i2"
-                        $list.Add($randCC)
-                        $i++
-                    }
-                    
-                }
-                
-                
-
             }
             $script:AllCC = $Script:list.ToArray()
-            #$script:AllCC = $list.ToArray()
         }
         
         function Generate-Identity
