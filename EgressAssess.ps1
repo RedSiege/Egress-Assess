@@ -237,11 +237,11 @@ function Invoke-EgressAssess
                 
                 else
                 {
-                    $rOriginal = Get-Random -minimum 10000000000000 -maximum 100000000000000
-                    $rOriginalString = [string][int64]$rOriginal
-                    $r = "$($rOriginalString.substring(0,3))-$($rOriginalString.substring(3,2))-$($rOriginalString.substring(5,4))"
+                    $randNum = Get-Random -minimum 10000000000000 -maximum 100000000000000
+                    $randNumString = [string][int64]$randNum
+                    $r = "$($randNumString.substring(0,3))-$($randNumString.substring(3,2))-$($randNumString.substring(5,4))"
                     $list.Add($r)
-                    $r = "$($rOriginalString.substring(9,3))-$($rOriginalString.substring(12,2))-$($rOriginalString.substring(2,4))"
+                    $r = "$($randNumString.substring(9,3))-$($randNumString.substring(12,2))-$($randNumString.substring(2,4))"
                     $list.Add($r)
                     $i++
                 }           
@@ -428,7 +428,11 @@ function Invoke-EgressAssess
                 $First = Get-Random -InputObject $FirstNames
                 $Last = Get-Random -InputObject $LastNames
                 $Address = Get-Random -InputObject $Addresses
-                $SSN = "$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 10 -maximum 99)-$(Get-Random -minimum 1000 -maximum 9999)"
+                
+                $randNum = Get-Random -minimum 100000000 -maximum 1000000000
+                $randNumString = [string][int64]$randNum
+                $SSN = "$($randNumString.substring(0,3))-$($randNumString.substring(3,2))-$($randNumString.substring(5,4))"
+                
                 $TextInfo = (Get-Culture).TextInfo
                 $r = "$($TextInfo.ToTitleCase($First.ToLower()) + " " + $TextInfo.ToTitleCase($Last.ToLower()) + " $Address" + " $SSN")"
                 $s = Get-Random -InputObject $r
@@ -1283,7 +1287,7 @@ function Invoke-EgressAssess
                 if ($proxy)
                 {
                     $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
-                    $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+                    $proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
                     $webclient.proxy = $proxy
                 }
                 Write-Verbose "[*] Uploading data.."
@@ -1299,25 +1303,21 @@ function Invoke-EgressAssess
                     {
                         $Date = Get-Date -Format Mdyyyy_hhmmss
                         $Path = "ftpdata" + $Date + ".txt"
-                        $Destination = "ftp://" + $IP + "/" + $Path
-                        $Credential = New-Object -TypeName System.Net.NetworkCredential -ArgumentList $Username, $Password
+                        $Destination = "ftp://" + $Username + ":" + $Password + "@" + $IP + "/" + $Path
                         
-                        # Create the FTP request and upload the file
-                        $FtpRequest = [System.Net.FtpWebRequest][System.Net.WebRequest]::Create($Destination)
+                        $ftpClient = New-Object System.Net.WebClient
+                        $uri = New-Object System.Uri($Destination)
+
                         if ($proxy)
                         {
                             $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
-                            $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
-                            $FtpRequest.proxy = $proxy
+                            $proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                            $ftpClient.proxy = $proxy
                         }
-                        $FtpRequest.KeepAlive = $False
-                        $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
-                        $FtpRequest.Credentials = $Credential
-                        # Get the request stream, and write the file bytes to the stream
-                        $Encoder = [system.Text.Encoding]::UTF8
-                        $RequestStream = $FtpRequest.GetRequestStream()
-                        $Encoder.GetBytes($FTPData) | % { $RequestStream.WriteByte($_); }
-                        $RequestStream.Close()
+                        Write-Verbose "[*] Uploading data.."
+
+                        $ftpClient.UploadString($uri, $FTPData)
+                        
                         Write-Verbose "[*] File Transfer Complete."
                     }
                     catch
