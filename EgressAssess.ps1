@@ -45,6 +45,7 @@ function Invoke-EgressAssess
 
 .Parameter Size
     Size in MB to send
+    Note: Max size is 60 MB.  Use -Loop option for larger data exfiltration
 
 .Parameter Loops
     How many times to re-run the script. Hack to get around memory limitations in Windows.
@@ -54,15 +55,15 @@ function Invoke-EgressAssess
     Default report location "C:\Egress-Assess\report.txt".
 
 .Parameter Fast
-    This switch drastically reduces the time required to generate fake data.
-    Note: fake data will be generated in batches of 500 sequential values.
+    This switch reduces the time required to generate fake data by about 5x.
+    Note: Fake CC and SSN data will be generated in batches of 500 sequential values.
 
 .Example
     Import-Module Egress-Assess.ps1
-    Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Fast -Verbose 
+    Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Size 50 -Loop 20 -Fast -Verbose
+    Invoke-EgressAssess -client ftp -ip 127.0.0.1 -Username user -Password pass -Datatype ssn -Size 10 -Verbose
     Invoke-EgressAssess -client smb -ip 127.0.0.1 -Datatype "c:\Users\testuser\secrets.xlsx" -Verbose
     Invoke-EgressAssess -client icmp -ip 127.0.0.1 -Datatype ssn -Report -Verbose
-
 
 #>
     [CmdletBinding()]
