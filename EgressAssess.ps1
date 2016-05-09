@@ -53,12 +53,16 @@ function Invoke-EgressAssess
     This switch writes a report to console and disk.
     Default report location "C:\Egress-Assess\report.txt".
 
+.Parameter Fast
+    This switch reduces the time required to generate fake data.
+    Note: Fake CC and SSN data will be generated in batches of 500 sequential values.
+
 .Example
     Import-Module Egress-Assess.ps1
-    Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Verbose
+    Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Size 50 -Loop 20 -Fast -Verbose
+    Invoke-EgressAssess -client ftp -ip 127.0.0.1 -Username user -Password pass -Datatype ssn -Size 10 -Verbose
     Invoke-EgressAssess -client smb -ip 127.0.0.1 -Datatype "c:\Users\testuser\secrets.xlsx" -Verbose
     Invoke-EgressAssess -client icmp -ip 127.0.0.1 -Datatype ssn -Report -Verbose
-
 
 #>
     [CmdletBinding()]
@@ -88,7 +92,9 @@ function Invoke-EgressAssess
         [Parameter(Mandatory = $False)]
         [int]$Loops = 1,
         [Parameter(Mandatory = $False)]
-        [string]$Report
+        [string]$Report,
+        [Parameter(Mandatory = $False)]
+        [switch]$Fast
     )
     begin
     {
@@ -210,19 +216,37 @@ function Invoke-EgressAssess
             $num = [math]::Round(($Size * 1MB)/11)
             Write-Verbose "Generating $Size MB of Social Security Numbers ($num)..."
             $list = New-Object System.Collections.Generic.List[System.String]
-            $percentcount = 0
-            $quart = [math]::Round($num/4)
+
             for ($i = 0; $i -lt $num; $i++)
             {
-                if ($i%$quart -eq 0)
+            
+                if ($Fast) 
                 {
-                    $percent = $percentcount * 25
-                    Write-Verbose "$percent% Done! $i SSNs Generated"
-                    $percentcount += 1
+                    $randNum = Get-Random -minimum 10000 -maximum 100000
+                    $randNumString = [string][int64]$randNum
+                    $randSsnBase = "$($randNumString.substring(0,3))-$($randNumString.substring(3,2))-"
+                    $randSsnEnd = Get-Random -minimum 1000 -maximum 9500
+
+                    for ($i2 = $randSsnEnd; $i2 -lt $($randSsnEnd+500); $i2++)
+                    {
+                        $randSSN = "$randSsnBase$i2"
+                        $list.Add($randSSN)
+                        $i++
+                    }
                 }
-                $r = "$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 10 -maximum 99)-$(Get-Random -minimum 1000 -maximum 9999)"
-                $list.Add($r)
+                
+                else
+                {
+                    $randNum = Get-Random -minimum 10000000000000 -maximum 100000000000000
+                    $randNumString = [string][int64]$randNum
+                    $r = "$($randNumString.substring(0,3))-$($randNumString.substring(3,2))-$($randNumString.substring(5,4))"
+                    $list.Add($r)
+                    $r = "$($randNumString.substring(9,3))-$($randNumString.substring(12,2))-$($randNumString.substring(2,4))"
+                    $list.Add($r)
+                    $i++
+                }           
             }
+            
             $script:AllSSN = $list.ToArray()
         }
         
@@ -230,56 +254,99 @@ function Invoke-EgressAssess
         {
             
             $script:AllCC = @()
-            $stringBuilder = New-Object System.Text.StringBuilder
             $script:list = New-Object System.Collections.Generic.List[System.String]
+            
             Write-Verbose "[*] Generating Credit Cards............."
-            function New-Visa
-            {
-                #generate a single random visa number, format 4xxx-xxxx-xxxx-xxxx
-                $r = "4$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 1000 -maximum 9999)-$(Get-Random -minimum 1000 -maximum 9999)-$(Get-Random -minimum 1000 -maximum 9999)"
-                $script:list.Add($r)
-            }
-            function New-MasterCard
-            {
-                # generate a single random mastercard number
-                $r = "5$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 1000 -maximum 9999)-$(Get-Random -minimum 1000 -maximum 9999)-$(Get-Random -minimum 1000 -maximum 9999)"
-                $script:list.Add($r)
-            }
-            function New-Discover
-            {
-                # generate a single random discover number
-                $r = "6011-$(Get-Random -minimum 1000 -maximum 9999)-$(Get-Random -minimum 1000 -maximum 9999)-$(Get-Random -minimum 1000 -maximum 9999)"
-                $script:list.Add($r)
-            }
-            function New-Amex
-            {
-                # generate a single random amex number
-                $script:AllCC += "3$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 100000 -maximum 999999)-$(Get-Random -minimum 10000 -maximum 99999)"
-                $r = "3$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 100000 -maximum 999999)-$(Get-Random -minimum 10000 -maximum 99999)"
-                $script:list.Add($r)
-            }
+            
             $num = [math]::Round($Size * 1MB)/19
-            $percentcount = 0
-            $quart = [math]::Round($num/4)
+            $intCardType = 0
+                        
             for ($i = 0; $i -lt $num; $i++)
             {
-                if ($i%$quart -eq 0)
+
+                if ($Fast)
                 {
-                    $percent = $percentcount * 25
-                    Write-Verbose "$percent% Done! $i SSNs Generated"
-                    $percentcount += 1
+                    switch ($(Get-Random -maximum 4))
+                    {
+                        0 { # Generate Visa 
+                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCCbase = "4$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
+                        }
+                        
+                        1 { # Generate MasterCard
+                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCCbase = "5$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
+                        }
+                        
+                        2 { # Generate Discover 
+                            $randNum = Get-Random -minimum 10000000 -maximum 100000000
+                            $randNumString = [string][int64]$randNum
+                            $randCCbase = "6011-$($randNumString.substring(0,4))-$($randNumString.substring(4,4))-"
+                        }
+                        
+                        3 { # Generate Amex 
+                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCCbase = "3$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
+                        }
+                    }
+
+                    $endCC = $(Get-Random -minimum 1000 -maximum 9500)
+
+                    for ($i2 = $endCC; $i2 -lt $($endCC+500); $i2++)
+                    {
+                        $randCC = "$randCCbase$i2"
+                        $list.Add($randCC)
+                        $i++
+                    }                    
                 }
-                $r = Get-Random -Minimum 1 -Maximum 5
-                switch ($r) # Use switch statement to
+
+                else
                 {
-                    1 { New-Visa }
-                    2 { New-MasterCard }
-                    3 { New-Discover }
-                    4 { New-Amex }
-                    default { New-Visa }
+                    $baseCC = $null 
+
+                    if ($intCardType -gt 3)
+                    {
+                        $intCardType = 0
+                    }
+
+                    
+                    switch ($intCardType)
+                    {
+                        0 {  # Generate Visa 
+                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCC = "4$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-$($randNumString.substring(11,4))"
+                            $script:list.Add($randCC)
+                        }
+
+                        1 { # Generate MasterCard 
+                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCC = "5$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-$($randNumString.substring(11,4))"
+                            $script:list.Add($randCC)
+                        }
+                                
+                        2 { # Generate Discover 
+                            $randNum = Get-Random -minimum 100000000000 -maximum 1000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCC = "6011-$($randNumString.substring(0,4))-$($randNumString.substring(4,4))-$($randNumString.substring(8,4))"
+                            $script:list.Add($randCC)
+                        }
+                        
+                        3 { # Generate Amex 
+                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
+                            $randNumString = [string][int64]$randNum
+                            $randCC = "3$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-$($randNumString.substring(11,4))"
+                            $script:list.Add($randCC)
+                        }
+                    }
+                    $intCardType++
                 }
             }
-            $script:AllCC = $list.ToArray()
+            $script:AllCC = $Script:list.ToArray()
         }
         
         function Generate-Identity
@@ -361,7 +428,11 @@ function Invoke-EgressAssess
                 $First = Get-Random -InputObject $FirstNames
                 $Last = Get-Random -InputObject $LastNames
                 $Address = Get-Random -InputObject $Addresses
-                $SSN = "$(Get-Random -minimum 100 -maximum 999)-$(Get-Random -minimum 10 -maximum 99)-$(Get-Random -minimum 1000 -maximum 9999)"
+                
+                $randNum = Get-Random -minimum 100000000 -maximum 1000000000
+                $randNumString = [string][int64]$randNum
+                $SSN = "$($randNumString.substring(0,3))-$($randNumString.substring(3,2))-$($randNumString.substring(5,4))"
+                
                 $TextInfo = (Get-Culture).TextInfo
                 $r = "$($TextInfo.ToTitleCase($First.ToLower()) + " " + $TextInfo.ToTitleCase($Last.ToLower()) + " $Address" + " $SSN")"
                 $s = Get-Random -InputObject $r
@@ -1140,7 +1211,7 @@ function Invoke-EgressAssess
             
             if ($proxy)
             {
-                $proxy = [Slslsstem.Net.WebRequest]::GetSystemWebProxy()
+                $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
                 $proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
                 $wc.proxy = $proxy
             }
@@ -1216,9 +1287,10 @@ function Invoke-EgressAssess
                 if ($proxy)
                 {
                     $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
-                    $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+                    $proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
                     $webclient.proxy = $proxy
                 }
+                Write-Verbose "[*] Uploading data.."
                 $uri = New-Object System.Uri($Destination)
                 $webclient.UploadFile($uri, $SourceFilePath)
                 Write-Verbose "[*] File Transfer Complete."
@@ -1231,25 +1303,21 @@ function Invoke-EgressAssess
                     {
                         $Date = Get-Date -Format Mdyyyy_hhmmss
                         $Path = "ftpdata" + $Date + ".txt"
-                        $Destination = "ftp://" + $IP + "/" + $Path
-                        $Credential = New-Object -TypeName System.Net.NetworkCredential -ArgumentList $Username, $Password
+                        $Destination = "ftp://" + $Username + ":" + $Password + "@" + $IP + "/" + $Path
                         
-                        # Create the FTP request and upload the file
-                        $FtpRequest = [System.Net.FtpWebRequest][System.Net.WebRequest]::Create($Destination)
+                        $ftpClient = New-Object System.Net.WebClient
+                        $uri = New-Object System.Uri($Destination)
+
                         if ($proxy)
                         {
                             $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
-                            $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
-                            $FtpRequest.proxy = $proxy
+                            $proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                            $ftpClient.proxy = $proxy
                         }
-                        $FtpRequest.KeepAlive = $False
-                        $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
-                        $FtpRequest.Credentials = $Credential
-                        # Get the request stream, and write the file bytes to the stream
-                        $Encoder = [system.Text.Encoding]::UTF8
-                        $RequestStream = $FtpRequest.GetRequestStream()
-                        $Encoder.GetBytes($FTPData) | % { $RequestStream.WriteByte($_); }
-                        $RequestStream.Close()
+                        Write-Verbose "[*] Uploading data.."
+
+                        $ftpClient.UploadString($uri, $FTPData)
+                        
                         Write-Verbose "[*] File Transfer Complete."
                     }
                     catch
