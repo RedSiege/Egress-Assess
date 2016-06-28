@@ -51,7 +51,7 @@ function Invoke-EgressAssess
 
 .Parameter Report
     This switch writes a report to console and disk.
-    Default report location "C:\Egress-Assess\report.txt".
+    Note: Must have permission to write to folder.
 
 .Parameter Fast
     This switch reduces the time required to generate fake data.
@@ -62,7 +62,7 @@ function Invoke-EgressAssess
     Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Size 50 -Loop 20 -Fast -Verbose
     Invoke-EgressAssess -client ftp -ip 127.0.0.1 -Username user -Password pass -Datatype ssn -Size 10 -Verbose
     Invoke-EgressAssess -client smb -ip 127.0.0.1 -Datatype "c:\Users\testuser\secrets.xlsx" -Verbose
-    Invoke-EgressAssess -client icmp -ip 127.0.0.1 -Datatype ssn -Report -Verbose
+    Invoke-EgressAssess -client icmp -ip 127.0.0.1 -Datatype ssn -Report "C:\Users\testuser\report.txt" -Verbose
 
 #>
     [CmdletBinding()]
@@ -91,7 +91,7 @@ function Invoke-EgressAssess
         [int]$Size = 1,
         [Parameter(Mandatory = $False)]
         [int]$Loops = 1,
-        [Parameter(Mandatory = $False)]
+        [Parameter(Mandatory = $False, ValueFromPipeline = $True)]
         [string]$Report,
         [Parameter(Mandatory = $False)]
         [switch]$Fast
@@ -1859,32 +1859,64 @@ function Invoke-EgressAssess
             While ($loops -gt 0)
         }
         
-        #write report to console and file to C:\Egress-Assess\report.txt
+        #write report to console and file
         #future enhancement: add variable input for report path and filename
         #future enhancement: add filename of exfilled file to report
         function Write-Report
         {
             Write-Verbose "[*] Building Report"
             Write-Verbose "----------Egress-Assess Report----------"
-            Write-Verbose "Report File = $Report"
-            $EAreport = [ordered]@{
-                "Server" = $IP
-                "Datatype" = $datatype.toUpper()
-                "Protocol" = $client.toUpper()
-                "Size (MB)" = $Size
-                "Loops" = $loops
-                "Time (seconds)" = [Math]::Round($(($endTime - $startTime).totalseconds), 2)
-                "Date" = Get-Date
-            }
-            try
+            Write-Verbose "Report Path = $Report"
+            
+            $Time = [Math]::Round($(($endTime - $startTime).totalseconds), 2)
+            $Date = Get-Date
+            $Hostname = Hostname
+            $ClientIP = Test-Connection -ComputerName $Hostname -Count 1  | Select -ExpandProperty IPV4Address
+            $ClientInfo = $ClientIP.IPAddressToString +":"+ $Hostname
+            $PSVersion = $psversiontable.psversion.major
+            #Write-Verbose "Powershell Version: $PSVersion"
+            if ($PSVersion -le 2)
             {
+                $EAreport = New-Object System.Collections.Specialized.OrderedDictionary
+                $EAreport.Add("Server",$IP)
+                $EAreport.Add("Client", $ClientInfo)
+                $EAreport.Add("Datatype",$datatype.toUpper())
+                $EAreport.Add("Protocol",$client.toUpper())
+                $EAreport.Add("Size (MB)",$Size)
+                $EAreport.Add("Loops",$loops)
+                $EAreport.Add("Execution (seconds)",$Time)
+                $EAreport.Add("Date/Time",$Date)
+                $EAreport
+            }
+            elseif ($PSVersion -ge 3)
+            {
+                $EAreport = [ordered]@{
+                    "Server" = $IP
+                    "Client" = $ClientInfo
+                    "Datatype" = $datatype.toUpper()
+                    "Protocol" = $client.toUpper()
+                    "Size (MB)" = $Size
+                    "Loops" = $loops
+                    "Execution (seconds)" = $Time
+                    "Date/Time" = $Date
+                }
+                $EAreport
+            }
+            else
+            {
+                Write-Verbose "Cannot determine powershell version to run report."
+            }
+
+            try
+            {               
                 if ((Test-Path -path $Report) -eq $False)
                 {
                     Write-Verbose "[*] Writing new report file..."
                     $null > $Report
                 }
                 else { }
-                Write-Output $EAreport | Format-Table | Tee-Object -file $Report -Append
+                #Write-Output $EAreport | Format-Table | Tee-Object -file $Report -Append
+                $EAreport | Out-File $Report -Append
             }
             catch
             {
@@ -1945,11 +1977,10 @@ function Invoke-EgressAssess
         #get end time
         $endTime = (Get-Date)
         
-        if ($Report -gt 0)
+        if ($Report)
         {
             Write-Report
         }
-        else { }
     }
     end
     {
