@@ -35,8 +35,8 @@ class CustomSMTPServer(smtpd.SMTPServer):
                     "_" + current_time.replace(":", "") + "email_data.txt"
 
                 with open(loot_directory + "/" + file_name, 'a') as email_file:
+                    email_file.write('METADATA: File from - ' + str(peer) + '\n\n')
                     email_file.write(data)
-
         return
 
     def email_parse_attachment(self, message_part):

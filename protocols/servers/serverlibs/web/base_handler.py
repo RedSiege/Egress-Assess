@@ -36,7 +36,7 @@ class GetHandler(BaseHTTPRequestHandler):
             screenshot_name = current_date.replace("/", "") +\
                 "_" + current_time.replace(":", "") + "actor_data.txt"
             with open(loot_path + screenshot_name, 'a') as cc_data_file:
-                cc_data_file.write('METADATA: From: ' + self.client_address + ' ' + self.address_string + '\n\n')
+                cc_data_file.write('METADATA: From: ' + str(self.client_address) + ' ' + str(self.address_string) + '\n\n')
                 cc_data_file.write('etumbot just checked in here!\n')
             self.send_response(200)
             self.end_headers()
@@ -63,6 +63,7 @@ class GetHandler(BaseHTTPRequestHandler):
             screenshot_name = current_date.replace("/", "") +\
                 "_" + current_time.replace(":", "") + "actor_data.txt"
             with open(loot_path + screenshot_name, 'a') as cc_data_file:
+                cc_data_file.write('METADATA: From: ' + str(self.client_address) + ' ' + str(self.address_string) + '\n\n')
                 cc_data_file.write('DarkHotel just checked in here!\n')
             self.send_response(200)
             self.end_headers()
@@ -106,6 +107,7 @@ class GetHandler(BaseHTTPRequestHandler):
 
             # Write out the file
             with open(loot_path + screenshot_name, 'a') as cc_data_file:
+                cc_data_file.write('METADATA: From: ' + str(self.client_address) + ' ' + str(self.address_string) + '\n\n')
                 cc_data_file.write(screen_data)
 
         elif self.path == "/post_file.php":
@@ -165,6 +167,7 @@ class GetHandler(BaseHTTPRequestHandler):
 
             # Write out the file
             with open(loot_path + screenshot_name, 'a') as cc_data_file:
+                cc_data_file.write('METADATA: From: ' + str(self.client_address) + ' ' + str(self.address_string) + '\n\n')
                 cc_data_file.write(screen_data)
 
         # All other Post requests
