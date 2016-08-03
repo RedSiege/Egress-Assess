@@ -1145,7 +1145,7 @@ function Invoke-EgressAssess
                 
             }
             # Detect what datatype we're sending
-            if ($Datatype -contains "ssn" -or "cc" -or "identity")
+            if (($Datatype -contains "ssn" -or "cc" -or "identity") -and (!(Test-Path -Path $Datatype)))
             {
                 $totalupload = 0
                 if ($Datatype -eq "ssn")
