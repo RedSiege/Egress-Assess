@@ -10,7 +10,6 @@ import sys
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
-import urllib
 
 class Server:
 
@@ -23,6 +22,10 @@ class Server:
             self.port = int(cli_object.server_port)
         else:
             self.port = 21
+	if cli_object.ip:
+	    self.ip = cli_object.ip
+	else:
+	    self.ip = None
 
     def serve(self):
         # current directory
@@ -46,8 +49,7 @@ class Server:
             # Define a customized banner (string returned when client connects)
             handler.banner = "Connecting to Egress-Assess's FTP server!"
             #Define public address and  passive ports making NAT configurations more predictable
-            public_ip = urllib.urlopen("http://api.ipify.org/").read()
-            handler.masquerade_address = public_ip
+            handler.masquerade_address = self.ip
             handler.passive_ports = range(60000, 60100)
 
             try:
