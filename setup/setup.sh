@@ -3,17 +3,17 @@
 clear
 echo "[*] Installing Egress-Assess Dependencies..."
 apt-get update
-apt-get install smbclient
+apt-get -y install smbclient
 echo "[*] Installing scapy"
-apt-get install python-scapy
+apt-get -y install python-scapy
 echo "[*] Installing paramiko"
-apt-get install python-paramiko python-crypto
+apt-get -y install python-paramiko python-crypto
 echo "[*] Installing ecdsa"
 pip install ecdsa
 echo "[*] Installing pyasn1"
-apt-get install python-pyasn1
+apt-get -y install python-pyasn1
 echo "[*] Installing dnspython"
-apt-get install python-dnspython
+apt-get -y install python-dnspython
 echo "[*] Installing impacket"
 wget https://pypi.python.org/packages/source/i/impacket/impacket-0.9.13.tar.gz
 tar -xvf impacket-0.9.13.tar.gz
