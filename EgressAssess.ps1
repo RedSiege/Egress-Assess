@@ -249,6 +249,49 @@ function Invoke-EgressAssess
             
             $script:AllSSN = $list.ToArray()
         }
+
+        function Generate-NI
+        {
+            $script:AllNI = @()
+            #determine the number of NI based on 9 bytes per NI
+            $num = [math]::Round(($Size * 1MB)/9)
+            Write-Verbose "Generating $Size MB of National Insurance Numbers ($num)..."
+            $list = New-Object System.Collections.Generic.List[System.String]
+
+            for ($i = 0; $i -lt $num; $i++)
+            {
+            
+                if ($Fast) 
+                {
+                    $randString = -join ((65..90) | Get-Random -Count 3 | % {[char]$_})
+                    $randNum = Get-Random -minimum 100 -maximum 1000
+                    $randNumString = [string][int64]$randNum
+                    $randNiBase = "$($randString.substring(0,2))$($randNum)"
+                    $randNiEnd = Get-Random -minimum 100 -maximum 500
+
+                    for ($i2 = $randNiEnd; $i2 -lt $($randNiEnd+500); $i2++)
+                    {
+                        $randNI = "$randNiBase$i2$($randString.substring(2))"
+                        $list.Add($randNI)
+                        $i++
+                    }
+                }
+                
+                else
+                {
+                    $randString = -join ((65..90) | Get-Random -Count 3 | % {[char]$_})
+                    $randNum = Get-Random -minimum 100000000000 -maximum 1000000000000
+                    $randNumString = [string][int64]$randNum
+                    $r = "$($randString.substring(0,2))$($randNumString.substring(0,6))$($randString.substring(2))"
+                    $list.Add($r)
+                    $r = "$($randString.substring(0,2))$($randNumString.substring(6,6))$($randString.substring(2))"
+                    $list.Add($r)
+                    $i++
+                }           
+            }
+            
+            $script:AllNI = $list.ToArray()
+        }
         
         function Generate-CreditCards
         {
@@ -471,6 +514,11 @@ function Invoke-EgressAssess
                     Generate-SSN
                     $Data = $AllSSN
                 }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $Data = $AllNI
+                }
                 elseif ($Datatype -eq "cc")
                 {
                     Generate-CreditCards
@@ -617,6 +665,11 @@ function Invoke-EgressAssess
                 {
                     Generate-SSN
                     $Data = $AllSSN
+                }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $Data = $AllNI
                 }
                 elseif ($Datatype -eq "cc")
                 {
@@ -907,6 +960,11 @@ function Invoke-EgressAssess
                     Generate-SSN
                     $Data = $AllSSN
                 }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $Data = $AllNI
+                }
                 elseif ($Datatype -eq "cc")
                 {
                     Generate-CreditCards
@@ -1012,6 +1070,11 @@ function Invoke-EgressAssess
                 {
                     Generate-SSN
                     $Data = $AllSSN
+                }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $Data = $AllNI
                 }
                 elseif ($Datatype -eq "cc")
                 {
@@ -1153,6 +1216,11 @@ function Invoke-EgressAssess
                     Generate-SSN
                     $Data = $AllSSN
                 }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $Data = $AllNI
+                }
                 elseif ($Datatype -eq "cc")
                 {
                     Generate-CreditCards
@@ -1260,6 +1328,11 @@ function Invoke-EgressAssess
                     Generate-SSN
                     $FTPData = $AllSSN
                 }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $FTPData = $AllNI
+                }
                 elseif ($Datatype -eq "cc")
                 {
                     Generate-CreditCards
@@ -1350,6 +1423,11 @@ function Invoke-EgressAssess
                 {
                     Generate-SSN
                     $FTPData = $AllSSN
+                }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $FTPData = $AllNI
                 }
                 elseif ($Datatype -eq "cc")
                 {
@@ -1473,6 +1551,11 @@ function Invoke-EgressAssess
                     Generate-SSN
                     $SMTPData = $AllSSN
                 }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $SMTPData = $AllNI
+                }
                 elseif ($Datatype -eq "cc")
                 {
                     Generate-CreditCards
@@ -1530,6 +1613,11 @@ function Invoke-EgressAssess
                 {
                     Generate-SSN
                     [string]$ICMPData = $AllSSN
+                }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    [string]$ICMPData = $AllNI
                 }
                 elseif ($Datatype -eq "cc")
                 {
@@ -1651,6 +1739,11 @@ function Invoke-EgressAssess
                     Generate-SSN
                     [string]$DNSData = $AllSSN
                 }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    [string]$DNSData = $AllNI
+                }
                 elseif ($Datatype -eq "cc")
                 {
                     Generate-CreditCards
@@ -1734,6 +1827,11 @@ function Invoke-EgressAssess
                     Generate-SSN
                     [string]$DNSData = $AllSSN
                 }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    [string]$DNSData = $AllNI
+                }
                 elseif ($Datatype -eq "cc")
                 {
                     Generate-CreditCards
@@ -1792,6 +1890,11 @@ function Invoke-EgressAssess
             {
                 Generate-CreditCards
                 [string]$SMBData = $AllCC
+            }
+            elseif ($Datatype -eq "ni")
+            {
+                Generate-NI
+                [string]$SMBData = $AllNI
             }
             elseif ($Datatype -eq "ssn")
             {
