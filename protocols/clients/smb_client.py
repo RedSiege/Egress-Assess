@@ -27,9 +27,10 @@ class Client:
             self.file_transfer = False
         else:
             if "/" in cli_object.file:
-                self.file_transfer = cli_object.file.split("/")[-1]
-            else:
                 self.file_transfer = cli_object.file
+                self.file_name = cli_object.file.split("/")[-1]
+            else:
+                self.file_name = cli_object.file
 
     # transmit is the only required function within the object.  It is what
     # called by the framework to transmit data.  However, you can create as 
@@ -49,7 +50,7 @@ class Client:
             os.makedirs(mount_path)
 
         # Base command to copy file over smb
-        smb_command = "smbclient \\\\\\\\" + self.remote_server + "\\\\\\DATA -N -c \"put "
+        smb_command = "smbclient \\\\\\\\" + self.remote_server + "\\\\DATA -N -c \"put "
 
         # If using a file, copy it, else write to disk and then copy
         if not self.file_transfer:
@@ -59,7 +60,7 @@ class Client:
             smb_command += smb_file_name + "\""
 
         else:
-            smb_command += self.file_transfer + "\""
+            smb_command += self.file_transfer + " " + self.file_name + "\""
             smb_file_name = self.file_transfer
 
         print smb_command
