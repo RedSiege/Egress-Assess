@@ -311,7 +311,6 @@ function Invoke-EgressAssess
             
             $num = [math]::Round($Size * 10000 * 3)
             $intCardType = 0
-            $num
             for ($countercc = 0; $countercc -lt $num; $countercc++)
             {
                 # Taken from http://scriptolog.blogspot.com/2008/01/powershell-luhn-validation.html
