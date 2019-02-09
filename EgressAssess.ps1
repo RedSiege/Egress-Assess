@@ -309,95 +309,53 @@ function Invoke-EgressAssess
             
             Write-Verbose "[*] Generating Credit Cards............."
             
-            $num = [math]::Round($Size * 1MB)/19
+            $num = [math]::Round($Size * 10000 * 3)
             $intCardType = 0
-                        
-            for ($i = 0; $i -lt $num; $i++)
+            for ($countercc = 0; $countercc -lt $num; $countercc++)
             {
+                # Taken from http://scriptolog.blogspot.com/2008/01/powershell-luhn-validation.html
+                $length = 16
+                $random = new-object random
+                $digits = new-object int[] $length
 
-                if ($Fast)
-                {
-                    switch ($(Get-Random -maximum 4))
-                    {
-                        0 { # Generate Visa 
-                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCCbase = "4$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
-                        }
-                        
-                        1 { # Generate MasterCard
-                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCCbase = "5$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
-                        }
-                        
-                        2 { # Generate Discover 
-                            $randNum = Get-Random -minimum 10000000 -maximum 100000000
-                            $randNumString = [string][int64]$randNum
-                            $randCCbase = "6011-$($randNumString.substring(0,4))-$($randNumString.substring(4,4))-"
-                        }
-                        
-                        3 { # Generate Amex 
-                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCCbase = "3$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-"
-                        }
+                for($loopone = 0; $loopone -lt $length - 1; $loopone++){
+                    $digits[$loopone] = $random.next(10)
+                }    
+
+                [int]$sum = 0;
+                [bool]$alt = $true
+
+                for($looptwo = $length - 2; $looptwo -ge  0; $looptwo--){
+                    if($alt){
+                        [int]$temp = $digits[$looptwo]
+                        $temp *= 2
+                        if($temp -gt 9){ $temp -= 9 }
+                        $sum += $temp
+                    } else {
+                        $sum += $digits[$looptwo]
                     }
-
-                    $endCC = $(Get-Random -minimum 1000 -maximum 9500)
-
-                    for ($i2 = $endCC; $i2 -lt $($endCC+500); $i2++)
-                    {
-                        $randCC = "$randCCbase$i2"
-                        $list.Add($randCC)
-                        $i++
-                    }                    
+                
+                    $alt = !$alt
                 }
+                
+                [int]$modulo = $sum % 10
+                if($modulo -gt 0) { $digits[$length-1] = (10 - $modulo) }
+                $digits = -join $digits
+                $randNumString = [string][int64]$digits
 
-                else
+                if ($randNumString.length -eq 15)
                 {
-                    $baseCC = $null 
-
-                    if ($intCardType -gt 3)
-                    {
-                        $intCardType = 0
-                    }
-
-                    
-                    switch ($intCardType)
-                    {
-                        0 {  # Generate Visa 
-                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCC = "4$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-$($randNumString.substring(11,4))"
-                            $script:list.Add($randCC)
-                        }
-
-                        1 { # Generate MasterCard 
-                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCC = "5$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-$($randNumString.substring(11,4))"
-                            $script:list.Add($randCC)
-                        }
-                                
-                        2 { # Generate Discover 
-                            $randNum = Get-Random -minimum 100000000000 -maximum 1000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCC = "6011-$($randNumString.substring(0,4))-$($randNumString.substring(4,4))-$($randNumString.substring(8,4))"
-                            $script:list.Add($randCC)
-                        }
-                        
-                        3 { # Generate Amex 
-                            $randNum = Get-Random -minimum 100000000000000 -maximum 1000000000000000
-                            $randNumString = [string][int64]$randNum
-                            $randCC = "3$($randNumString.substring(0,3))-$($randNumString.substring(3,4))-$($randNumString.substring(7,4))-$($randNumString.substring(11,4))"
-                            $script:list.Add($randCC)
-                        }
-                    }
-                    $intCardType++
+                    $randCC = "$($randNumString.substring(0,4))-$($randNumString.substring(4,6))-$($randNumString.substring(10,5))"
+                    $script:list.Add($randCC)
+                }
+                elseif ($randNumString.length -eq 16)
+                {
+                    $randCC = "$($randNumString.substring(0,4))-$($randNumString.substring(4,4))-$($randNumString.substring(8,4))-$($randNumString.substring(12,4))"
+                    $script:list.Add($randCC)
                 }
             }
             $script:AllCC = $Script:list.ToArray()
+            $script:AllCC | Out-File C:\Users\ctrun\Desktop\test.txt
         }
         
         function Generate-Identity
