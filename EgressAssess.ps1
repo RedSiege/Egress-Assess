@@ -305,11 +305,10 @@ function Invoke-EgressAssess
         {
             
             $script:AllCC = @()
-            $script:list = New-Object System.Collections.Generic.List[System.String]
-            
-            Write-Verbose "[*] Generating Credit Cards............."
-            
             $num = [math]::Round($Size * 10000 * 3)
+            Write-Verbose "[*] Generating $Size MB of Credit Cards ($num)..."
+            $list = New-Object System.Collections.Generic.List[System.String]
+            
             $intCardType = 0
             for ($countercc = 0; $countercc -lt $num; $countercc++)
             {
@@ -346,16 +345,16 @@ function Invoke-EgressAssess
                 if ($randNumString.length -eq 15)
                 {
                     $randCC = "$($randNumString.substring(0,4))-$($randNumString.substring(4,6))-$($randNumString.substring(10,5))"
-                    $script:list.Add($randCC)
+                    $list.Add($randCC)
                 }
                 elseif ($randNumString.length -eq 16)
                 {
                     $randCC = "$($randNumString.substring(0,4))-$($randNumString.substring(4,4))-$($randNumString.substring(8,4))-$($randNumString.substring(12,4))"
-                    $script:list.Add($randCC)
+                    $list.Add($randCC)
                 }
             }
-            $script:AllCC = $Script:list.ToArray()
-            $script:AllCC | Out-File C:\Users\ctrun\Desktop\test.txt
+            $script:AllCC = $list.ToArray()
+            $script:AllCC | Out-File CCData.txt
         }
         
         function Generate-Identity
