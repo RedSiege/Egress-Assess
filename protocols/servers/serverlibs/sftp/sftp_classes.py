@@ -1,10 +1,15 @@
 import base64
 import os
-import paramiko
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    import paramiko
+    paramiko.util.log_to_file("/dev/null")
 import tempfile
 import threading
 import time
 from StringIO import StringIO
+
 
 
 class User(object):
@@ -32,6 +37,7 @@ class SFTPHandle(paramiko.SFTPHandle):
         if(flags == 0):
             self.readfile = open(path, "r")
         else:
+            print("[+] {} - Received File - {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), path))
             self.writefile = open(path, "w")
 
 
@@ -42,6 +48,7 @@ class SvnSFTPHandle(SFTPHandle):
         if(flags == 0):
             self.readfile = open(path, "r")
         else:
+            print("[+] {} - Received File - {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), path))
             self.writefile = open(path, "w")
 
     def close(self):
