@@ -12,6 +12,10 @@ class Server:
 
     def __init__(self, cli_object):
         self.protocol = "smb"
+        if cli_object.server_port:
+           self.port = int(cli_object.server_port)
+        else:
+           self.port = 445
 
     def serve(self):
         try:
@@ -25,7 +29,7 @@ class Server:
             if not os.path.isdir(loot_path):
                 os.makedirs(loot_path)
 
-            server = smbserver.SimpleSMBServer()
+            server = smbserver.SimpleSMBServer('0.0.0.0', self.port)
 
             server.addShare("DATA", "data/", "Egress-Assess data share")
 
