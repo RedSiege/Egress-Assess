@@ -143,6 +143,9 @@ def randomString(length=-1):
     random_string = ''.join(random.choice(string.ascii_letters) for x in range(length))
     return random_string
 
+def received_file(filename):
+    print("[+] {} - Received File - {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), filename))
+
 
 def title_screen():
     os.system('clear')

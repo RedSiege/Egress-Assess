@@ -8,6 +8,7 @@ with warnings.catch_warnings():
 import tempfile
 import threading
 import time
+from common import helpers
 from StringIO import StringIO
 
 
@@ -37,7 +38,7 @@ class SFTPHandle(paramiko.SFTPHandle):
         if(flags == 0):
             self.readfile = open(path, "r")
         else:
-            print("[+] {} - Received File - {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), path))
+            helpers.recieved_file(path)
             self.writefile = open(path, "w")
 
 
@@ -48,7 +49,7 @@ class SvnSFTPHandle(SFTPHandle):
         if(flags == 0):
             self.readfile = open(path, "r")
         else:
-            print("[+] {} - Received File - {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), path))
+            helpers.recieved_file(path)
             self.writefile = open(path, "w")
 
     def close(self):

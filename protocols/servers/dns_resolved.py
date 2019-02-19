@@ -42,6 +42,7 @@ class Server:
                     pass
                 else:
                     with open(self.loot_path + self.file_name, 'a') as dns_out:
+                        helpers.received_file(self.file_name)
                         dns_out.write(encoded_data)
                     self.last_packet = encoded_data
 

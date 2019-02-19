@@ -127,6 +127,7 @@ class GetHandler(BaseHTTPRequestHandler):
             file_data = screen_data.split(".:::-989-:::.")[1]
 
             with open(loot_path + file_name, 'wb') as cc_data_file:
+                helpers.received_file(file_name)
                 cc_data_file.write(file_data)
 
         elif self.path == "/posh_file.php":
