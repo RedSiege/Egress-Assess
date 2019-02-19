@@ -2256,7 +2256,7 @@ function Invoke-EgressAssess
             }
 
             $dns_Servers = @()
-            $queries = $dataX.split("`n")
+
             if ($txt)
             {
                 $dns_Servers += [System.Net.Dns]::GetHostAddresses($IP)[0].IPAddresstoString
@@ -2269,8 +2269,6 @@ function Invoke-EgressAssess
                                 #Ans Auth Add RR
                 [Byte[]]$Mess2= 0x00,0x00,0x00
 
-                                      #no. of queries
-                $Mess = $Mess + [Bitconverter]::GetBytes($queries.Count) +$Mess2
                 ###DNS TXT Query "Footer"
                 #suffix for each q
                 #        null     type    class 
@@ -2285,16 +2283,15 @@ function Invoke-EgressAssess
                 #Ans       Auth    Add RR
                 [Byte[]]$Mess2= 0x00,0x00,0x00
 
-                                            #no. of queries
-                $Mess = $Mess + [Bitconverter]::GetBytes($queries.Count) +$Mess2
-
                 $dns_Servers =  ipconfig /all | where-object {$_ –match “DNS Servers”} | foreach-object{$_.Split(“:”)[1]}
                 
                 $postS = 0x00,0x00,0x01,0x00,0x01
                 $dataX +=".$IP"
             }
-            #no. of queries
-            #$Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
+       
+            $queries = $dataX.split("`n")
+                                                  #no. of queries
+            $Mess = $Mess + [Bitconverter]::GetBytes($queries.Count) +$Mess2
 
             foreach($addr in $dns_servers)
             {
