@@ -61,13 +61,16 @@ function Invoke-EgressAssess
     The port is if you wish to specify a non-standard port for data transfer(s)
     
 .Parameter SMTP_To
-    The port is if you wish to specify a non-standard port for data transfer(s)
+    The "TO" Address you wish to specify for SMTP client
 
 .Parameter SMTP_From
-    The port is if you wish to specify a non-standard port for data transfer(s)
+    The "FROM" Address you wish to specify for SMTP client
 
 .Parameter SMTP_Subject
-    The port is if you wish to specify a non-standard port for data transfer(s)
+    The subject you wish to specify for SMTP client
+
+.Parameter stacked
+    Flag to enable stacked (multiple) DNS TXT Queries per packet
 
 .Example
     Import-Module Egress-Assess.ps1
@@ -107,6 +110,8 @@ function Invoke-EgressAssess
         [string]$SMTP_From,
         [Parameter(Mandatory = $False)]
         [string]$SMTP_Subject,
+        [Parameter(Mandatory = $False)]
+        [switch]$stacked,
         [Parameter(Mandatory = $False)]
         [int]$Size = 1,
         [Parameter(Mandatory = $False)]
@@ -1934,6 +1939,11 @@ function Invoke-EgressAssess
                         $Port = 53
                     }
 
+                    if (!$stacked)
+                    {
+                        $stacked = $False
+                    }
+
                     if ($filetransfer)
                     {
                         [Collections.Generic.List[byte]]$aaa = $DNSData    
@@ -1962,7 +1972,7 @@ function Invoke-EgressAssess
                         $TotalPackets += 1
                     }
                     $CurrentTotal = $TotalPackets
-                    
+                    $EncodedData=""
                     While ($ByteReader -lt ($aaa.Count))
                     {
                         try
@@ -1972,22 +1982,42 @@ function Invoke-EgressAssess
                                 $DefaultLength = $aaa.count - $ByteReader
                             }
                             $preamble=""
-
+                            $DataBytes = @()                          
                             if ($filetransfer)
                             {
-                                $preamble = $PacketNumber.ToString()+".:|:."
+                                $preamble = ".:|:."
+                                [Collections.Generic.List[byte]]$pBytes = [bitconverter]::GetBytes($PacketNumber)
+                                $pBytes.Reverse()
+                                $DataBytes += $pBytes
                             }
-
-                            $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($preamble)
-                            $DataBytes += $aaa.GetRange($ByteReader, $DefaultLength)
-                            $EncodedData = [System.Convert]::ToBase64String( $DataBytes)
                             
-                            Send-DNSPacket $EncodedData $true
+                            $DataBytes += [System.Text.Encoding]::UTF8.GetBytes($preamble)
+                            $DataBytes += $aaa.GetRange($ByteReader, $DefaultLength)
+                            
+                            if(!$stacked)
+                            {
+                                $EncodedData = [System.Convert]::ToBase64String( $DataBytes)
+                                Send-DNSPacket $EncodedData $true
+                            
+                                Write-Verbose "[*] Sending data .... $PacketNumber/$TotalPackets"
 
-                            Write-Verbose "[*] Sending data .... $PacketNumber/$TotalPackets"
+                                Start-Sleep -Milliseconds 60
+                            }
+                            else
+                            {
+                                $EncodedData += [System.Convert]::ToBase64String( $DataBytes) + "`n"
+
+                                if ($PacketNumber % 10 -eq 0 -or $PacketNumber -eq $TotalPackets)
+                                {
+                                    $EncodedData = $EncodedData.SubString(0, $EncodedData.Length-1)
+                                    Send-DNSPacket $EncodedData $true
+                                    $EncodedData=""
+                                    Write-Verbose "[*] Sending burst data (up to last 10) .... $PacketNumber/$TotalPackets"
+                                    Start-Sleep -Milliseconds 60
+                                }
+                            }
                             $PacketNumber += 1
                             $ByteReader += $DefaultLength
-                            Start-Sleep -Milliseconds 100
                         }
                         catch
                         {
@@ -2225,21 +2255,22 @@ function Invoke-EgressAssess
                 $Port = 53
             }
 
-                    
-            #no. of queries
-            $Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
             $dns_Servers = @()
+            $queries = $dataX.split("`n")
             if ($txt)
             {
+                $dns_Servers += [System.Net.Dns]::GetHostAddresses($IP)[0].IPAddresstoString
+                #$dns_Servers
+                
                 #DNS TXT Query "Header"
-                #Trans ID  std query  
+                             #Trans ID  std query  
                 [Byte[]]$Mess=0x00,0x01,0x05,0x00,0x00
                     
-                #Ans       Auth    Add RR
+                                #Ans Auth Add RR
                 [Byte[]]$Mess2= 0x00,0x00,0x00
 
-                $dns_Servers += [System.Net.Dns]::GetHostAddresses($IP)[0].IPAddresstoString
-                $dns_Servers
+                                      #no. of queries
+                $Mess = $Mess + [Bitconverter]::GetBytes($queries.Count) +$Mess2
                 ###DNS TXT Query "Footer"
                 #suffix for each q
                 #        null     type    class 
@@ -2247,12 +2278,15 @@ function Invoke-EgressAssess
             }
             else #type A
             {
-                #DNS TXT Query "Header"
+                #DNS A Query "Header"
                 #Trans ID  std query  
                 [Byte[]]$Mess=0x00,0x00,0x01,0x00,0x00
                     
                 #Ans       Auth    Add RR
                 [Byte[]]$Mess2= 0x00,0x00,0x00
+
+                                            #no. of queries
+                $Mess = $Mess + [Bitconverter]::GetBytes($queries.Count) +$Mess2
 
                 $dns_Servers =  ipconfig /all | where-object {$_ –match “DNS Servers”} | foreach-object{$_.Split(“:”)[1]}
                 
@@ -2260,7 +2294,8 @@ function Invoke-EgressAssess
                 $dataX +=".$IP"
             }
             #no. of queries
-            $Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
+            #$Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
+
             foreach($addr in $dns_servers)
             {
                 try
@@ -2278,22 +2313,24 @@ function Invoke-EgressAssess
 
                 [Byte[]]$fullQ = @()
                 
-                $data2 = $dataX.Split('.')
-                foreach ($d2 in $data2)
+                foreach ($qq in $queries)
                 {
-                    $data1 = [System.Text.Encoding]::ASCII.GetBytes($d2)
-                    $len1 = [bitconverter]::GetBytes($data1.Length)
-                    $len1 = @($len1[0])
-                    $fullQ+= $len1
-                    $fullQ+=$data1 
-                }
+                    $data2 = $qq.Split('.') #$dataX.Split('.')
+                    foreach ($d2 in $data2)
+                    {
+                        $data1 = [System.Text.Encoding]::ASCII.GetBytes($d2)
+                        $len1 = [bitconverter]::GetBytes($data1.Length)
+                        $len1 = @($len1[0])
+                        $fullQ+= $len1
+                        $fullQ+=$data1 
+                    }
                    
-                $fullQ+=$postS
-
+                    $fullQ+=$postS
+                }
                 $Buffer = $Mess + $fullQ
                 
                 $Sock.Connect($End)
-                $Sock.Send($Buffer)
+                $resp=$Sock.Send($Buffer)
                 $Sock.Close()
                 break
                 }
