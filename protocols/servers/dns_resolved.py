@@ -24,6 +24,7 @@ class Server:
 
         if packet.haslayer(DNSQR):
             dnsqr_strings = repr(packet[DNSQR])
+            print dnsqr_strings
             try:
                 incoming_data = dnsqr_strings.split('\'')[1].rstrip('.')
                 number_equals = incoming_data.count('.--')
