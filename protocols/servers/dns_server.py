@@ -22,20 +22,40 @@ class Server:
         self.file_dict = {}
         self.file_status = ''
 
+    def clearAttrs(self):
+        self.last_packet = ''
+        self.file_dict = {}
+        self.file_status = ''
+        self.setFileName()
+
+    def setFileName(self):
+        current_date = time.strftime("%m/%d/%Y")
+        current_time = time.strftime("%H:%M:%S")
+        self.file_name = current_date.replace("/", "") +\
+            "_" + current_time.replace(":", "") + "text_data.txt"
+
     def customAction(self, packet):
 
         if packet.haslayer(DNSQR):
             dnsqr_strings = repr(packet[DNSQR])
             if "ENDTHISFILETRANSMISSIONEGRESSASSESS" in dnsqr_strings:
+                print dnsqr_strings
                 self.file_name = dnsqr_strings.split('\'')[1].rstrip('.').split('ENDTHISFILETRANSMISSIONEGRESSASSESS')[1]
-                with open(self.loot_path + self.file_name, 'a') as\
-                        dns_out:
-                    for dict_key in xrange(1, int(self.file_status) + 1):
-                        dns_out.write(self.file_dict[str(dict_key)])
-                sys.exit()
+                if self.file_status != '':
+                    print("[+] Writing file {}".format(self.file_name))
+                    with open(self.loot_path + self.file_name, 'a') as dns_out:
+                        for dict_key in xrange(1, int(self.file_status) + 1):
+                            content = self.file_dict[str(dict_key)]
+                            dns_out.write(content)
+
+                # Clear out the class attributes after file upload is complete
+                self.clearAttrs()
+                #sys.exit()
             else:
+                print dnsqr_strings
                 try:
                     incoming_data = base64.b64decode(dnsqr_strings.split('\'')[1].rstrip('.'))
+                    print incoming_data
                     if ".:|:." in incoming_data:
                         self.file_status = incoming_data.split(".:|:.")[0]
                         file_data = incoming_data.split(".:|:.")[1]
@@ -73,10 +93,7 @@ class Server:
             os.makedirs(self.loot_path)
 
         # Get the date info
-        current_date = time.strftime("%m/%d/%Y")
-        current_time = time.strftime("%H:%M:%S")
-        self.file_name = current_date.replace("/", "") +\
-            "_" + current_time.replace(":", "") + "text_data.txt"
+        self.setFileName()
 
         print "[*] DNS server started!"
         sniff(prn=self.customAction, store=0)
