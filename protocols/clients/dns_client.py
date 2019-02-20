@@ -10,6 +10,7 @@ import base64
 import socket
 import sys
 from common import helpers
+import struct
 from scapy.all import *
 
 
@@ -67,7 +68,9 @@ class Client:
                     print "[*] Shutting down..."
                     sys.exit()
             else:
-                encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+                #encoded_data = base64.b64encode(str(packet_number) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+                packByte = struct('>I', packet_number)
+                encoded_data = base64.b64encode(str(struct('>I', packet_number)) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
 
                 while len(encoded_data) > self.max_length:
 
