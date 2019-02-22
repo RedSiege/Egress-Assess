@@ -26,7 +26,7 @@ import datetime
 from dnslib import *
 from common import helpers
 
-# NOTE: @butlerallenj
+# NOTE from @butlerallenj
 # I REALLY hate using globals, unfortunately I am not aware of a better
 # solution at this time. The problem that globals fix in this situation
 # is that a dictionary is required to maintain the state of the DNS file data
