@@ -31,6 +31,8 @@ cd ..
 rm -rf pyftpdlib
 echo "[*] Installing cryptography v2.2.2"
 pip install cryptography==2.2.2
+echo "[*] Installing dnslib"
+pip install dnslib
 cd ../protocols/servers/serverlibs/web
 clear
 echo "[*] Generating SSL Certificate"
