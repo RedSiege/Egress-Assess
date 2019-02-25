@@ -106,7 +106,7 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
             server_socket.bind(('0.0.0.0', self.port))
             server_socket.listen(10)
         except socket.error:
-            print "[*] Error: Port in use! Please restart when port 22 is free!"
+            print "[*] Error: Port in use! Please restart when port {} is free!".format(self.port)
             sys.exit()
 
         print "[*] SFTP server started!\n"
@@ -117,6 +117,7 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
                 t = threading.Thread(target=self.accept_client, args=[
                     client, addr, self.sftp_directory, user_map,
                     self.rsa_key, self.password])
+                t.daemon = True
                 t.start()
             except KeyboardInterrupt:
                 print "[*] Shutting down SFTP server..."

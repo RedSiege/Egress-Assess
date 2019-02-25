@@ -63,6 +63,11 @@ def cli_parser():
         "--password", metavar="pass123", default=None,
         help="Password for FTP server authentication.")
 
+    smb_options= parser.add_argument_group('SMB Options')
+    smb_options.add_argument(
+        "--smb2", default=False, action='store_true',
+        help="Enable SMB v2 Support")
+
     data_content = parser.add_argument_group('Data Content Options')
     data_content.add_argument(
         "--file", default=None, metavar='/root/test.jpg',
