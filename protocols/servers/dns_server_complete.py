@@ -216,10 +216,8 @@ class BaseRequestHandler(SocketServer.BaseRequestHandler):
 
             data = base64.b64decode(parts[0])
 
-            try:
-
-                if self.preamble in data:
-
+            if self.preamble in data:
+                try:
                     data_parts = data.split(self.preamble)
 
                     FILE_STATUS = self.decodeFileStatus(data_parts[0])
@@ -227,8 +225,9 @@ class BaseRequestHandler(SocketServer.BaseRequestHandler):
 
                     FILE_DICT[FILE_STATUS] = file_data
                     self.uploadFeedback("A")
-            
-            except:
+                except Exception as e:
+                    print("[-] Error handleDNSResolved: {} {}".format(e, data))
+            else:
                 # The request is not a file upload, 
                 # write directly to the file in append mode
 
