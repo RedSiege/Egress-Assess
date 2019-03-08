@@ -354,7 +354,6 @@ function Invoke-EgressAssess
                 }
             }
             $script:AllCC = $list.ToArray()
-            $script:AllCC | Out-File CCData.txt
         }
         
         function Generate-Identity
