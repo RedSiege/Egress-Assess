@@ -41,7 +41,7 @@ Then, to send data to the FTP server, and to specifically send 15 megs of credit
 `./Egress-Assess.py --client https --data-size 15 --ip 192.168.63.149 --datatype cc`
 
 Other things of note:
-- On the server side dns_complete only works with the PowerShell Client. dns_complete is an improved version of the DNS Server module. Using DNSLib, this module can listen and respond to requests from both TXT and A records, decode the requests utilizing the correct format, and write the output to a file.
+- dns_complete is an improved version of the DNS Server module. Using DNSLib, this module can listen and respond to requests from both TXT and A records, decode the requests utilizing the correct format, and write the output to a file.
 - SMB has an option for SMB2 support or not. Newer Windows10 systems typically have SMBv1 disabled. So use the SMB2 switch on the server side and recommend using a username and password as well.
 
 
