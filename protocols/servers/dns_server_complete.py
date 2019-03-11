@@ -63,11 +63,15 @@ class Server:
     def __init__(self, cli_object):
         self.protocol = "dns_complete"
         self.servers = []
+        if cli_object.server_port:
+            self.port = int(cli_object.server_port)
+        else:
+            self.port = 53
 
 
     def startDnsServers(self):
        self.servers = [
-           SocketServer.ThreadingUDPServer(('', 53), UDPRequestHandler),
+           SocketServer.ThreadingUDPServer(('', self.port), UDPRequestHandler),
        ]
        for s in self.servers:
            # that thread will start one more thread for each request
@@ -79,7 +83,7 @@ class Server:
 
     def serve(self):
         print("[*] DNS Server Started")
-
+        print("[*] DNS Server Listening on Port: %i") % self.port
         setFileName()
 
         if not os.path.isdir(LOOT_PATH):
