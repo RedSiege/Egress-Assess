@@ -1354,7 +1354,7 @@ function Invoke-EgressAssess
                     }
                     else
                     {
-                        "https://" + $IP + ":" + $Port + "/post_data.php"
+                        $Url = "https://" + $IP + ":" + $Port + "/post_data.php"
                     }
                     
                 }
