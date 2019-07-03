@@ -63,6 +63,11 @@ def cli_parser():
         "--password", metavar="pass123", default=None,
         help="Password for FTP server authentication.")
 
+    smb_options= parser.add_argument_group('SMB Options')
+    smb_options.add_argument(
+        "--smb2", default=False, action='store_true',
+        help="Enable SMB v2 Support")
+
     data_content = parser.add_argument_group('Data Content Options')
     data_content.add_argument(
         "--file", default=None, metavar='/root/test.jpg',
@@ -142,6 +147,9 @@ def randomString(length=-1):
         length = random.randrange(6, 16)
     random_string = ''.join(random.choice(string.ascii_letters) for x in range(length))
     return random_string
+
+def received_file(filename):
+    print("[+] {} - Received File - {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), filename))
 
 
 def title_screen():

@@ -7,6 +7,7 @@ import time
 from StringIO import StringIO
 
 
+
 class User(object):
     def __init__(self, username, password,
                  chroot=True, home=None, public_key=None):

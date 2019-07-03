@@ -1,3 +1,6 @@
 # Compiled source #
 ###################
 *.pyc
+*.pem
+data/
+*.swp

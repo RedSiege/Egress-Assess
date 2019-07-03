@@ -36,11 +36,13 @@ class Server:
                         if ".:::-989-:::." in incoming_data:
                             file_name = incoming_data.split(".:::-989-:::.")[0]
                             file_data = incoming_data.split(".:::-989-:::.")[1]
+                            helpers.received_file(file_name)
                             with open(self.loot_path + file_name, 'a') as\
                                     icmp_out:
                                 icmp_out.write(file_data)
                             self.last_packet = incoming_data
                         else:
+                            helpers.received_file(self.file_name)
                             with open(self.loot_path + self.file_name, 'a') as\
                                     icmp_out:
                                 icmp_out.write(incoming_data)

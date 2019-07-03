@@ -27,6 +27,7 @@ class CustomSMTPServer(smtpd.SMTPServer):
                     decoded_file_data = base64.b64decode(attachment['filedata'])
                     attach_file_name = attachment['filename']
                     with open(loot_directory + "/" + attach_file_name, 'wb') as attached_file:
+                        helpers.received_file(attach_file_name)
                         attached_file.write(decoded_file_data)
             else:
                 current_date = time.strftime("%m/%d/%Y")

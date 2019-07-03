@@ -52,7 +52,7 @@ class Client:
 
             os.remove(sftp_file_name)
         else:
-            transport = paramiko.Transport(self.remote_system)
+            transport = paramiko.Transport((self.remote_system, self.port))
             transport.connect(username=self.username, password=self.password)
             sftp = paramiko.SFTPClient.from_transport(transport)
             if "/" in self.file_transfer:
