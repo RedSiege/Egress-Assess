@@ -192,29 +192,5 @@ def writeout_text_data(incoming_data):
     return file_name
 
 def class_info():
-    class_image = '''MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-M                                                                M
-M       .”cCCc”.                                                 M
-M      /cccccccc\\           Our Upcoming Trainings:              M
-M      §cccccccc|                                                M
-M      :ccccccccP        BSidesAugusta  >> Sep 30- Oct 3 2019    M
-M      \\cccccccc()                      Augusta, GA              M
-M       \\ccccccccD            www.bsidesaugusta.org/training     M
-M       |cccccccc\\       _                                       M
-M       |ccccccccc)     //  BLACKHAT >> August 3-6               M
-M       |cccccc|=      //               Las Vegas                M
-M      /°°°°°°”-.     (CCCC)            www.blackhat.com/us-19   M
-M      ;----._  _._   |cccc|                                     M
-M   .*°       °°   °. \\cccc/                                     M
-M  /  /       (      )/ccc/                                      M
-M  |_/        |    _.°cccc|                                      M
-M  |/         °^^^°ccccccc/                                      M
-M  /            \\cccccccc/                                       M
-M /              \\cccccc/                                        M
-M |                °*°                                           M
-M /                  \\      Psss. Follow us on >> Twitter        M
-M °*-.__________..-*°°                         >> Facebook       M
-M  \\WWWWWWWWWWWWWWWW/                          >> LinkedIn       M
-M   \\WWWWWWWWWWWWWW/                                             M
-MMMMM|WWWWWWWWWWWW|MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM'''
+    class_image = ''
     print(class_image)
