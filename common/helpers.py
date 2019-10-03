@@ -197,13 +197,13 @@ M                                                                M
 M       .”cCCc”.                                                 M
 M      /cccccccc\\           Our Upcoming Trainings:              M
 M      §cccccccc|                                                M
-M      :ccccccccP        BSidesAugusta  >> Sep 30- Oct 3 2019    M
-M      \\cccccccc()                      Augusta, GA              M
-M       \\ccccccccD            www.bsidesaugusta.org/training     M
+M      :ccccccccP       44Con >> Dec 02- Dec 05 2019             M
+M      \\cccccccc()                 London, England               M
+M       \\ccccccccD              http://44con.com                 M
 M       |cccccccc\\       _                                       M
-M       |ccccccccc)     //  BLACKHAT >> August 3-6               M
-M       |cccccc|=      //               Las Vegas                M
-M      /°°°°°°”-.     (CCCC)            www.blackhat.com/us-19   M
+M       |ccccccccc)     //    Charlotte >> August 3-6            M
+M       |cccccc|=      //               Charlotte, NC            M
+M      /°°°°°°”-.     (CCCC)                                     M
 M      ;----._  _._   |cccc|                                     M
 M   .*°       °°   °. \\cccc/                                     M
 M  /  /       (      )/ccc/                                      M
