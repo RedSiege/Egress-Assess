@@ -13,6 +13,7 @@ To setup, run the included setup script, or perform the following:
 
 `openssl req -new -x509 -keyout server.pem -out server.pem -days 365 -nodes`
 
+We highly recommend using Debian as your server of choice! If you need to use Ubuntu, we would recommend to use 16.04 due to port 53 being in use by default on 18.04.
 
 Usage
 =====
