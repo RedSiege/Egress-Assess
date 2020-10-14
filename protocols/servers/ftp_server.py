@@ -1,8 +1,8 @@
-'''
+"""
 
 This is the code for the ftp server
 
-'''
+"""
 
 import os
 import socket
@@ -23,10 +23,11 @@ class Server:
             self.port = int(cli_object.server_port)
         else:
             self.port = 21
-    if cli_object.ip:
-        self.ip = cli_object.ip
-    else:
-        self.ip = None
+
+        if cli_object.ip:
+            self.ip = cli_object.ip
+        else:
+            self.ip = None
 
     def serve(self):
         # current directory

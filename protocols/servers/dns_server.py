@@ -1,8 +1,8 @@
-'''
+"""
 Author: @butlerallenj
 Contributors: @khr0x40sh, @ruddawg26
 
-This is an improved version of the DNS Server module. Using DNSLib, this module can listen 
+This is an improved version of the DNS Server module. Using DNSLib, this module can listen
 and respond to requests from both TXT and A records, decode the requests utilizing the correct format,
 and write the output to a file:
 
@@ -15,11 +15,11 @@ and write the output to a file:
         ! Supports Stacked Queries
         <base64encoded <<4Byte:int32 file_status><preamble><filedata>>.
 
-'''
+"""
 
 import time
 import struct
-import SocketServer
+import socketserver
 import threading
 import sys
 import datetime
@@ -66,7 +66,7 @@ class Server:
 
     def start_dns_servers(self):
         self.servers = [
-            SocketServer.ThreadingUDPServer(('', 53), UDPRequestHandler),
+            socketserver.ThreadingUDPServer(('', 53), UDPRequestHandler),
         ]
         for s in self.servers:
             # that thread will start one more thread for each request
@@ -102,13 +102,13 @@ class Server:
         return
 
 
-class BaseRequestHandler(SocketServer.BaseRequestHandler):
+class BaseRequestHandler(socketserver.BaseRequestHandler):
 
     def __init__(self, *kargs):
         self.preamble = ".:|:."
         self.ENDFILESTRING = "ENDTHISFILETRANSMISSIONEGRESSASSESS"
 
-        SocketServer.BaseRequestHandler.__init__(self, *kargs)
+        socketserver.BaseRequestHandler.__init__(self, *kargs)
 
     @staticmethod
     def clear_globals():
@@ -190,7 +190,6 @@ class BaseRequestHandler(SocketServer.BaseRequestHandler):
             parts = decoded.split(self.preamble)
             FILE_STATUS = self.decode_file_status(parts[0])
             file_data = parts[1]
-
 
             if FILE_STATUS not in FILE_DICT:
                 FILE_DICT[FILE_STATUS] = file_data
