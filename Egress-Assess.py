@@ -25,21 +25,21 @@ if __name__ == "__main__":
     if cli_parsed.list_servers:
         print('[*] Supported server protocols: \n')
         the_conductor.load_server_protocols(cli_parsed)
-        for name, server_module in the_conductor.server_protocols.items():
+        for name, server_module in sorted(the_conductor.server_protocols.items()):
             print(f'[+] {server_module.protocol}')
         sys.exit()
 
     elif cli_parsed.list_clients:
         print('[*] Supported client protocols: \n')
         the_conductor.load_client_protocols(cli_parsed)
-        for name, client_module in the_conductor.client_protocols.items():
+        for name, client_module in sorted(the_conductor.client_protocols.items()):
             print(f'[+] {client_module.protocol}')
         sys.exit()
 
     elif cli_parsed.list_datatypes:
         print('[*] Supported data types: \n')
         the_conductor.load_datatypes(cli_parsed)
-        for name, datatype_module in the_conductor.datatypes.items():
+        for name, datatype_module in sorted(the_conductor.datatypes.items()):
             print(f'[+] {datatype_module.cli}' + " - (" +
                   datatype_module.description + ")")
         sys.exit()
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     elif cli_parsed.list_actors:
         print('[*] Supported malware/APT groups: \n')
         the_conductor.load_actors(cli_parsed)
-        for name, datatype_module in the_conductor.actor_modules.items():
+        for name, datatype_module in sorted(the_conductor.actor_modules.items()):
             print(f'[+] {datatype_module.cli}' + " - (" +
                   datatype_module.description + ")")
         sys.exit()
