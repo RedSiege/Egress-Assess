@@ -12,10 +12,10 @@ class CustomSMTPServer(smtpd.SMTPServer):
 
     def process_message(self, peer, mailfrom, rcpttos, data):
 
-        print 'Receiving message from:', peer
-        print 'Message addressed from:', mailfrom
-        print 'Message addressed to  :', rcpttos
-        print 'Message length        :', len(data)
+        print('Receiving message from:', peer)
+        print('Message addressed from:', mailfrom)
+        print('Message addressed to  :', rcpttos)
+        print('Message length        :', len(data))
 
         loot_directory = helpers.ea_path() + '/data'
 
@@ -52,11 +52,11 @@ class CustomSMTPServer(smtpd.SMTPServer):
                         'filename': "default"
                     }
                 for param in dispositions[1:]:
-                    name,value = param.split("=")
+                    name, value = param.split("=")
                     name = name.strip().lower()
 
                     if name == "filename":
-                        attachment['filename'] = value.replace('"','')
+                        attachment['filename'] = value.replace('"', '')
 
                 return attachment
 

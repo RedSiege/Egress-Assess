@@ -11,6 +11,7 @@ from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
 
+
 class Server:
 
     def __init__(self, cli_object):
@@ -22,10 +23,10 @@ class Server:
             self.port = int(cli_object.server_port)
         else:
             self.port = 21
-	if cli_object.ip:
-	    self.ip = cli_object.ip
-	else:
-	    self.ip = None
+    if cli_object.ip:
+        self.ip = cli_object.ip
+    else:
+        self.ip = None
 
     def serve(self):
         # current directory
@@ -48,7 +49,7 @@ class Server:
 
             # Define a customized banner (string returned when client connects)
             handler.banner = "Connecting to Egress-Assess's FTP server!"
-            #Define public address and  passive ports making NAT configurations more predictable
+            # Define public address and  passive ports making NAT configurations more predictable
             handler.masquerade_address = self.ip
             handler.passive_ports = range(60000, 60100)
 
@@ -56,11 +57,11 @@ class Server:
                 server = FTPServer(('', self.port), handler)
                 server.serve_forever()
             except socket.error:
-                print "[*][*] Error: Port %d is currently in use!" % self.port
-                print "[*][*] Error: Please restart when port is free!\n"
+                print(f'[*][*] Error: Port {self.port} is currently in use!')
+                print('[*][*] Error: Please restart when port is free!\n')
                 sys.exit()
         except ValueError:
-            print "[*] Error: The directory you provided may not exist!"
-            print "[*] Error: Please re-run with a valid FTP directory."
+            print('[*] Error: The directory you provided may not exist!')
+            print('[*] Error: Please re-run with a valid FTP directory.')
             sys.exit()
         return

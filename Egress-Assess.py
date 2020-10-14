@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 # This tool is designed to be an easy way to test exfiltrating data
 # from the network you are currently plugged into.  Used for red or
@@ -11,10 +11,9 @@ import sys
 from common import helpers
 from common import orchestra
 
-
 if __name__ == "__main__":
 
-    logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+    logging.getLogger('scapy.runtime').setLevel(logging.ERROR)
 
     helpers.title_screen()
 
@@ -24,37 +23,33 @@ if __name__ == "__main__":
 
     # Check if only listing supported server/client protocols or datatypes
     if cli_parsed.list_servers:
-        print "[*] Supported server protocols: \n"
+        print('[*] Supported server protocols: \n')
         the_conductor.load_server_protocols(cli_parsed)
         for name, server_module in the_conductor.server_protocols.iteritems():
-            print "[+] " + server_module.protocol
-        print
+            print(f'[+] {server_module.protocol}')
         sys.exit()
 
     elif cli_parsed.list_clients:
-        print "[*] Supported client protocols: \n"
+        print('[*] Supported client protocols: \n')
         the_conductor.load_client_protocols(cli_parsed)
         for name, client_module in the_conductor.client_protocols.iteritems():
-            print "[+] " + client_module.protocol
-        print
+            print(f'[+] {client_module.protocol}')
         sys.exit()
 
     elif cli_parsed.list_datatypes:
-        print "[*] Supported data types: \n"
+        print('[*] Supported data types: \n')
         the_conductor.load_datatypes(cli_parsed)
         for name, datatype_module in the_conductor.datatypes.iteritems():
-            print "[+] " + datatype_module.cli + " - (" +\
-                datatype_module.description + ")"
-        print
+            print(f'[+] {datatype_module.cli}' + " - (" + \
+                  datatype_module.description + ")")
         sys.exit()
 
     elif cli_parsed.list_actors:
-        print "[*] Supported malware/APT groups: \n"
+        print('[*] Supported malware/APT groups: \n')
         the_conductor.load_actors(cli_parsed)
         for name, datatype_module in the_conductor.actor_modules.iteritems():
-            print "[+] " + datatype_module.cli + " - (" +\
-                datatype_module.description + ")"
-        print
+            print(f'[+] {datatype_module.cli}' + " - (" +
+                  datatype_module.description + ")")
         sys.exit()
 
     if cli_parsed.server is not None:
@@ -72,7 +67,6 @@ if __name__ == "__main__":
 
                     if server_actor.protocol.lower() == actor_mod.server_requirement:
                         server_actor.serve()
-
 
         for full_path, server in the_conductor.server_protocols.iteritems():
 
@@ -110,8 +104,8 @@ if __name__ == "__main__":
                     sys.exit()
 
         helpers.class_info()
-        print "[*] Error: You either didn't provide a valid datatype or client protocol to use."
-        print "[*] Error: Re-run and use --list-datatypes or --list-clients to see possible options."
+        print("[*] Error: You either didn't provide a valid datatype or client protocol to use.")
+        print("[*] Error: Re-run and use --list-datatypes or --list-clients to see possible options.")
         sys.exit()
 
     elif cli_parsed.actor is not None:

@@ -1,4 +1,4 @@
-'''
+"""
 
 A brief description of the server module can be placed up here
 All import should go between the comments and class declaration
@@ -7,10 +7,11 @@ modules ot just hit me up.
 
 Finally, be sure to rename this to a .py file
 
-'''
+"""
 
 import base64
 import time
+from scapy.layers.inet import ICMP
 from common import helpers
 from scapy.all import *
 
@@ -18,13 +19,12 @@ from scapy.all import *
 class Server:
 
     def __init__(self, cli_object):
-        self.protocol = "icmp"
+        self.protocol = 'icmp'
         self.file_name = ''
         self.last_packet = ''
         self.loot_path = ''
 
-    def customAction(self, packet):
-
+    def custom_action(self, packet):
         if packet.haslayer(ICMP):
             if packet.haslayer(Raw):
                 icmp_strings = repr(packet[Raw])
@@ -54,7 +54,6 @@ class Server:
         return
 
     def serve(self):
-
         self.loot_path = os.path.join(helpers.ea_path(), "data") + "/"
         # Check to make sure the agent directory exists, and a loot
         # directory for the agent.  If not, make them
@@ -67,6 +66,6 @@ class Server:
         self.file_name = current_date.replace("/", "") +\
             "_" + current_time.replace(":", "") + "text_data.txt"
 
-        print "[*] ICMP server/sniffer started!"
-        sniff(prn=self.customAction)
+        print('[*] ICMP server/sniffer started!')
+        sniff(prn=self.custom_action)
         return

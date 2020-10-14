@@ -1,8 +1,8 @@
-'''
+"""
 
 This is the ftp client code
 
-'''
+"""
 
 import os
 import socket
@@ -15,7 +15,7 @@ from ftplib import error_perm
 class Client:
 
     def __init__(self, cli_object):
-        self.protocol = "ftp"
+        self.protocol = 'ftp'
         self.remote_server = cli_object.ip
         self.username = cli_object.username
         self.password = cli_object.password
@@ -37,13 +37,13 @@ class Client:
             ftp = FTP()
             ftp.connect(self.remote_server, self.port)
         except socket.gaierror:
-            print "[*] Error: Cannot connect to FTP server.  Checking provided ip!"
+            print('[*] Error: Cannot connect to FTP server.  Checking provided ip!')
             sys.exit()
 
         try:
             ftp.login(self.username, self.password)
         except error_perm:
-            print "[*] Error: Username or password is incorrect!  Please re-run."
+            print('[*] Error: Username or password is incorrect!  Please re-run.')
             sys.exit()
 
         if not self.file_transfer:
@@ -57,4 +57,4 @@ class Client:
             ftp.storbinary("STOR " + self.file_transfer, open(self.file_transfer))
 
         ftp.quit()
-        print "[*] File sent!!!"
+        print('[*] File sent!!!')

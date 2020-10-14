@@ -1,7 +1,7 @@
 import os
 import random
 import time
-from BaseHTTPServer import BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler
 from common import helpers
 from commandcontrol.apt import *
 from commandcontrol.malware import *
@@ -24,7 +24,7 @@ class GetHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(malware_callbacks.etumbot_checkin_response)
 
-        elif ((self.path.startswith(malware_callbacks.etumbot_uri) or self.path.startswith(malware_callbacks.etumbot_uri2)) and (self.path.endswith(malware_callbacks.etumbot_extensions) or self.path.endswith(malware_callbacks.etumbot_extensions2)) or self.path.startswith(malware_callbacks.etumbot_uri3) or self.path.startswith(malware_callbacks.etumbot_uri4) or self.path.startswith(malware_callbacks.etumbot_uri5)):
+        elif (self.path.startswith(malware_callbacks.etumbot_uri) or self.path.startswith(malware_callbacks.etumbot_uri2)) and (self.path.endswith(malware_callbacks.etumbot_extensions) or self.path.endswith(malware_callbacks.etumbot_extensions2)) or self.path.startswith(malware_callbacks.etumbot_uri3) or self.path.startswith(malware_callbacks.etumbot_uri4) or self.path.startswith(malware_callbacks.etumbot_uri5):
             # current directory
             exfil_directory = os.path.join(helpers.ea_path(), "data")
             loot_path = exfil_directory + "/"
@@ -173,10 +173,9 @@ class GetHandler(BaseHTTPRequestHandler):
 
         # All other Post requests
         else:
-
             self.send_response(404)
             self.end_headers()
 
-            print "Odd... someone else is trying to access this web server..."
-            print "Might want to check that out..."
+            print('Odd... someone else is trying to access this web server...')
+            print('Might want to check that out...')
         return

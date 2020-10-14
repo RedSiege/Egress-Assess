@@ -1,16 +1,16 @@
-'''
+"""
 
 This is a SMTP client module.  Sample code came from:
 http://pymotw.com/2/smtpd/
 
-'''
+"""
 
 import smtplib
 import email.utils
-from email import Encoders
-from email.MIMEBase import MIMEBase
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
-from email.MIMEMultipart import MIMEMultipart
+from email.mime.multipart import MIMEMultipart
 
 
 class Client:
@@ -21,7 +21,7 @@ class Client:
     # with --client <client>.  self.protocol is the only required attribute
     # of the object.
     def __init__(self, cli_object):
-        self.protocol = "smtp"
+        self.protocol = 'smtp'
         self.remote_server = cli_object.ip
         if cli_object.client_port is None:
             self.port = 25
@@ -30,8 +30,8 @@ class Client:
         if cli_object.file is None:
             self.file_transfer = False
         else:
-            if "/" in cli_object.file:
-                self.file_transfer = cli_object.file.split("/")[-1]
+            if '/' in cli_object.file:
+                self.file_transfer = cli_object.file.split('/')[-1]
             else:
                 self.file_transfer = cli_object.file
 
@@ -42,7 +42,7 @@ class Client:
     # is to be sent out by the client.
     def transmit(self, data_to_transmit):
 
-        print "[*] Sending data over e-mail..."
+        print('[*] Sending data over e-mail...')
 
         if not self.file_transfer:
             # Create the message
@@ -58,7 +58,7 @@ class Client:
 
             part = MIMEBase('application', "octet-stream")
             part.set_payload(open(self.file_transfer, "rb").read())
-            Encoders.encode_base64(part)
+            encoders.encode_base64(part)
             part.add_header('Content-Disposition', 'attachment; filename=' + self.file_transfer)
             msg.attach(part)
 
@@ -69,6 +69,6 @@ class Client:
         finally:
             server.quit()
 
-        print "[*] Data transmitted!"
+        print('[*] Data transmitted!')
 
         return

@@ -1,8 +1,8 @@
-'''
+"""
 
 This is the conductor which controls everything
 
-'''
+"""
 
 import glob
 import imp

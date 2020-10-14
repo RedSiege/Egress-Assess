@@ -1,4 +1,4 @@
-'''
+"""
 
 This is the template that should be used for client modules.
 A brief description of the client module can/should be placed
@@ -7,7 +7,7 @@ comments and class declaration.
 
 Finally, be sure to rename your client module to a .py file
 
-'''
+"""
 
 import os
 from common import helpers
@@ -21,7 +21,7 @@ class Client:
     # with --client <client>.  self.protocol is the only required attribute
     # of the object.
     def __init__(self, cli_object):
-        self.protocol = "smb"
+        self.protocol = 'smb'
         self.remote_server = cli_object.ip
         if cli_object.file is None:
             self.file_transfer = False
@@ -63,12 +63,12 @@ class Client:
             smb_command += self.file_transfer + " " + self.file_name + "\""
             smb_file_name = self.file_transfer
 
-        print smb_command
+        print(smb_command)
         os.system(smb_command)
 
         if not self.file_transfer:
             os.remove(smb_full_path)
 
-        print "[*] File Transmitted!"
+        print('[*] File Transmitted!')
 
         return

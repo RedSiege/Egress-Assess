@@ -4,8 +4,7 @@ import paramiko
 import tempfile
 import threading
 import time
-from StringIO import StringIO
-
+from io import StringIO
 
 
 class User(object):
@@ -15,8 +14,8 @@ class User(object):
         self.password = password
         self.chroot = chroot
         self.public_key = public_key
-        if type(self.public_key) in (str, unicode):
-            bits = base64.decodestring(self.public_key.split(' ')[1])
+        if type(self.public_key) in (str, str):
+            bits = base64.decodebytes(self.public_key.split(' ')[1])
             msg = paramiko.Message(bits)
             key = paramiko.RSAKey(msg)
             self.public_key = key
@@ -30,7 +29,7 @@ class SFTPHandle(paramiko.SFTPHandle):
     def __init__(self, flags=0, path=None):
         paramiko.SFTPHandle.__init__(self, flags)
         self.path = path
-        if(flags == 0):
+        if flags == 0:
             self.readfile = open(path, "r")
         else:
             self.writefile = open(path, "w")
@@ -40,7 +39,7 @@ class SvnSFTPHandle(SFTPHandle):
     def __init__(self, flags=0, path=None):
         paramiko.SFTPHandle.__init__(self, flags)
         self.path = path
-        if(flags == 0):
+        if flags == 0:
             self.readfile = open(path, "r")
         else:
             self.writefile = open(path, "w")
@@ -72,11 +71,11 @@ class SimpleSftpServer(paramiko.SFTPServerInterface):
         if not os.path.realpath(real_path).startswith(self.root):
             raise Exception("Invalid path")
 
-        return(real_path)
+        return real_path
 
     def open(self, path, flags, attr):
         real_path = self.get_fs_path(path)
-        return(SFTPHandle(flags, real_path))
+        return SFTPHandle(flags, real_path)
 
     def list_folder(self, path):
         real_path = self.get_fs_path(path)
@@ -129,7 +128,7 @@ class SubversionSftpServer(SimpleSftpServer):
 
     def open(self, path, flags, attr):
         real_path = self.get_fs_path(path)
-        return(SvnSFTPHandle(flags, real_path))
+        return SvnSFTPHandle(flags, real_path)
 
     def remove(self, path):
         real_path = self.get_fs_path(path)
@@ -202,7 +201,7 @@ def accept_client(client, addr, root_dir, users, host_rsa_key, conf={}):
     transport.load_server_moduli()
     transport.add_server_key(host_key)
 
-    if conf.has_key("sftp_implementation"):
+    if "sftp_implementation" in conf:
         mod_name, class_name = conf['sftp_implementation'].split(':')
         fromlist = None
         try:
@@ -220,7 +219,7 @@ def accept_client(client, addr, root_dir, users, host_rsa_key, conf={}):
     server = SimpleSSHServer(users=usermap)
     transport.start_server(server=server)
     channel = transport.accept()
-    while(transport.is_active()):
+    while transport.is_active():
         time.sleep(3)
 
     username = server.get_authenticated_user()

