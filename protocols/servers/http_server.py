@@ -23,11 +23,11 @@ class Server:
 
     def serve(self):
         try:
-            print('[*] Starting web (http) server...')
+            print('[*] Starting http server.')
             # bind to all interfaces
             Thread(target=self.serve_on_port).start()
-            print('[*] Web server is currently running')
-            print(f'[*] Type \"kill -9 " + {str(os.getpid())} "\" to stop the web server.')
+            print('[*] http server is currently running.')
+            print(f'[*] kill -9 {str(os.getpid())} to stop the http server.')
         # handle keyboard interrupts
         except KeyboardInterrupt:
             print('[!] Rage quiting, and stopping the web server!')

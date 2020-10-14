@@ -72,7 +72,6 @@ if __name__ == "__main__":
 
             if server.protocol == cli_parsed.server.lower():
                 server.serve()
-                helpers.class_info()
 
     elif cli_parsed.client is not None:
         # load up all supported client protocols and datatypes
@@ -90,7 +89,6 @@ if __name__ == "__main__":
                     for proto_name, proto_module in the_conductor.client_protocols.items():
                         if proto_module.protocol == cli_parsed.client.lower():
                             proto_module.transmit(generated_data)
-                            helpers.class_info()
                             sys.exit()
 
         else:
@@ -100,10 +98,8 @@ if __name__ == "__main__":
             for proto_name, proto_module in the_conductor.client_protocols.items():
                 if proto_module.protocol == cli_parsed.client.lower():
                     proto_module.transmit(file_data)
-                    helpers.class_info()
                     sys.exit()
 
-        helpers.class_info()
         print("[*] Error: You either didn't provide a valid datatype or client protocol to use.")
         print("[*] Error: Re-run and use --list-datatypes or --list-clients to see possible options.")
         sys.exit()
@@ -126,9 +122,7 @@ if __name__ == "__main__":
                             generated_data = datatype_module.generate_data()
 
                     actor_variant.emulate(data_to_exfil=generated_data)
-                    helpers.class_info()
 
                 # Instead, use the exfil data within the module
                 else:
                     actor_variant.emulate()
-                    helpers.class_info()
