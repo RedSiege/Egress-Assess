@@ -6,6 +6,7 @@ This is the web client code
 
 import sys
 import urllib.request
+import urllib.error
 
 
 class Client:
@@ -38,7 +39,7 @@ class Client:
                 f = urllib.request.urlopen(req)
                 f.close()
                 print('[*] File sent!!!')
-            except urllib.request.URLopener:
+            except urllib.error.URLError:
                 print(f'[*] Error: Web server may not be active on {self.remote_server}')
                 print('[*] Error: Please check server to make sure it is active!')
                 sys.exit()
@@ -49,7 +50,7 @@ class Client:
                 f = urllib.request.urlopen(url, data_to_transmit)
                 f.close()
                 print('[*] File sent!!!')
-            except urllib.request.URLopener:
+            except urllib.error.URLError:
                 print(f'[*] Error: Web server may not be active on {self.remote_server}')
                 print('[*] Error: Please check server to make sure it is active!')
                 sys.exit()
