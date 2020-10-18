@@ -3,6 +3,7 @@
 *.pyc
 *.pem
 data/
+transfer/
 *.swp
 *.idea
 *.vscode
