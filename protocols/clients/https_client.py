@@ -32,7 +32,7 @@ class Client:
 
         ssl._create_default_https_context = ssl._create_unverified_context
         if not self.file_transfer:
-            url = "https://" + self.remote_server + ":" + str(self.port) + "/post_data.php"
+            url = f"https://{self.remote_server}:{self.port}" + "/post_data.php"
 
             # Post the data to the web server at the specified URL
             try:
@@ -44,7 +44,7 @@ class Client:
                 print('[*] Error: Please check server to make sure it is active!')
                 sys.exit()
         else:
-            url = "https://" + self.remote_server + ":" + str(self.port) + "/post_file.php"
+            url = f"https://{self.remote_server}:{self.port}" + "/post_data.php"
 
             try:
                 data_to_transmit = self.file_transfer + ".:::-989-:::." + str(data_to_transmit)

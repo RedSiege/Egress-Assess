@@ -29,7 +29,7 @@ class GetHandler(BaseHTTPRequestHandler):
                 or self.path.startswith(malware_callbacks.etumbot_uri3) \
                 or self.path.startswith(malware_callbacks.etumbot_uri4) or self.path.startswith(malware_callbacks.etumbot_uri5):
             # current directory
-            exfil_directory = os.path.join(helpers.ea_path(), 'data')
+            exfil_directory = os.path.join(helpers.ea_path(), 'transfer')
             loot_path = exfil_directory + '/'
             if not os.path.isdir(loot_path):
                 os.makedirs(loot_path)
@@ -56,7 +56,7 @@ class GetHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'DEXT87no')
 
         elif self.path.startswith(malware_callbacks.darkhotel_uri):
-            exfil_directory = os.path.join(helpers.ea_path(), "data")
+            exfil_directory = os.path.join(helpers.ea_path(), 'transfer')
             loot_path = exfil_directory + "/"
             if not os.path.isdir(loot_path):
                 os.makedirs(loot_path)
@@ -82,7 +82,7 @@ class GetHandler(BaseHTTPRequestHandler):
     def do_POST(self):
 
         # current directory
-        exfil_directory = os.path.join(helpers.ea_path(), 'data')
+        exfil_directory = os.path.join(helpers.ea_path(), 'transfer')
         loot_path = exfil_directory + '/'
 
         # Info for this from -

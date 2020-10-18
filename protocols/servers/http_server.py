@@ -23,7 +23,7 @@ class Server:
 
     def serve(self):
         try:
-            print('[*] Starting HTTP server.')
+            print(f'[*] Starting HTTP server on {self.port}.')
             # bind to all interfaces
             Thread(target=self.serve_on_port).start()
             print('[*] http server is currently running.')

