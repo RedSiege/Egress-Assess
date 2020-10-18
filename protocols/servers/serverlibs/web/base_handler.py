@@ -24,10 +24,13 @@ class GetHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(malware_callbacks.etumbot_checkin_response)
 
-        elif (self.path.startswith(malware_callbacks.etumbot_uri) or self.path.startswith(malware_callbacks.etumbot_uri2)) and (self.path.endswith(malware_callbacks.etumbot_extensions) or self.path.endswith(malware_callbacks.etumbot_extensions2)) or self.path.startswith(malware_callbacks.etumbot_uri3) or self.path.startswith(malware_callbacks.etumbot_uri4) or self.path.startswith(malware_callbacks.etumbot_uri5):
+        elif (self.path.startswith(malware_callbacks.etumbot_uri) or self.path.startswith(malware_callbacks.etumbot_uri2)) \
+                and (self.path.endswith(malware_callbacks.etumbot_extensions) or self.path.endswith(malware_callbacks.etumbot_extensions2)) \
+                or self.path.startswith(malware_callbacks.etumbot_uri3) \
+                or self.path.startswith(malware_callbacks.etumbot_uri4) or self.path.startswith(malware_callbacks.etumbot_uri5):
             # current directory
-            exfil_directory = os.path.join(helpers.ea_path(), "data")
-            loot_path = exfil_directory + "/"
+            exfil_directory = os.path.join(helpers.ea_path(), 'data')
+            loot_path = exfil_directory + '/'
             if not os.path.isdir(loot_path):
                 os.makedirs(loot_path)
             # Get the date info
@@ -45,12 +48,12 @@ class GetHandler(BaseHTTPRequestHandler):
         elif self.path == malware_callbacks.darkhotel_checkin:
             self.send_response(200)
             self.end_headers()
-            self.wfile.write('DEXT8726.168.15.192')
+            self.wfile.write(b'DEXT8726.168.15.192')
 
         elif self.path == malware_callbacks.darkhotel_checkin2:
             self.send_response(200)
             self.end_headers()
-            self.wfile.write('DEXT87no')
+            self.wfile.write(b'DEXT87no')
 
         elif self.path.startswith(malware_callbacks.darkhotel_uri):
             exfil_directory = os.path.join(helpers.ea_path(), "data")
@@ -67,7 +70,7 @@ class GetHandler(BaseHTTPRequestHandler):
                 cc_data_file.write('DarkHotel just checked in here!\n')
             self.send_response(200)
             self.end_headers()
-            self.wfile.write('DKCheckin good')
+            self.wfile.write(b'DKCheckin good')
 
         else:
             # 404 since we aren't serving up any pages, only receiving data
@@ -79,8 +82,8 @@ class GetHandler(BaseHTTPRequestHandler):
     def do_POST(self):
 
         # current directory
-        exfil_directory = os.path.join(helpers.ea_path(), "data")
-        loot_path = exfil_directory + "/"
+        exfil_directory = os.path.join(helpers.ea_path(), 'data')
+        loot_path = exfil_directory + '/'
 
         # Info for this from -
         # http://stackoverflow.com/questions/13146064/simple-
@@ -108,7 +111,7 @@ class GetHandler(BaseHTTPRequestHandler):
             # Write out the file
             with open(loot_path + screenshot_name, 'a') as cc_data_file:
                 cc_data_file.write('METADATA: From: ' + str(self.client_address) + ' ' + str(self.address_string) + '\n\n')
-                cc_data_file.write(screen_data)
+                cc_data_file.write(str(screen_data))
 
         elif self.path == "/post_file.php":
             self.send_response(200)
@@ -123,10 +126,10 @@ class GetHandler(BaseHTTPRequestHandler):
             screen_length = self.headers['content-length']
             screen_data = self.rfile.read(int(screen_length))
 
-            file_name = screen_data.split(".:::-989-:::.")[0]
-            file_data = screen_data.split(".:::-989-:::.")[1]
+            file_name = screen_data.split(b".:::-989-:::.")[0]
+            file_data = screen_data.split(b".:::-989-:::.")[1]
 
-            with open(loot_path + file_name, 'wb') as cc_data_file:
+            with open(loot_path + str(file_name), 'wb') as cc_data_file:
                 helpers.received_file(file_name)
                 cc_data_file.write(file_data)
 
@@ -169,7 +172,7 @@ class GetHandler(BaseHTTPRequestHandler):
             # Write out the file
             with open(loot_path + screenshot_name, 'a') as cc_data_file:
                 cc_data_file.write('METADATA: From: ' + str(self.client_address) + ' ' + str(self.address_string) + '\n\n')
-                cc_data_file.write(screen_data)
+                cc_data_file.write(str(screen_data))
 
         # All other Post requests
         else:
@@ -178,4 +181,3 @@ class GetHandler(BaseHTTPRequestHandler):
 
             print('Odd... someone else is trying to access this web server...')
             print('Might want to check that out...')
-        return

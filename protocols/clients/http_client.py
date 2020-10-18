@@ -12,7 +12,7 @@ import urllib.error
 class Client:
 
     def __init__(self, cli_object):
-        self.data_to_transmit = ''
+        self.data_to_transmit = None
         self.remote_server = cli_object.ip
         self.protocol = 'http'
         if cli_object.client_port is None:
@@ -22,8 +22,8 @@ class Client:
         if cli_object.file is None:
             self.file_transfer = False
         else:
-            if "/" in cli_object.file:
-                self.file_transfer = cli_object.file.split("/")[-1]
+            if '/' in cli_object.file:
+                self.file_transfer = cli_object.file.split('/')[-1]
             else:
                 self.file_transfer = cli_object.file
 
@@ -46,13 +46,12 @@ class Client:
         else:
             url = "http://" + self.remote_server + ":" + str(self.port) + "/post_file.php"
             try:
-                data_to_transmit = self.file_transfer + ".:::-989-:::." + data_to_transmit
-                f = urllib.request.urlopen(url, data_to_transmit)
+                data_to_transmit = self.file_transfer + ".:::-989-:::." + str(data_to_transmit)
+                f = urllib.request.urlopen(url, bytes(data_to_transmit, encoding='utf-8'))
                 f.close()
                 print('[*] File sent!!!')
             except urllib.error.URLError:
                 print(f'[*] Error: Web server may not be active on {self.remote_server}')
                 print('[*] Error: Please check server to make sure it is active!')
+                print(f'[*] Error: Please add --client-port port if the server is not on 80')
                 sys.exit()
-
-        return

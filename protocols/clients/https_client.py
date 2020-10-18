@@ -47,13 +47,14 @@ class Client:
             url = "https://" + self.remote_server + ":" + str(self.port) + "/post_file.php"
 
             try:
-                data_to_transmit = self.file_transfer + ".:::-989-:::." + data_to_transmit
-                f = urllib.request.urlopen(url, data_to_transmit)
+                data_to_transmit = self.file_transfer + ".:::-989-:::." + str(data_to_transmit)
+                f = urllib.request.urlopen(url, bytes(data_to_transmit, encoding='utf-8'))
                 f.close()
                 print('[*] File sent!!!')
             except urllib.error.URLError:
                 print(f'[*] Error: Web server may not be active on {self.remote_server}')
                 print('[*] Error: Please check server to make sure it is active!')
+                print(f'[*] Error: Please add --client-port port if the server is not on 443')
                 sys.exit()
 
         return
