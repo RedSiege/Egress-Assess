@@ -79,7 +79,7 @@ class Client:
                     else:
                         packet_diff = ((len(data_to_transmit) - byte_reader) / self.length)
                     check_total = True
-                    encoded_data = base64.b64encode(str(struct.pack('>I',packet_number)) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
+                    encoded_data = base64.b64encode(str(struct.pack('>I', packet_number)) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
 
                 if check_total:
                     self.current_total = packet_number + packet_diff
