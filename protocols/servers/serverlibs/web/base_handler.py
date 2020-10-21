@@ -104,7 +104,7 @@ class GetHandler(BaseHTTPRequestHandler):
             screenshot_name = current_date.replace("/", "") +\
                 "_" + current_time.replace(":", "") + "web_data.txt"
 
-            # Read the length of the screenshot file being uploaded
+            # Read the length of the file being uploaded
             screen_length = self.headers['content-length']
             screen_data = self.rfile.read(int(screen_length))
 
@@ -122,14 +122,14 @@ class GetHandler(BaseHTTPRequestHandler):
             if not os.path.isdir(loot_path):
                 os.makedirs(loot_path)
 
-            # Read the length of the screenshot file being uploaded
+            # Read the length of the file being uploaded
             screen_length = self.headers['content-length']
             screen_data = self.rfile.read(int(screen_length))
 
-            file_name = screen_data.split(b".:::-989-:::.")[0]
+            file_name = screen_data.split(b".:::-989-:::.")[0].decode('utf-8')
             file_data = screen_data.split(b".:::-989-:::.")[1]
 
-            with open(loot_path + str(file_name), 'wb') as cc_data_file:
+            with open(loot_path + file_name, 'wb') as cc_data_file:
                 helpers.received_file(file_name)
                 cc_data_file.write(file_data)
 
