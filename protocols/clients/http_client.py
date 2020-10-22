@@ -38,7 +38,7 @@ class Client:
                 req = urllib.request.Request(url, data_to_transmit, headers)
                 file = urllib.request.urlopen(req)
                 file.close()
-                print('[*] File sent!!!')
+                print('[*] File sent')
             except urllib.error.URLError:
                 print(f'[*] Error: Web server may not be active on {self.remote_server}')
                 print('[*] Error: Please check server to make sure it is active!')
