@@ -46,5 +46,6 @@ class Server:
             server.serve_forever()
         except socket.error:
             print(f'[*][*] Error: Port {self.port} is currently in use!')
-            print('[*][*] Error: Please restart when port is free!\n')
+            print('[*][*] Error: Please restart when port is free!')
+            print('[*][*] Error: Please make sure you are running with root or sudo privs when using the standard HTTPS port\n')
             sys.exit()
