@@ -39,7 +39,7 @@ def cli_parser():
     ftp_options.add_argument("--password", metavar="pass123", default=None, help='Password for FTP server authentication.')
 
     smb_options = parser.add_argument_group('SMB Options')
-    smb_options.add_argument("--smb2", default=False, action='store_true', help='Enable SMB v2 support.')
+    smb_options.add_argument("--no-smb2", default=True, action='store_false', help='Disable SMB v2 support.')
 
     data_content = parser.add_argument_group('Data Content Options')
     data_content.add_argument("--file", default=None, metavar='/tmp/test.txt', help='Path to file to extract.')
@@ -94,7 +94,7 @@ def randomNumbers(b):
     """
     Returns a random string/key of "b" characters in length, defaults to 5
     """
-    random_number = int(''.join(random.choice(string.digits) for x in range(b))) + 10000
+    random_number = int(''.join(random.choice(string.digits) for _ in range(b))) + 10000
 
     if random_number < 100000:
         random_number = random_number + 100000
@@ -109,12 +109,12 @@ def randomString(length=-1):
     """
     if length == -1:
         length = random.randrange(6, 16)
-    random_string = ''.join(random.choice(string.ascii_letters) for x in range(length))
+    random_string = ''.join(random.choice(string.ascii_letters) for _ in range(length))
     return random_string
 
 
 def received_file(filename):
-    print("[+] {} - Received File - {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), filename))
+    print(f'[+] {time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())} - Received File - {filename}')
 
 
 def title_screen():
@@ -122,7 +122,6 @@ def title_screen():
     print("#" * 80)
     print("#" + " " * 32 + "Egress-Assess" + " " * 33 + "#")
     print("#" * 80 + "\n")
-    return
 
 
 def ea_path():

@@ -34,7 +34,7 @@ class Client:
 
     # transmit is the only required function within the object.  It is what
     # called by the framework to transmit data.  However, you can create as 
-    # many "sub functions" for transmit to invoke as needed.  "data_to_transmit"
+    # many "sub functions" for transmit to invoke as needed.  "data_to_transmit".
     # is a variable passed in by the framework which contains the data that 
     # is to be sent out by the client.
     def transmit(self, data_to_transmit):
@@ -50,7 +50,7 @@ class Client:
             os.makedirs(mount_path)
 
         # Base command to copy file over smb
-        smb_command = "smbclient \\\\\\\\" + self.remote_server + "\\\\DATA -N -c \"put "
+        smb_command = "smbclient \\\\\\\\" + self.remote_server + "\\\\TRANSFER -N -c \"put "
 
         # If using a file, copy it, else write to disk and then copy
         if not self.file_transfer:
@@ -70,5 +70,3 @@ class Client:
             os.remove(smb_full_path)
 
         print('[*] File Transmitted!')
-
-        return
