@@ -32,6 +32,11 @@ class Client:
             else:
                 self.file_name = cli_object.file
 
+        if cli_object.client_port is None:
+            self.port = 445
+        else:
+            self.port = cli_object.client_port
+
     # transmit is the only required function within the object.  It is what
     # called by the framework to transmit data.  However, you can create as 
     # many "sub functions" for transmit to invoke as needed.  "data_to_transmit".
@@ -50,7 +55,7 @@ class Client:
             os.makedirs(mount_path)
 
         # Base command to copy file over smb
-        smb_command = "smbclient \\\\\\\\" + self.remote_server + "\\\\TRANSFER -N -c \"put "
+        smb_command = f"smbclient \\\\\\\\{self.remote_server}" + f"\\\\TRANSFER -N -p {self.port} -c \"put "
 
         # If using a file, copy it, else write to disk and then copy
         if not self.file_transfer:
