@@ -49,7 +49,7 @@ class Client:
                 data_to_transmit = bytes(self.file_transfer, encoding='utf-8') + b".:::-989-:::." + data_to_transmit
                 file = urllib.request.urlopen(url, data_to_transmit)
                 file.close()
-                print('[*] File sent!!!')
+                print('[*] File sent')
             except urllib.error.URLError:
                 print(f'[*] Error: Web server may not be active on {self.remote_server}')
                 print('[*] Error: Please check server to make sure it is active!')

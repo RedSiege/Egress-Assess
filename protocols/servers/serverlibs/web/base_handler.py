@@ -36,8 +36,8 @@ class GetHandler(BaseHTTPRequestHandler):
             # Get the date info
             current_date = time.strftime("%m/%d/%Y")
             current_time = time.strftime("%H:%M:%S")
-            screenshot_name = current_date.replace("/", "") +\
-                "_" + current_time.replace(":", "") + "actor_data.txt"
+            screenshot_name = current_date.replace("/", "") + "_" + current_time.replace(":", "") + "actor_data.txt"
+
             with open(loot_path + screenshot_name, 'a') as cc_data_file:
                 cc_data_file.write('METADATA: From: ' + str(self.client_address) + ' ' + str(self.address_string) + '\n\n')
                 cc_data_file.write('etumbot just checked in here!\n')
@@ -63,8 +63,8 @@ class GetHandler(BaseHTTPRequestHandler):
             # Get the date info
             current_date = time.strftime("%m/%d/%Y")
             current_time = time.strftime("%H:%M:%S")
-            screenshot_name = current_date.replace("/", "") +\
-                "_" + current_time.replace(":", "") + "actor_data.txt"
+            screenshot_name = current_date.replace("/", "") + "_" + current_time.replace(":", "") + "actor_data.txt"
+
             with open(loot_path + screenshot_name, 'a') as cc_data_file:
                 cc_data_file.write('METADATA: From: ' + str(self.client_address) + ' ' + str(self.address_string) + '\n\n')
                 cc_data_file.write('DarkHotel just checked in here!\n')
@@ -101,8 +101,7 @@ class GetHandler(BaseHTTPRequestHandler):
             # Get the date info
             current_date = time.strftime("%m/%d/%Y")
             current_time = time.strftime("%H:%M:%S")
-            screenshot_name = current_date.replace("/", "") +\
-                "_" + current_time.replace(":", "") + "web_data.txt"
+            screenshot_name = current_date.replace("/", "") + "_" + current_time.replace(":", "") + "web_data.txt"
 
             # Read the length of the file being uploaded
             screen_length = self.headers['content-length']
@@ -127,11 +126,11 @@ class GetHandler(BaseHTTPRequestHandler):
             screen_data = self.rfile.read(int(screen_length))
 
             file_name = screen_data.split(b".:::-989-:::.")[0].decode('utf-8')
-            file_data = screen_data.split(b".:::-989-:::.")[1]
+            file_data = screen_data.split(b".:::-989-:::.")[1].decode('utf-8')
 
             with open(loot_path + file_name, 'wb') as cc_data_file:
                 helpers.received_file(file_name)
-                cc_data_file.write(file_data)
+                cc_data_file.write(bytes(file_data, encoding='utf-8'))
 
         elif self.path == "/posh_file.php":
             self.send_response(200)
@@ -162,8 +161,7 @@ class GetHandler(BaseHTTPRequestHandler):
             # Get the date info
             current_date = time.strftime("%m/%d/%Y")
             current_time = time.strftime("%H:%M:%S")
-            screenshot_name = current_date.replace("/", "") +\
-                "_" + current_time.replace(":", "") + "actor_data.txt"
+            screenshot_name = current_date.replace("/", "") + "_" + current_time.replace(":", "") + "actor_data.txt"
 
             # Read the length of the screenshot file being uploaded
             screen_length = self.headers['content-length']
