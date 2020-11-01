@@ -84,7 +84,7 @@ if __name__ == "__main__":
                 if datatype_module.cli == cli_parsed.datatype.lower():
                     generated_data = datatype_module.generate_data()
 
-                    # Once data has been generated, transmit it using the 
+                    # Once data has been generated, transmit it using the
                     # protocol requested by the user
                     for proto_name, proto_module in the_conductor.client_protocols.items():
                         if proto_module.protocol == cli_parsed.client.lower():
@@ -101,7 +101,7 @@ if __name__ == "__main__":
                     sys.exit()
 
         print("[*] Error: You either didn't provide a valid datatype or client protocol to use.")
-        print("[*] Error: Re-run and use --list-datatypes or --list-clients to see possible options.")
+        print('[*] Error: Re-run and use --list-datatypes or --list-clients to see possible options.')
         sys.exit()
 
     elif cli_parsed.actor is not None:

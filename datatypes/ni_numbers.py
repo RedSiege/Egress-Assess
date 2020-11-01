@@ -27,8 +27,8 @@ class Datatype:
 
     @staticmethod
     def create_ni():
-        ni_n = helpers.randomNumbers(6)
-        ni_s = (helpers.randomString(3)).upper()
+        ni_n = helpers.random_numbers(6)
+        ni_s = (helpers.random_string(3)).upper()
         ni = ni_s[0:2] + ni_n[0:6] + ni_s[2:3]
         return ni
 

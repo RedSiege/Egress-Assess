@@ -17,7 +17,7 @@ class Datatype:
 
     @staticmethod
     def create_ssn():
-        ssn = helpers.randomNumbers(9)
+        ssn = helpers.random_numbers(9)
         ssn = ssn[0:3] + "-" + ssn[3:5] + "-" + ssn[5:9]
         return ssn
 

