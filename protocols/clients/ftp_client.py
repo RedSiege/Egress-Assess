@@ -23,13 +23,14 @@ class Client:
             self.port = 21
         else:
             self.port = cli_object.client_port
+
         if cli_object.file is None:
             self.file_transfer = False
         else:
-            if "/" in cli_object.file:
-                self.file_transfer = cli_object.file.split("/")[-1]
-            else:
+            if '/' in cli_object.file:
                 self.file_transfer = cli_object.file
+            else:
+                self.file_transfer = cli_object.file.split('/')[-1]
 
     def transmit(self, data_to_transmit):
 
@@ -48,13 +49,10 @@ class Client:
 
         if not self.file_transfer:
             ftp_file_name = helpers.writeout_text_data(data_to_transmit)
-
-            ftp.storbinary(
-                "STOR " + ftp_file_name, open(helpers.ea_path()
-                        + "/" + ftp_file_name))
+            ftp.storbinary("STOR " + ftp_file_name, open(helpers.ea_path() + "/" + ftp_file_name))
             os.remove(helpers.ea_path() + "/" + ftp_file_name)
         else:
             ftp.storbinary("STOR " + self.file_transfer, open(self.file_transfer))
 
         ftp.quit()
-        print('[*] File sent!!!')
+        print('[*] File sent')

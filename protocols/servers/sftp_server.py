@@ -24,7 +24,7 @@ class Server:
         self.protocol = "sftp"
         self.username = cli_object.username
         self.password = cli_object.password
-        self.sftp_directory = helpers.ea_path() + '/data'
+        self.sftp_directory = helpers.ea_path() + '/transfer'
         if cli_object.server_port:
             self.port = int(cli_object.server_port)
         else:
@@ -59,11 +59,11 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
 -----END RSA PRIVATE KEY-----
 """
 
-    def accept_client(
-            self, client, addr, root_dir, users, host_rsa_key, password):
+    @staticmethod
+    def accept_client(client, addr, root_dir, users, host_rsa_key, password):
         usermap = {}
-        for u in users:
-            usermap[u.username] = u
+        for user in users:
+            usermap[user.username] = user
 
         host_key_file = StringIO(host_rsa_key)
         host_key = paramiko.RSAKey(file_obj=host_key_file)
@@ -88,7 +88,7 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
         return
 
     def serve(self):
-        loot_path = os.path.join(helpers.ea_path(), "data") + "/"
+        loot_path = os.path.join(helpers.ea_path(), 'transfer') + "/"
         # Check to make sure the agent directory exists, and a loot
         # directory for the agent.  If not, make them
         if not os.path.isdir(loot_path):
@@ -96,7 +96,7 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
 
         user_map = [sftp_classes.User(username=self.username, password=self.password, chroot=False), ]
 
-        print('[*] Starting SFTP server...')
+        print(f'[*] Starting SFTP server on {self.port}.')
 
         try:
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

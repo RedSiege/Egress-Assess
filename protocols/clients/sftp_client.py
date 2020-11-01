@@ -25,11 +25,12 @@ class Client:
             self.port = 22
         else:
             self.port = cli_object.client_port
+
         if cli_object.file is None:
             self.file_transfer = False
         else:
-            if "/" in cli_object.file:
-                self.file_transfer = cli_object.file.split("/")[-1]
+            if '/' in cli_object.file:
+                self.file_transfer = cli_object.file.split('/')[-1]
             else:
                 self.file_transfer = cli_object.file
 
@@ -39,9 +40,9 @@ class Client:
 
         if not self.file_transfer:
             sftp_file_name = helpers.writeout_text_data(data_to_transmit)
-            full_path = helpers.ea_path() + "/" + sftp_file_name
+            full_path = helpers.ea_path() + '/' + sftp_file_name
 
-            transport = paramiko.Transport((self.remote_system, self.port))
+            transport = paramiko.Transport(self.remote_system, self.port)
             transport.connect(username=self.username, password=self.password)
             sftp = paramiko.SFTPClient.from_transport(transport)
             sftp.put(full_path, '/' + sftp_file_name)
@@ -52,11 +53,11 @@ class Client:
 
             os.remove(sftp_file_name)
         else:
-            transport = paramiko.Transport((self.remote_system, self.port))
+            transport = paramiko.Transport(self.remote_system, self.port)
             transport.connect(username=self.username, password=self.password)
-            sftp = paramiko.SFTPClient.from_transport(transport)
-            if "/" in self.file_transfer:
-                sftp.put(self.file_transfer, '/' + self.file_transfer.split("/")[-1])
+            sftp = transport.open_sftp_client().from_transport(transport)
+            if '/' in self.file_transfer:
+                sftp.put(self.file_transfer, '/' + self.file_transfer.split('/')[-1])
             else:
                 sftp.put(self.file_transfer, '/' + self.file_transfer)
 
@@ -64,6 +65,4 @@ class Client:
             sftp.close()
             transport.close()
 
-        print('[*] Data sent!')
-
-        return
+        print('[*] Data sent')

@@ -15,7 +15,7 @@ from pyftpdlib.servers import FTPServer
 class Server:
 
     def __init__(self, cli_object):
-        self.protocol = "ftp"
+        self.protocol = 'ftp'
         self.username = cli_object.username
         self.password = cli_object.password
         self.data_directory = ""
@@ -31,7 +31,7 @@ class Server:
 
     def serve(self):
         # current directory
-        exfil_directory = os.path.join(os.getcwd(), "data")
+        exfil_directory = os.path.join(os.getcwd(), 'transfer')
         loot_path = exfil_directory + "/"
 
         # Check to make sure the agent directory exists, and a loot
@@ -41,9 +41,7 @@ class Server:
 
         try:
             authorizer = DummyAuthorizer()
-            authorizer.add_user(
-                self.username, self.password,
-                loot_path, perm="elradfmwM")
+            authorizer.add_user(self.username, self.password, homedir=loot_path, perm="elradfmwM")
 
             handler = FTPHandler
             handler.authorizer = authorizer
@@ -65,4 +63,3 @@ class Server:
             print('[*] Error: The directory you provided may not exist!')
             print('[*] Error: Please re-run with a valid FTP directory.')
             sys.exit()
-        return

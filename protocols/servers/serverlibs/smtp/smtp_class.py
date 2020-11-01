@@ -17,18 +17,18 @@ class CustomSMTPServer(smtpd.SMTPServer):
         print('Message addressed to  :', rcpttos)
         print('Message length        :', len(data))
 
-        loot_directory = helpers.ea_path() + '/data'
+        loot_directory = helpers.ea_path() + '/transfer'
 
         p = Parser()
         msgobj = p.parsestr(data)
         for part in msgobj.walk():
             attachment = self.email_parse_attachment(part)
             if type(attachment) is dict and 'filedata' in attachment:
-                    decoded_file_data = base64.b64decode(attachment['filedata'])
-                    attach_file_name = attachment['filename']
-                    with open(loot_directory + "/" + attach_file_name, 'wb') as attached_file:
-                        helpers.received_file(attach_file_name)
-                        attached_file.write(decoded_file_data)
+                decoded_file_data = base64.b64decode(attachment['filedata'])
+                attach_file_name = attachment['filename']
+                with open(loot_directory + "/" + attach_file_name, 'wb') as attached_file:
+                    helpers.received_file(attach_file_name)
+                    attached_file.write(decoded_file_data)
             else:
                 current_date = time.strftime("%m/%d/%Y")
                 current_time = time.strftime("%H:%M:%S")
@@ -38,10 +38,9 @@ class CustomSMTPServer(smtpd.SMTPServer):
                 with open(loot_directory + "/" + file_name, 'a') as email_file:
                     email_file.write('METADATA: File from - ' + str(peer) + '\n\n')
                     email_file.write(data)
-        return
 
-    def email_parse_attachment(self, message_part):
-
+    @staticmethod
+    def email_parse_attachment(message_part):
         content_disposition = message_part.get("Content-Disposition", None)
         if content_disposition:
             dispositions = content_disposition.strip().split(";")
