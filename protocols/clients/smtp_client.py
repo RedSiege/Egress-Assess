@@ -31,9 +31,9 @@ class Client:
             self.file_transfer = False
         else:
             if '/' in cli_object.file:
-                self.file_transfer = cli_object.file.split('/')[-1]
-            else:
                 self.file_transfer = cli_object.file
+            else:
+                self.file_transfer = cli_object.file.split('/')[-1]
 
     # transmit is the only required function within the object.  It is what
     # called by the framework to transmit data.  However, you can create as 
@@ -62,13 +62,10 @@ class Client:
             part.add_header('Content-Disposition', 'attachment; filename=' + self.file_transfer)
             msg.attach(part)
 
-        server = smtplib.SMTP(self.remote_server, self.port)
-        server.set_debuglevel(False)
+        server = smtplib.SMTP.connect(self.remote_server, host=self.remote_server, port=self.port)
         try:
             server.sendmail('tester@egress-assess.com', ['server@egress-assess.com'], msg.as_string())
         finally:
             server.quit()
 
         print('[*] Data transmitted!')
-
-        return

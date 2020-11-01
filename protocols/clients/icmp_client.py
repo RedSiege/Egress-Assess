@@ -71,5 +71,3 @@ class Client:
             # Increment counters
             byte_reader += self.length
             packet_number += 1
-
-        return

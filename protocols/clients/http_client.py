@@ -19,6 +19,7 @@ class Client:
             self.port = 80
         else:
             self.port = cli_object.client_port
+
         if cli_object.file is None:
             self.file_transfer = False
         else:
