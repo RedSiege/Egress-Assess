@@ -42,7 +42,7 @@ from common import helpers
 #
 # I would prefer #1 if possible, I am unaware of how to do this currently though.
 
-LOOT_PATH = os.path.join(helpers.ea_path(), "data") + "/"
+LOOT_PATH = os.path.join(helpers.ea_path(), 'transfer') + "/"
 FILE_DICT = {}
 FILE_NAME = ""
 FILE_STATUS = "0"
@@ -55,29 +55,32 @@ def set_file_name():
     current_date = time.strftime("%m/%d/%Y")
     current_time = time.strftime("%H:%M:%S")
 
-    FILE_NAME = current_date.replace("/", "") +\
-                "_" + current_time.replace(":", "") + "text_data.txt"
+    FILE_NAME = current_date.replace("/", "") + "_" + current_time.replace(":", "") + "text_data.txt"
 
 
 class Server:
     def __init__(self, cli_object):
-        self.protocol = "dns"
+        self.protocol = 'dns'
         self.servers = []
+        if cli_object.server_port:
+            self.port = int(cli_object.server_port)
+        else:
+            self.port = 53
 
     def start_dns_servers(self):
         self.servers = [
-            socketserver.ThreadingUDPServer(('', 53), UDPRequestHandler),
+            socketserver.ThreadingUDPServer(('', self.port), UDPRequestHandler),
         ]
-        for s in self.servers:
+        for server in self.servers:
             # that thread will start one more thread for each request
-            thread = threading.Thread(target=s.serve_forever)
+            thread = threading.Thread(target=server.serve_forever)
             # exit the server thread when the main thread terminates
             thread.daemon = True
             thread.start()
-            print(f'{s.RequestHandlerClass.__name__[:3]} server loop running in thread: {thread.name}')
+            print(f'{server.RequestHandlerClass.__name__[:3]} server loop running in thread: {thread.name}')
 
     def serve(self):
-        print("[*] DNS Server Started")
+        print(f'[*] DNS Server Started on port {self.port} UDP.')
 
         set_file_name()
 
@@ -96,8 +99,8 @@ class Server:
             pass
 
         finally:
-            for s in self.servers:
-                s.shutdown()
+            for server in self.servers:
+                server.shutdown()
 
         return
 

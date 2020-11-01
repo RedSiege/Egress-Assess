@@ -17,15 +17,21 @@ from scapy.all import *
 class Client:
 
     def __init__(self, cli_object):
-        self.protocol = "dns"
+        self.protocol = 'dns'
         self.remote_server = cli_object.ip
         self.max_length = 63
         self.current_total = 0
+        if cli_object.client_port is None:
+            self.port = 53
+        else:
+            self.port = cli_object.client_port
+
         if cli_object.file is None:
             self.file_transfer = False
             self.length = 35
         else:
             self.length = 35
+
             if "/" in cli_object.file:
                 self.file_transfer = cli_object.file.split("/")[-1]
             else:
