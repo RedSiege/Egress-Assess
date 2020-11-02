@@ -26,8 +26,8 @@ class Server:
             print(f'[*] Starting HTTP server on port {self.port}.')
             # bind to all interfaces
             Thread(target=self.serve_on_port).start()
-            print('[*] The server is currently running.')
-            print(f'[*] ctrl+c to stop the HTTP server.')
+            print('[*] The server is running.')
+            print(f'[*] ctrl+c to stop the server.')
         # handle keyboard interrupts
         except KeyboardInterrupt:
             print('[!] Rage quiting, and stopping the web server!')
