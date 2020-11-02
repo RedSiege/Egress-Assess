@@ -64,5 +64,5 @@ class Server:
         self.file_name = current_date.replace("/", "") +\
             "_" + current_time.replace(":", "") + "text_data.txt"
 
-        print('[*] ICMP server/sniffer started!')
+        print('[*] Starting ICMP server/sniffer.')
         sniff(prn=self.custom_action)
