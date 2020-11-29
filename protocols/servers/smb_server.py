@@ -53,6 +53,7 @@ class Server:
             server.setLogFile('')
 
             print(f'[*] SMB server is currently running on {self.port}.')
+            print('[*] Please beware that 445 is blocked by some ISP\'s if using that port.')
 
             # Rock and roll
             server.start()
