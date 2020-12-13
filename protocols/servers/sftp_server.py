@@ -1,9 +1,6 @@
 """
 
-This is a ssh server designed to listen for sftp connections
-This code came from:
-
-base code came from - https://searchcode.com/codesearch/raw/53300304/
+Base code from https://searchcode.com/codesearch/raw/53300304/
 
 """
 
@@ -90,23 +87,24 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
     def serve(self):
         loot_path = os.path.join(helpers.ea_path(), 'transfer') + "/"
         # Check to make sure the agent directory exists, and a loot
-        # directory for the agent.  If not, make them
+        # directory for the agent. If not, make them
         if not os.path.isdir(loot_path):
             os.makedirs(loot_path)
 
         user_map = [sftp_classes.User(username=self.username, password=self.password, chroot=False), ]
 
-        print(f'[*] Starting SFTP server on {self.port}.')
+        print(f'[*] Starting an SFTP server on port {self.port}.')
 
         try:
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.bind(('0.0.0.0', self.port))
             server_socket.listen(10)
         except socket.error:
-            print(f'[*] Error: Port in use! Please restart when port {self.port} is free!')
+            print(f'[*] Error: Port {self.port} is currently in use.')
             sys.exit()
 
-        print('[*] SFTP server started!\n')
+        print(f'[*] Starting an SFTP server on port {self.port}.')
+
 
         while True:
             try:
@@ -117,5 +115,5 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
                 t.daemon = True
                 t.start()
             except KeyboardInterrupt:
-                print('[*] Shutting down SFTP server...')
+                print('[*] Shutting down the SFTP server.')
                 sys.exit()
