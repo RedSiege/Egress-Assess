@@ -1,7 +1,6 @@
 """
 
-This is a SMTP server module.  This was based on code made available at:
-http://pymotw.com/2/smtpd/
+This was based on code made available at http://pymotw.com/2/smtpd/
 
 """
 
@@ -30,16 +29,16 @@ class Server:
         if not os.path.isdir(exfil_directory):
             os.makedirs(exfil_directory)
 
-        print(f'[*] Started SMTP server on port {self.port}.')
+        print(f'[*] Started an SMTP server on port {self.port}.')
         try:
             smtp_class.CustomSMTPServer(('0.0.0.0', self.port), None)
         except socket.error:
-            print(f'[*] Error: Port {self.port} is currently in use!')
+            print(f'[*] Error: Port {self.port} is currently in use.')
             print('[*] Error: Please re-start when not in use.')
             sys.exit()
 
         try:
             asyncore.loop()
         except KeyboardInterrupt:
-            print('[*] Shutting down SMTP server...')
+            print('[*] Shutting down the SMTP server.')
             sys.exit()
