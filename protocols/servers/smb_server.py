@@ -1,9 +1,3 @@
-"""
-
-This is the code for the web server
-
-"""
-
 import os
 from impacket import smbserver
 from impacket.ntlm import compute_lmhash, compute_nthash
@@ -31,12 +25,12 @@ class Server:
     def serve(self):
         try:
 
-            # current directory
+            # Current directory
             exfil_directory = os.path.join(os.getcwd(), 'transfer')
             loot_path = exfil_directory + "/"
 
             # Check to make sure the agent directory exists, and a loot
-            # directory for the agent.  If not, make them
+            # directory for the agent. If not, create them
             if not os.path.isdir(loot_path):
                 os.makedirs(loot_path)
 
@@ -53,10 +47,10 @@ class Server:
             server.setLogFile('')
 
             print(f'[*] SMB server is currently running on {self.port}.')
-            print('[*] Please beware that 445 is blocked by some ISP\'s if using that port.')
+            print('[*] Note: port 445 is blocked by some ISPs.')
 
             # Rock and roll
             server.start()
-        # handle keyboard interrupts
+        # Handle keyboard interrupts
         except KeyboardInterrupt:
-            print('[!] Rage quiting, and stopping the smb server!')
+            print('Stopping the SMB server.')
