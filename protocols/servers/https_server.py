@@ -1,9 +1,3 @@
-"""
-
-This is the code for the web server
-
-"""
-
 import os
 import socket
 import ssl
@@ -25,14 +19,13 @@ class Server:
 
     def serve(self):
         try:
-            print(f'[*] Starting HTTPS server on port {self.port}.')
-            # bind to all interfaces
+            print(f'[*] Starting an HTTPS server on port {self.port}.')
+            # Bind to all interfaces
             Thread(target=self.serve_on_port).start()
-            print('[*] The server is running')
-            print(f'[*] ctrl+c to stop the server.')
-        # handle keyboard interrupts
+            print('[*] The server is running.')
+        # Handle keyboard interrupts
         except KeyboardInterrupt:
-            print('[!] Rage quiting, and stopping the web server!')
+            print('[*] Shutting down the HTTPS server.')
         return
 
     def serve_on_port(self):
@@ -45,7 +38,5 @@ class Server:
                 server.socket, certfile=cert_path, server_side=True)
             server.serve_forever()
         except socket.error:
-            print(f'[*][*] Error: Port {self.port} is currently in use!')
-            print('[*][*] Error: Please restart when port is free!')
-            print('[*][*] Error: Please make sure you are running with root or sudo privs when using the standard HTTPS port\n')
+            print(f'[*] Error: Port {self.port} is currently in use.')
             sys.exit()
