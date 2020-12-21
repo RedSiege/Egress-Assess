@@ -19,6 +19,7 @@ class Client:
         self.remote_server = cli_object.ip
         self.username = cli_object.username
         self.password = cli_object.password
+
         if cli_object.client_port is None:
             self.port = 21
         else:
@@ -38,7 +39,7 @@ class Client:
             ftp = FTP()
             ftp.connect(self.remote_server, self.port)
         except socket.gaierror:
-            print('[*] Error: Cannot connect to FTP server.  Checking provided ip!')
+            print('[*] Error: Cannot connect to FTP server.  Check provided ip!')
             sys.exit()
 
         try:
