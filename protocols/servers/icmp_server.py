@@ -1,14 +1,3 @@
-"""
-
-A brief description of the server module can be placed up here
-All import should go between the comments and class declaration
-If you have a question, feel free to check out the other server
-modules ot just hit me up.
-
-Finally, be sure to rename this to a .py file
-
-"""
-
 import base64
 import time
 from scapy.layers.inet import ICMP
@@ -54,7 +43,7 @@ class Server:
     def serve(self):
         self.loot_path = os.path.join(helpers.ea_path(), 'transfer') + '/'
         # Check to make sure the agent directory exists, and a loot
-        # directory for the agent.  If not, make them
+        # directory for the agent. If not, make them
         if not os.path.isdir(self.loot_path):
             os.makedirs(self.loot_path)
 
@@ -64,5 +53,5 @@ class Server:
         self.file_name = current_date.replace("/", "") +\
             "_" + current_time.replace(":", "") + "text_data.txt"
 
-        print('[*] Starting ICMP server/sniffer.')
+        print('[*] Starting an ICMP server/sniffer.')
         sniff(prn=self.custom_action)
