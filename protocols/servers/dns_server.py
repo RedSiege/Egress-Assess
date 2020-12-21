@@ -2,8 +2,8 @@
 Author: @butlerallenj
 Contributors: @khr0x40sh, @ruddawg26
 
-This is an improved version of the DNS Server module. Using DNSLib, this module can listen
-and respond to requests from both TXT and A records, decode the requests utilizing the correct format,
+This is an improved version of the DNS Server module. Using DNSLib, this module can listen and
+respond to requests from both TXT and A records, decode the requests utilizing the correct format,
 and write the output to a file:
 
     FORMATS
@@ -72,15 +72,15 @@ class Server:
             socketserver.ThreadingUDPServer(('', self.port), UDPRequestHandler),
         ]
         for server in self.servers:
-            # that thread will start one more thread for each request
+            # That thread will start one more thread for each request
             thread = threading.Thread(target=server.serve_forever)
-            # exit the server thread when the main thread terminates
+            # Exit the server thread when the main thread terminates
             thread.daemon = True
             thread.start()
             print(f'{server.RequestHandlerClass.__name__[:3]} server loop running in thread: {thread.name}')
 
     def serve(self):
-        print(f'[*] DNS Server Started on port {self.port} UDP.')
+        print(f'[*] Starting a DNS server on UDP port {self.port}.')
 
         set_file_name()
 
@@ -172,7 +172,7 @@ class BaseRequestHandler(socketserver.BaseRequestHandler):
     def upload_feedback(message=""):
         global FILE_STATUS
 
-        sys.stdout.write(f'[*] {message} Transfer Initiated: {FILE_STATUS}\r')
+        sys.stdout.write(f'[*] {message} Transfer initiated: {FILE_STATUS}\r')
         sys.stdout.flush()
 
     def handle_dns_txt(self, encoded_qname):
@@ -232,8 +232,7 @@ class BaseRequestHandler(socketserver.BaseRequestHandler):
                 except Exception as e:
                     print(f'[-] Error handle_dns_resolved: {e} {data}')
             else:
-                # The request is not a file upload, 
-                # write directly to the file in append mode
+                # The request is not a file upload, write directly to the file in append mode
 
                 self.write_file(FILE_NAME, 'a', data=data)
                 return
