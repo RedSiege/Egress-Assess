@@ -1,9 +1,3 @@
-"""
-
-This is the code for the web server
-
-"""
-
 import os
 import socket
 import sys
@@ -23,14 +17,13 @@ class Server:
 
     def serve(self):
         try:
-            print(f'[*] Starting HTTP server on port {self.port}.')
+            print(f'[*] Starting an HTTP server on port {self.port}.')
             # bind to all interfaces
             Thread(target=self.serve_on_port).start()
             print('[*] The server is running.')
-            print(f'[*] ctrl+c to stop the server.')
-        # handle keyboard interrupts
+        # Handle keyboard interrupts
         except KeyboardInterrupt:
-            print('[!] Rage quiting, and stopping the web server!')
+            print('[*] Shutting down the HTTP server.')
 
     def serve_on_port(self):
         try:
@@ -38,6 +31,5 @@ class Server:
                 ("0.0.0.0", self.port), base_handler.GetHandler)
             server80.serve_forever()
         except socket.error:
-            print(f'f[*][*] Error: Port {self.port} is currently in use!')
-            print('[*][*] Error: Please restart when port is free!\n')
+            print(f'f[*]Error: Port {self.port} is currently in use.')
             sys.exit()
