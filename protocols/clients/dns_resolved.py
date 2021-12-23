@@ -39,7 +39,7 @@ class Client:
             else:
                 total_packets = (len(data_to_transmit) / self.length) + 1
 
-            print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(total_packets)
+            print("[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(total_packets))
 
             # Craft the packet with scapy
             try:
@@ -49,7 +49,7 @@ class Client:
             except socket.gaierror:
                 pass
             except KeyboardInterrupt:
-                print "[*] Shutting down..."
+                print("[*] Shutting down...")
                 sys.exit()
 
             # Increment counters

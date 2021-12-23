@@ -52,11 +52,11 @@ class Server:
             # If you want log dumped to a file, enter the filename
             server.setLogFile('')
 
-            print "[*] SMB server is currently running..."
+            print("[*] SMB server is currently running...")
 
             # Rock and roll
             server.start()
         # handle keyboard interrupts
         except KeyboardInterrupt:
-            print "[!] Rage quiting, and stopping the smb server!"
+            print("[!] Rage quiting, and stopping the smb server!")
         return

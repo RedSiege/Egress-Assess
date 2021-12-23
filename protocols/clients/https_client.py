@@ -6,7 +6,7 @@ This is the web client code
 
 import ssl
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 
 class Client:
@@ -35,24 +35,24 @@ class Client:
 
             # Post the data to the web server at the specified URL
             try:
-                f = urllib2.urlopen(url, data_to_transmit)
+                f = urllib.request.urlopen(url, data_to_transmit)
                 f.close()
-                print "[*] File sent!!!"
-            except urllib2.URLError:
-                print "[*] Error: Web server may not be active on " + self.remote_server
-                print "[*] Error: Please check server to make sure it is active!"
+                print("[*] File sent!!!")
+            except urllib.error.URLError:
+                print("[*] Error: Web server may not be active on " + self.remote_server)
+                print("[*] Error: Please check server to make sure it is active!")
                 sys.exit()
         else:
             url = "https://" + self.remote_server + ":" + str(self.port) + "/post_file.php"
 
             try:
                 data_to_transmit = self.file_transfer + ".:::-989-:::." + data_to_transmit
-                f = urllib2.urlopen(url, data_to_transmit)
+                f = urllib.request.urlopen(url, data_to_transmit)
                 f.close()
-                print "[*] File sent!!!"
-            except urllib2.URLError:
-                print "[*] Error: Web server may not be active on " + self.remote_server
-                print "[*] Error: Please check server to make sure it is active!"
+                print("[*] File sent!!!")
+            except urllib.error.URLError:
+                print("[*] Error: Web server may not be active on " + self.remote_server)
+                print("[*] Error: Please check server to make sure it is active!")
                 sys.exit()
 
         return

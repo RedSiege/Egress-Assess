@@ -35,7 +35,7 @@ class Client:
 
     def transmit(self, data_to_transmit):
 
-        print "[*] Transmitting data..."
+        print("[*] Transmitting data...")
 
         if not self.file_transfer:
             sftp_file_name = helpers.writeout_text_data(data_to_transmit)
@@ -64,6 +64,6 @@ class Client:
             sftp.close()
             transport.close()
 
-        print "[*] Data sent!"
+        print("[*] Data sent!")
 
         return

@@ -32,7 +32,7 @@ class Datatype:
         return ni
 
     def generate_data(self):
-        print "[*] Generating data..."
+        print("[*] Generating data...")
         nis = ''
         # This is approx 1 meg of ni's (not including ", ")
         for single_ni in range(0, 100000 * self.datasize):

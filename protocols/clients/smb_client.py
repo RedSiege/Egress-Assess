@@ -63,12 +63,12 @@ class Client:
             smb_command += self.file_transfer + " " + self.file_name + "\""
             smb_file_name = self.file_transfer
 
-        print smb_command
+        print(smb_command)
         os.system(smb_command)
 
         if not self.file_transfer:
             os.remove(smb_full_path)
 
-        print "[*] File Transmitted!"
+        print("[*] File Transmitted!")
 
         return

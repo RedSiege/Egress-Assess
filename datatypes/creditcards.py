@@ -26,7 +26,7 @@ class Datatype:
 
         # generate digits
         while len(ccnumber) < (length - 1):
-            digit = str(the_generator.choice(range(0, 10)))
+            digit = str(the_generator.choice(list(range(0, 10))))
             ccnumber.append(digit)
 
         # Calculate sum
@@ -67,7 +67,7 @@ class Datatype:
         return result
 
     def generate_data(self):
-        print "[*] Generating data..."
+        print("[*] Generating data...")
         # credit card constants
         visaPrefixList = [
             ['4', '5', '3', '9'],

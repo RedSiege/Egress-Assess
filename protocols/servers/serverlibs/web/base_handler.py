@@ -1,7 +1,7 @@
 import os
 import random
 import time
-from BaseHTTPServer import BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler
 from common import helpers
 from commandcontrol.apt import *
 from commandcontrol.malware import *
@@ -177,6 +177,6 @@ class GetHandler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
-            print "Odd... someone else is trying to access this web server..."
-            print "Might want to check that out..."
+            print("Odd... someone else is trying to access this web server...")
+            print("Might want to check that out...")
         return

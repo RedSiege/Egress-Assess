@@ -42,7 +42,7 @@ class Client:
     # is to be sent out by the client.
     def transmit(self, data_to_transmit):
 
-        print "[*] Sending data over e-mail..."
+        print("[*] Sending data over e-mail...")
 
         if not self.file_transfer:
             # Create the message
@@ -69,6 +69,6 @@ class Client:
         finally:
             server.quit()
 
-        print "[*] Data transmitted!"
+        print("[*] Data transmitted!")
 
         return

@@ -14,7 +14,7 @@ import sys
 import threading
 import time
 from common import helpers
-from StringIO import StringIO
+from io import StringIO
 from protocols.servers.serverlibs.sftp import sftp_classes
 
 
@@ -99,17 +99,17 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
         user_map = [sftp_classes.User(
             username=self.username, password=self.password, chroot=False), ]
 
-        print "[*] Starting SFTP server..."
+        print("[*] Starting SFTP server...")
 
         try:
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.bind(('0.0.0.0', self.port))
             server_socket.listen(10)
         except socket.error:
-            print "[*] Error: Port in use! Please restart when port {} is free!".format(self.port)
+            print("[*] Error: Port in use! Please restart when port {} is free!".format(self.port))
             sys.exit()
 
-        print "[*] SFTP server started!\n"
+        print("[*] SFTP server started!\n")
 
         while True:
             try:
@@ -120,7 +120,7 @@ Myw1d5t46XP97y6Szrhcsrt15pmSKD+zLYXD26qoxKJOP9a6+A==
                 t.daemon = True
                 t.start()
             except KeyboardInterrupt:
-                print "[*] Shutting down SFTP server..."
+                print("[*] Shutting down SFTP server...")
                 sys.exit()
 
         return

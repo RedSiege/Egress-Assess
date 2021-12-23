@@ -25,14 +25,14 @@ class Server:
 
     def serve(self):
         try:
-            print "[*] Starting web (https) server..."
+            print("[*] Starting web (https) server...")
             # bind to all interfaces
             Thread(target=self.serve_on_port).start()
-            print "[*] Web server is currently running"
-            print "[*] Type \"kill -9 " + str(os.getpid()) + "\" to stop the web server."
+            print("[*] Web server is currently running")
+            print("[*] Type \"kill -9 " + str(os.getpid()) + "\" to stop the web server.")
         # handle keyboard interrupts
         except KeyboardInterrupt:
-            print "[!] Rage quiting, and stopping the web server!"
+            print("[!] Rage quiting, and stopping the web server!")
         return
 
     def serve_on_port(self):
@@ -45,7 +45,7 @@ class Server:
                 server.socket, certfile=cert_path, server_side=True)
             server.serve_forever()
         except socket.error:
-            print "[*][*] Error: Port %d is currently in use!" % self.port
-            print "[*][*] Error: Please restart when port is free!\n"
+            print("[*][*] Error: Port %d is currently in use!" % self.port)
+            print("[*][*] Error: Please restart when port is free!\n")
             sys.exit()
         return

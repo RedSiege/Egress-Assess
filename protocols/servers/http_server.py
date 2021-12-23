@@ -23,14 +23,14 @@ class Server:
 
     def serve(self):
         try:
-            print "[*] Starting web (http) server..."
+            print("[*] Starting web (http) server...")
             # bind to all interfaces
             Thread(target=self.serve_on_port).start()
-            print "[*] Web server is currently running"
-            print "[*] Type \"kill -9 " + str(os.getpid()) + "\" to stop the web server."
+            print("[*] Web server is currently running")
+            print("[*] Type \"kill -9 " + str(os.getpid()) + "\" to stop the web server.")
         # handle keyboard interrupts
         except KeyboardInterrupt:
-            print "[!] Rage quiting, and stopping the web server!"
+            print("[!] Rage quiting, and stopping the web server!")
         return
 
     def serve_on_port(self):
@@ -39,7 +39,7 @@ class Server:
                 ("0.0.0.0", self.port), base_handler.GetHandler)
             server80.serve_forever()
         except socket.error:
-            print "[*][*] Error: Port %s is currently in use!" % self.port
-            print "[*][*] Error: Please restart when port is free!\n"
+            print("[*][*] Error: Port %s is currently in use!" % self.port)
+            print("[*][*] Error: Please restart when port is free!\n")
             sys.exit()
         return

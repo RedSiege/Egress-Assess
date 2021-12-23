@@ -41,7 +41,7 @@ class Client:
         if helpers.validate_ip(self.remote_server):
             final_destination = self.remote_server
         else:
-            print "[*] Resolving IP of domain..."
+            print("[*] Resolving IP of domain...")
             final_destination = socket.gethostbyname(self.remote_server)
 
         # calcalate total packets
@@ -60,12 +60,12 @@ class Client:
                            id=15, opcode=0, qd=[DNSQR(
                             qname=encoded_data, qtype="TXT")], aa=1, qr=0),
                          verbose=False)
-                    print "Sending data...        " + str(packet_number) + "/" + str(total_packets)
+                    print("Sending data...        " + str(packet_number) + "/" + str(total_packets))
                     packet_number += 1
                     byte_reader += self.length
 
                 except KeyboardInterrupt:
-                    print "[*] Shutting down..."
+                    print("[*] Shutting down...")
                     sys.exit()
             else:
                 encoded_data = base64.b64encode(str(struct.pack('>I', packet_number)) + ".:|:." + data_to_transmit[byte_reader:byte_reader + self.length])
@@ -85,7 +85,7 @@ class Client:
                     self.current_total = packet_number + packet_diff
                     check_total = False
 
-                print "[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total)
+                print("[*] Packet Number/Total Packets:        " + str(packet_number) + "/" + str(self.current_total))
 
                 # Craft the packet with scapy
                 try:
@@ -104,7 +104,7 @@ class Client:
                         '''
 
                 except KeyboardInterrupt:
-                    print "[*] Shutting down..."
+                    print("[*] Shutting down...")
                     sys.exit()
 
             # Increment counters

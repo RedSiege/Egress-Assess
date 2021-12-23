@@ -91,35 +91,35 @@ def cli_parser():
     if ((args.server == "ftp" or args.server == "sftp") or (
             args.client == "ftp" or args.client == "sftp")) and (
             args.username is None or args.password is None):
-        print "[*] Error: FTP or SFTP connections require \
-            a username and password!".replace('    ', '')
-        print "[*] Error: Please re-run and provide the required info!"
+        print("[*] Error: FTP or SFTP connections require \
+            a username and password!".replace('    ', ''))
+        print("[*] Error: Please re-run and provide the required info!")
         sys.exit(1)
 
     if args.client and args.ip is None:
-        print "[*] Error: You said to act like a client, but provided no ip"
-        print "[*] Error: to connect to.  Please re-run with required info!"
+        print("[*] Error: You said to act like a client, but provided no ip")
+        print("[*] Error: to connect to.  Please re-run with required info!")
         sys.exit(1)
 
     if (args.client is not None) and (args.datatype is None) and (
             args.file is None):
-        print "[*] Error: You need to tell Egress-Assess the type \
-            of data to send!".replace('    ', '')
-        print "[*] Error: to connect to.  Please re-run with required info!"
+        print("[*] Error: You need to tell Egress-Assess the type \
+            of data to send!".replace('    ', ''))
+        print("[*] Error: to connect to.  Please re-run with required info!")
         sys.exit(1)
 
     if (args.client is None and args.server is None and
             args.list_servers is None and args.list_clients is None and
             args.list_datatypes is None):
-        print "[*] Error: You didn't tell Egress-Assess to act like \
-            a server or client!".replace('    ', '')
-        print "[*] Error: Please re-run and provide an action to perform!"
+        print("[*] Error: You didn't tell Egress-Assess to act like \
+            a server or client!".replace('    ', ''))
+        print("[*] Error: Please re-run and provide an action to perform!")
         parser.print_help()
         sys.exit(1)
 
     if args.actor is not None and args.ip is None:
-        print "[*] Error: You did not provide an IP to egress data to!"
-        print "[*] Error: Please re-run and provide an ip!"
+        print("[*] Error: You did not provide an IP to egress data to!")
+        print("[*] Error: Please re-run and provide an ip!")
         sys.exit(1)
 
     return args
@@ -149,14 +149,14 @@ def randomString(length=-1):
     return random_string
 
 def received_file(filename):
-    print("[+] {} - Received File - {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), filename))
+    print(("[+] {} - Received File - {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), filename)))
 
 
 def title_screen():
     os.system('clear')
-    print "#" * 80
-    print "#" + " " * 32 + "Egress-Assess" + " " * 33 + "#"
-    print "#" * 80 + "\n"
+    print("#" * 80)
+    print("#" + " " * 32 + "Egress-Assess" + " " * 33 + "#")
+    print("#" * 80 + "\n")
     return
 
 

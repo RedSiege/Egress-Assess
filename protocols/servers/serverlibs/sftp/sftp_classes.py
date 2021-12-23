@@ -4,7 +4,7 @@ import paramiko
 import tempfile
 import threading
 import time
-from StringIO import StringIO
+from io import StringIO
 
 
 
@@ -15,7 +15,7 @@ class User(object):
         self.password = password
         self.chroot = chroot
         self.public_key = public_key
-        if type(self.public_key) in (str, unicode):
+        if type(self.public_key) in (str, str):
             bits = base64.decodestring(self.public_key.split(' ')[1])
             msg = paramiko.Message(bits)
             key = paramiko.RSAKey(msg)
@@ -202,7 +202,7 @@ def accept_client(client, addr, root_dir, users, host_rsa_key, conf={}):
     transport.load_server_moduli()
     transport.add_server_key(host_key)
 
-    if conf.has_key("sftp_implementation"):
+    if "sftp_implementation" in conf:
         mod_name, class_name = conf['sftp_implementation'].split(':')
         fromlist = None
         try:

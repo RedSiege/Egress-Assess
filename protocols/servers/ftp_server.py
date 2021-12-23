@@ -50,17 +50,17 @@ class Server:
             handler.banner = "Connecting to Egress-Assess's FTP server!"
             #Define public address and  passive ports making NAT configurations more predictable
             handler.masquerade_address = self.ip
-            handler.passive_ports = range(60000, 60100)
+            handler.passive_ports = list(range(60000, 60100))
 
             try:
                 server = FTPServer(('', self.port), handler)
                 server.serve_forever()
             except socket.error:
-                print "[*][*] Error: Port %d is currently in use!" % self.port
-                print "[*][*] Error: Please restart when port is free!\n"
+                print("[*][*] Error: Port %d is currently in use!" % self.port)
+                print("[*][*] Error: Please restart when port is free!\n")
                 sys.exit()
         except ValueError:
-            print "[*] Error: The directory you provided may not exist!"
-            print "[*] Error: Please re-run with a valid FTP directory."
+            print("[*] Error: The directory you provided may not exist!")
+            print("[*] Error: Please re-run with a valid FTP directory.")
             sys.exit()
         return

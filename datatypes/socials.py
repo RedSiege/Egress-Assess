@@ -21,7 +21,7 @@ class Datatype:
         return ssn
 
     def generate_data(self):
-        print "[*] Generating data..."
+        print("[*] Generating data...")
         ssns = ''
         # This is approx 1 meg of socials
         for single_ssn in range(0, 81500 * self.datasize):

