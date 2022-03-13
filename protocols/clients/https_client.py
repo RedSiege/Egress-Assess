@@ -31,6 +31,7 @@ class Client:
 
     def transmit(self, data_to_transmit):
 
+        # noinspection PyProtectedMember
         ssl._create_default_https_context = ssl._create_unverified_context
         if not self.file_transfer:
             url = 'https://' + self.remote_server + ':' + str(self.port) + '/post_file.php'
