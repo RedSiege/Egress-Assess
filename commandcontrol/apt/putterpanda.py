@@ -74,8 +74,7 @@ class Actor:
 
             # UrlEncode and send the data out
             posted_data = urllib.parse.urlencode(posted_data)
-            post_req = urllib.request.Request(
-                "http://" + self.egress_server + putter_uri, posted_data, headers=putter_headers)
+            post_req = urllib.request.Request("http://" + self.egress_server + putter_uri, posted_data, headers=putter_headers)
 
             try:
                 urllib.request.urlopen(post_req)
