@@ -20,14 +20,14 @@ class Datatype:
     def completed_number(prefix, length, the_generator):
         """
         'prefix' is the start of the CC number as a string, any number of digits.
-        'length' is the length of the CC number to generate. Typically 13 or 16
+        'length' is the length of the CC number to generate. Typically, 13 or 16
         """
 
         ccnumber = prefix
 
         # generate digits
         while len(ccnumber) < (length - 1):
-            digit = str(the_generator.choice(range(0, 10)))
+            digit = str(the_generator.choice(list(range(0, 10))))
             ccnumber.append(digit)
 
         # Calculate sum

@@ -101,7 +101,6 @@ class Server:
         finally:
             for server in self.servers:
                 server.shutdown()
-
         return
 
 
@@ -150,7 +149,7 @@ class BaseRequestHandler(socketserver.BaseRequestHandler):
             helpers.received_file(file_name)
             missing_keys = []
             write_dict = FILE_DICT
-            if len(write_dict.keys()) < 2:
+            if len(list(write_dict.keys())) < 2:
                 return
 
             with open(LOOT_PATH + file_name, write_mode) as f:

@@ -9,7 +9,9 @@ https://github.com/rsmudge/Malleable-C2-Profiles/blob/master/APT/etumbot.profile
 
 import random
 import sys
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 
 
 class Actor:
@@ -56,7 +58,7 @@ class Actor:
         etumbot_headers = {
             "User-Agent": "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/5.0)",
             "Connection": "Keep-Alive",
-            "Referrer": "http://www.google.com/",
+            "Referrer": "https://www.google.com/",
             "Pragma": "no-cache",
             "Cache-Control": "no-cache",
             "Accept": "text/html,application/xhtml+xml,application/xml,q=0.9,*/*;q=0.8"
@@ -65,9 +67,7 @@ class Actor:
         selected_domain = random.choice(self.domains)
         etumbot_headers['Host'] = selected_domain
 
-        get_request = urllib.request.Request(
-            "http://" + self.egress_server + "/home/index.asp?typeid=13",
-            headers=etumbot_headers)
+        get_request = urllib.request.Request("http://" + self.egress_server + "/home/index.asp?typeid=13", headers=etumbot_headers)
 
         try:
             urllib.request.urlopen(get_request)
@@ -82,8 +82,7 @@ class Actor:
             etumbot_headers['Host'] = selected_domain
             etumbot_uri = random.choice(self.uris)
 
-            get_req2 = urllib.request.Request(
-                "http://" + self.egress_server + etumbot_uri, headers=etumbot_headers)
+            get_req2 = urllib.request.Request("http://" + self.egress_server + etumbot_uri, headers=etumbot_headers)
 
             try:
                 urllib.request.urlopen(get_req2)

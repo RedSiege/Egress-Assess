@@ -144,10 +144,9 @@ def validate_ip(val_ip):
 
 def writeout_text_data(incoming_data):
     # Get the date info
-    current_date = time.strftime("%m/%d/%Y")
+    current_date = time.strftime("%d/%m/%Y")
     current_time = time.strftime("%H:%M:%S")
-    file_name = current_date.replace("/", "") +\
-        "_" + current_time.replace(":", "") + "text_data.txt"
+    file_name = current_date.replace("/", "") + "_" + current_time.replace(":", "") + "text_data.txt"
 
     # Write out the file
     with open(ea_path() + "/" + file_name, 'w') as out_file:

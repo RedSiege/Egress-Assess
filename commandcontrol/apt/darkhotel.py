@@ -49,8 +49,7 @@ class Actor:
         darkhotel_headers['Host'] = selected_checkin_domain
 
         get_request = urllib.request.Request(
-            "http://" + self.egress_server + "/major/images/view.php",
-            headers=darkhotel_headers)
+            "http://" + self.egress_server + "/major/images/view.php", headers=darkhotel_headers)
 
         try:
             urllib.request.urlopen(get_request)
@@ -59,9 +58,7 @@ class Actor:
             print("[*] Error: Possible firewall, or proxy prventing this?")
             sys.exit(1)
 
-        get_request2 = urllib.request.Request(
-            "http://" + self.egress_server + "/major/txt/read.php",
-            headers=darkhotel_headers)
+        get_request2 = urllib.request.Request("http://" + self.egress_server + "/major/txt/read.php", headers=darkhotel_headers)
 
         try:
             urllib.request.urlopen(get_request2)
@@ -76,8 +73,7 @@ class Actor:
             darkhotel_headers['Host'] = selected_domain
             darkhotel_uri = random.choice(self.uris)
 
-            get_req2 = urllib.request.Request(
-                "http://" + self.egress_server + darkhotel_uri, headers=darkhotel_headers)
+            get_req2 = urllib.request.Request("http://" + self.egress_server + darkhotel_uri, headers=darkhotel_headers)
 
             try:
                 urllib.request.urlopen(get_req2)
