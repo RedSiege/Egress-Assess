@@ -50,7 +50,7 @@ class Client:
 
         if not self.file_transfer:
             ftp_file_name = helpers.writeout_text_data(data_to_transmit)
-            ftp.storbinary("STOR " + ftp_file_name, open(helpers.ea_path() + "/" + ftp_file_name))
+            ftp.storbinary(f"STOR {ftp_file_name}", open(helpers.ea_path() + "/" + ftp_file_name, 'rb'))
             os.remove(helpers.ea_path() + "/" + ftp_file_name)
         else:
             ftp.storbinary("STOR " + self.file_transfer, open(self.file_transfer))

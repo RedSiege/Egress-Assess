@@ -44,7 +44,7 @@ class Server:
             handler.banner = "Connecting to Egress-Assess's FTP server!"
             # Define public address and passive ports making NAT configurations more predictable
             handler.masquerade_address = self.ip
-            handler.passive_ports = range(60000, 60100)
+            handler.passive_ports = list(range(60000, 60100))
 
             try:
                 server = FTPServer(('', self.port), handler)
