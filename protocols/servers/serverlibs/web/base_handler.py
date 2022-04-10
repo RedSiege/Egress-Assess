@@ -9,7 +9,7 @@ from protocols.servers.serverlibs.web import malware_callbacks
 
 
 class GetHandler(BaseHTTPRequestHandler):
-    # Some of the http server code came from Dave Kennedy's AES shell
+    # Some http server code came from Dave Kennedy's AES shell
     # over http - the server specific code
 
     # should be performing GET requests Help from

@@ -8,7 +8,7 @@ AB123456C
 They are sometimes printed with spaces:
 AB 12 34 56 C
 
-This modules doesn't take correct letter prefixing into account,
+These modules don't take correct letter prefixing into account,
 it just generates them randomly. But this is probably good
 enough for basic regex-type filters to detect.
 
