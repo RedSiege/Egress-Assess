@@ -88,6 +88,10 @@ if __name__ == "__main__":
                     # protocol requested by the user
                     for proto_name, proto_module in the_conductor.client_protocols.items():
                         if proto_module.protocol == cli_parsed.client.lower():
+                            # If HTTP or HTTPS protocols, 
+                            # encode generated data to utf-8 for POST request
+                            if cli_parsed.client == "http" or cli_parsed.client == "https":
+                                generated_data = str.encode(generated_data)
                             proto_module.transmit(generated_data)
                             sys.exit()
 
@@ -97,7 +101,6 @@ if __name__ == "__main__":
 
             for proto_name, proto_module in the_conductor.client_protocols.items():
                 if proto_module.protocol == cli_parsed.client.lower():
-                    proto_module.transmit(file_data)
                     sys.exit()
 
         print("[*] Error: You either didn't provide a valid datatype or client protocol to use.")
