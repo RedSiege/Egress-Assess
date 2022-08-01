@@ -30,12 +30,13 @@ class Server:
 
     def serve_on_port(self):
         try:
+            # Reference server.pem file created per README instructions
             cert_path = helpers.ea_path() +\
-                '/protocols/servers/serverlibs/web/server.pem'
+                '/server.pem'
             server = threaded_http.ThreadingHTTPServer(
                 ('0.0.0.0', self.port), base_handler.GetHandler)
             server.socket = ssl.wrap_socket(
-                server.socket, certfile=cert_path, server_side=True)
+                server.socket, keyfile=None, certfile=cert_path, server_side=True)
             server.serve_forever()
         except socket.error:
             print(f'[*] Error: Port {self.port} is currently in use.')
