@@ -54,10 +54,10 @@ class Client:
 
         while byte_reader < len(data_to_transmit):
             if not self.file_transfer:
-                encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length])
+                encoded_data = base64.b64encode(data_to_transmit[byte_reader:byte_reader + self.length].encode())
             else:
-                encoded_data = base64.b64encode(self.file_transfer +
-                                                ".:::-989-:::." + data_to_transmit[byte_reader:byte_reader + self.length])
+                encoded_data = base64.b64encode((self.file_transfer +
+                                                ".:::-989-:::." + (data_to_transmit[byte_reader:byte_reader + self.length]).decode('utf-8')).encode())
 
             print('[*] Packet Number/Total Packets:        ' + str(packet_number) + "/" + str(total_packets))
 
