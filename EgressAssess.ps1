@@ -2255,13 +2255,13 @@ function Invoke-EgressAssess
                     $FileName = get-childitem $Datatype | % { $_.Name }
                     if ($pass)
                     {
-                        New-PSDrive -Name T -PSProvider FileSystem -Root \\$IP\data -Credential $mycreds
+                        New-PSDrive -Name T -PSProvider FileSystem -Root \\$IP\transfer -Credential $mycreds
                         Copy-Item -Path $SourceFilePath -Destination "T:\$FileName"
                         Remove-PSDrive -Name T 
                     }
                     else
                     {
-                        Copy-Item -Path $Datatype -Destination \\$IP\data
+                        Copy-Item -Path $Datatype -Destination \\$IP\transfer
                     }
                     Write-Verbose "[*] File transfer complete."
                     Break
@@ -2285,13 +2285,13 @@ function Invoke-EgressAssess
                     $SMBData | Out-File "$env:temp\$Path"
                     if ($pass)
                     {
-                        New-PSDrive -Name T -PSProvider FileSystem -Root \\$IP\data -Credential $mycreds
+                        New-PSDrive -Name T -PSProvider FileSystem -Root \\$IP\transfer -Credential $mycreds
                         Copy-Item -Path $env:temp\$Path -Destination "T:\"
                         Remove-PSDrive -Name T 
                     }
                     else
                     {
-                        Copy-Item -Path $env:temp\$Path -Destination \\$IP\data
+                        Copy-Item -Path $env:temp\$Path -Destination \\$IP\transfer
                     }
                     try
                     {
