@@ -219,7 +219,7 @@ function Invoke-EgressAssess
                     catch
                     {
                         $ErrorMessage = $_.Exception.Message
-                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose "[*] Error, transfer failed with error:"
                         Write-Verbose $ErrorMessage
                         Break
                     }
@@ -574,7 +574,7 @@ function Invoke-EgressAssess
                     catch
                     {
                         $ErrorMessage = $_.Exception.Message
-                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose "[*] Error, transfer failed with error:"
                         Write-Verbose $ErrorMessage
                         Break
                     }
@@ -619,7 +619,7 @@ function Invoke-EgressAssess
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose "[*] Error, transfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
@@ -1097,7 +1097,7 @@ function Invoke-EgressAssess
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose "[*] Error, transfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
@@ -1224,7 +1224,7 @@ function Invoke-EgressAssess
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose "[*] Error, transfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
@@ -1426,7 +1426,7 @@ function Invoke-EgressAssess
                     catch
                     {
                         $ErrorMessage = $_.Exception.Message
-                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose "[*] Error, transfer failed with error:"
                         Write-Verbose $ErrorMessage
                         Break
                     }
@@ -1532,7 +1532,7 @@ function Invoke-EgressAssess
                     catch
                     {
                         $ErrorMessage = $_.Exception.Message
-                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose "[*] Error, transfer failed with error:"
                         Write-Verbose $ErrorMessage
                         Break
                     }
@@ -1784,7 +1784,7 @@ function Invoke-EgressAssess
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose "[*] Error, transfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
@@ -1873,7 +1873,7 @@ function Invoke-EgressAssess
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose "[*] Error, transfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
@@ -1994,7 +1994,7 @@ function Invoke-EgressAssess
                     catch
                     {
                         $ErrorMessage = $_.Exception.Message
-                        Write-Verbose "[*] Error, tranfer failed with error:"
+                        Write-Verbose "[*] Error, transfer failed with error:"
                         Write-Verbose $ErrorMessage
                         Break
                     }
@@ -2158,7 +2158,7 @@ function Invoke-EgressAssess
                         catch
                         {
                             $ErrorMessage = $_.Exception.Message
-                            Write-Verbose "[*] Error, DNS data tranfer failed with error:"
+                            Write-Verbose "[*] Error, DNS data transfer failed with error:"
                             Write-Verbose $ErrorMessage
                             Break
                         }
@@ -2205,7 +2205,7 @@ function Invoke-EgressAssess
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose "[*] Error, transfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
@@ -2269,7 +2269,7 @@ function Invoke-EgressAssess
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, file tranfer failed with error:"
+                    Write-Verbose "[*] Error, file transfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
@@ -2308,7 +2308,7 @@ function Invoke-EgressAssess
                 catch
                 {
                     $ErrorMessage = $_.Exception.Message
-                    Write-Verbose "[*] Error, tranfer failed with error:"
+                    Write-Verbose "[*] Error, transfer failed with error:"
                     Write-Verbose $ErrorMessage
                     Break
                 }
